@@ -11,7 +11,8 @@ parser=argparse.ArgumentParser()
 parser.add_argument('-v','--varkeys',nargs='*',help='varname in nc file')
 parser.add_argument('-i','--ifiles',help='Input files',nargs='*',required=True)
 parser.add_argument('-d','--domain',help='domain wanted, i0 i1 j0 j1, e.g. "30 100 40 80"',required=True)
-parser.add_argument('-p','--plot',help='plot on screen?',required=False)
+parser.add_argument('-p','--plot',help='plot on screen?',action='store_true')
+parser.add_argument('-s','--suffix',help='suffix if not Base/Base_month.nc?',required=False)
 parser.add_argument('-y','--year',help='year',required=True)
 args=parser.parse_args()
 dtxt='CdfComp'
@@ -22,28 +23,29 @@ print(dtxt+' domain', i0, i1, j0, j1 )
 
 case=dict()
 cases=[]
+ifiles=[]
 for ifile in args.ifiles:
-   case[ifile]= ifile.split('/')[-3].replace('.%s'%args.year,'')  # rv4.2012 from rv4.2012/Base/Base_month.nc
-   cases.append(case[ifile])
-   print(dtxt+'CASE', case[ifile] )
+   print('TRY ', ifile)
+   print('TRY ', ifile.split('/') )
+   if args.suffix:
+      f = ifile + '/' + suffix  # Adds, NOT TESTED YET
+   else:
+      f = ifile + '/Base/Base_month.nc'  # Default
+   
+   case[f]= f.split('/')[-3].replace('.%s'%args.year,'')  # rv4.2012 from rv4.2012/Base/Base_month.nc
+   cases.append(case[f])
+   ifiles.append(f)  # with full path name to .nc
+   print(dtxt+'CASE', case[f] )
 
 #suffix='.2012/Base/Base_month.nc'
 
 first=True
-file0=args.ifiles[0] #  + cases[0] + suffix # Need file to get keys at start
+file0=ifiles[0] #  + cases[0] + suffix # Need file to get keys at start
 print('F0', file0)
+
 ecdf=cdf.Dataset(file0,'r',format='NETCDF4')
 keys = ecdf.variables.keys()
-#lons=ecdf.variables['lon'][:]
-#lats=ecdf.variables['lat'][:]
-#i0 = int( -10.0 - lons[0] + 0.5 )
-#i1 = int(  10.0 - lons[0] + 0.5 )
-#j0 = int(  40.0 - lats[0] + 0.5 )
-#j1 = int(  60.0 - lats[0] + 0.5 )
-#i0=30; i1=120; j0=2; j1=110
-#
 tab=open('ResCdfCompTab_%s.txt' % '_'.join(cases), 'w' )
-#tab=open('Plots_CompCdf/TabComp_%s.txt' % 'x', 'w' )
 header='%-30s' % 'Variable'
 for c in cases: 
   header += ( '%18s' % c )
@@ -57,8 +59,8 @@ for var in args.varkeys:
 
        tab.write('%-30s' % key)
        print('Processing ', var, key )
-       #for case in cases: 
-       for ifile in args.ifiles: 
+
+       for ifile in ifiles: 
 
            ecdf=cdf.Dataset(ifile,'r',format='NETCDF4')
            if key in ecdf.variables.keys():
