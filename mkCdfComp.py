@@ -8,15 +8,18 @@ import os
 #------------------ arguments  ----------------------------------------------
 
 parser=argparse.ArgumentParser()
-parser.add_argument('-v','--varkeys',nargs='*',help='varname in nc file')
+parser.add_argument('-k','--varkeys',nargs='*',help='varname  string in nc file, can be partial eg ug_PM')
 parser.add_argument('-i','--ifiles',help='Input files',nargs='*',required=True)
 parser.add_argument('-d','--domain',help='domain wanted, i0 i1 j0 j1, e.g. "30 100 40 80"',required=True)
 parser.add_argument('-p','--plot',help='plot on screen?',action='store_true')
 parser.add_argument('-s','--suffix',help='suffix if not Base/Base_month.nc?',required=False)
+parser.add_argument('-v','--verbose',help='extra info',action='store_true')
 parser.add_argument('-y','--year',help='year',required=True)
 args=parser.parse_args()
 dtxt='CdfComp'
 print(dtxt+'ARGS', args)
+dbg=False
+if args.verbose: dbg=True
 
 i0, i1, j0, j1 = [ int(i) for i in args.domain.split() ]
 print(dtxt+' domain', i0, i1, j0, j1 )
@@ -51,9 +54,9 @@ for c in cases:
   header += ( '%18s' % c )
 tab.write('%s\n' %  header )
 for var in args.varkeys:
-   #print(' VAR ', var )
+   if dbg: print(' VAR ', var )
    for key in keys:
-       #print(' VAR, KEY ', var, key )
+       if dbg: print(' VAR, KEY ', var, key )
        if not var in key:
            continue
 
@@ -71,7 +74,7 @@ for var in args.varkeys:
              monthly = np.full(12,np.nan)
            plt.plot(monthly,label=case[ifile])
            tab.write('%18.3f' % np.mean(monthly) )
-           print('M:', monthly)
+           if dbg: print('M:', monthly)
 
        plt.title(key)
        plt.ylim(ymin=0.0)
