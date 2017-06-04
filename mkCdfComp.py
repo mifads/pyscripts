@@ -17,9 +17,9 @@ parser.add_argument('-v','--verbose',help='extra info',action='store_true')
 parser.add_argument('-y','--year',help='year',required=True)
 args=parser.parse_args()
 dtxt='CdfComp'
-print(dtxt+'ARGS', args)
 dbg=False
 if args.verbose: dbg=True
+if dbg: print(dtxt+'ARGS', args)
 
 i0, i1, j0, j1 = [ int(i) for i in args.domain.split() ]
 print(dtxt+' domain', i0, i1, j0, j1 )
@@ -28,8 +28,8 @@ case=dict()
 cases=[]
 ifiles=[]
 for ifile in args.ifiles:
-   print('TRY ', ifile)
-   print('TRY ', ifile.split('/') )
+   #print('TRY ', ifile)
+   #print('TRY ', ifile.split('/') )
    if args.suffix:
       f = ifile + '/' + suffix  # Adds, NOT TESTED YET
    else:
