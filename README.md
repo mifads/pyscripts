@@ -17,19 +17,22 @@ Code                          | Comment
 :--------------------------   |:---------------------------------------
 EmepCdf.py |  Main code to read EMEP files - checks projections, dimensions, etc. Gets values for givem lat/long point using bi-linear interpolation of nearby cells. Can also return the values of surrounding points - to make the shadowing used in Dave's time series scripts.
 mkCdfComp.py | IN DEVELOPMENT ... compares 2 or more monthly files, for key patterns and given domain.
+  | 
 get_emepcoords.py |
 get_emepcoords_projOnly.py |
+StringFunctions.py | *stringClean* - Function to get rid of funny chars in names, e.g Bratt's Lake
+"                  | *blankRemove* - obvious ...
+"                  | *multiwrite*  - combines elements from an array with given format string
 AreaLonLatCell.py  |
-CountryStuff.py |
+CountryStuff.py | Figures out country, continent, ISO2, ISO3 etc. from lon, lat coordinates (python2.67 only)
 DailyOzoneMetrics.py |
 DateStuff.py |
 EmepScatPlots.py |
-Geometry.py                  |
 mkEUmask.py |
 ObservationsClass.py |
 SeasonalOzoneMetrics.py |
-StringFunctions.py |
 to_precision.py      |           not used? Returns string of formatted number
+Geometry.py | Returns distance to regresssion line. Used in EmepScatPlots
 WeibullW126.py |
 LICENSE.txt         |             GPL
 README.md | This file.
