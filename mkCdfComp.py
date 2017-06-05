@@ -8,12 +8,13 @@ import os
 #------------------ arguments  ----------------------------------------------
 
 parser=argparse.ArgumentParser()
-parser.add_argument('-k','--varkeys',nargs='*',help='varname  string in nc file, can be partial eg ug_PM')
+parser.add_argument('-v','--varkeys',nargs='*',help='varname  string in nc file, can be partial eg ug_PM')
 parser.add_argument('-i','--ifiles',help='Input files',nargs='*',required=True)
 parser.add_argument('-d','--domain',help='domain wanted, i0 i1 j0 j1, e.g. "30 100 40 80"',required=True)
+parser.add_argument('-o','--odir',help='output directory',default='.')
 parser.add_argument('-p','--plot',help='plot on screen?',action='store_true')
 parser.add_argument('-s','--suffix',help='suffix if not Base/Base_month.nc?',required=False)
-parser.add_argument('-v','--verbose',help='extra info',action='store_true')
+parser.add_argument('-V','--verbose',help='extra info',action='store_true')
 parser.add_argument('-y','--year',help='year',required=True)
 args=parser.parse_args()
 dtxt='CdfComp'
@@ -48,7 +49,11 @@ print('F0', file0)
 
 ecdf=cdf.Dataset(file0,'r',format='NETCDF4')
 keys = ecdf.variables.keys()
-tab=open('ResCdfCompTab_%s.txt' % '_'.join(cases), 'w' )
+odir='.'
+if args.odir:
+  odir=args.odir
+  os.makedirs(odir,exist_ok=True)
+tab=open(odir+'/ResCdfCompTab_%s.txt' % '_'.join(cases), 'w' )
 header='%-30s' % 'Variable'
 for c in cases: 
   header += ( '%18s' % c )
@@ -79,7 +84,7 @@ for var in args.varkeys:
        plt.title(key)
        plt.ylim(ymin=0.0)
        plt.legend()
-       plt.savefig('PlotCdfComp_%s_%s.png' % ( key, '_'.join(cases) ))
+       plt.savefig('%s/PlotCdfComp_%s_%s.png' % ( odir, key, '_'.join(cases) ))
        if args.plot: 
          plt.show()
        #plt.clf()
