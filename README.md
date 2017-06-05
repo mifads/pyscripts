@@ -23,11 +23,12 @@ get_emepcoords_projOnly.py |
 StringFunctions.py | *stringClean* - Function to get rid of funny chars in names, e.g Bratt's Lake
 "                  | *blankRemove* - obvious ...
 "                  | *multiwrite*  - combines elements from an array with given format string
+EmepScatPlots.py | Produces scatter plots, including optinional detection of outliers and addition of labels
+"                  | (needed python pip3 install statsmodels on Xubuntu 17.04)
 AreaLonLatCell.py  |
 CountryStuff.py | Figures out country, continent, ISO2, ISO3 etc. from lon, lat coordinates (python2.67 only)
 DailyOzoneMetrics.py |
 DateStuff.py |
-EmepScatPlots.py |
 mkEUmask.py |
 ObservationsClass.py |
 SeasonalOzoneMetrics.py |
