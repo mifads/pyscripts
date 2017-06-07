@@ -41,7 +41,7 @@ Precipitation mm
 npolls='Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';')
 
 for p in polls:  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';'):
-  print("%-32s %4s %10s %10s %10s %10s %10s" % ( p, 'Ns', 'bias', 'r2-Y', 'r2-YD', 'ioa-Y', 'ioa-YD' ) )
+  print("%-32s %4s %10s %10s %10s %10s %10s" % ( p, 'Ns', 'bias', 'r-Y', 'r-YD', 'ioa-Y', 'ioa-YD' ) )
   print( '-'*92 )
 
   for run in runs:
