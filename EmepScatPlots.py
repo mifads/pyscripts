@@ -3,9 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 # More advanced, from http://stackoverflow.com/questions/10231206/can-scipy-stats-identify-and-mask-obvious-outliers
 # See also: http://statsmodels.sourceforge.net/devel/examples/notebooks/generated/robust_models_0.html
-#DS import statsmodels.api as smapi  # 2017 used conda3 to install
+
 try:
-  from statsmodels.formula.api import ols
+  from statsmodels.formula.api import ols   # Used pip3 (python3-pip) to install
   print('Stats: statsmodels available')
   ImportStats=True
 except:
@@ -17,7 +17,9 @@ import Geometry as geom
 #maxalt=300   # Max altitude of stations
 #aot   = r'AOT40$_\mathrm{f}$'
 
-def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,addStats=False,skipOutliers=False,dbg=False,ofile=None):
+def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
+    addStats=False,skipOutliers=False,dbg=False,ofile=None):
+
   """
    Scatter plot, EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,addStats=False,ofile=None)
   """
@@ -37,6 +39,10 @@ def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,addStats=False,skipOutli
   fig=plt.scatter(x,y)
   plt.xlabel(xlabel, fontsize=16)
   plt.ylabel(ylabel, fontsize=16)
+  v=plt.axis()
+  maxv=max(v)
+  if label: # Hard-coded position so far, top-left
+    plt.text(0.1*maxv,0.9*maxv,label, fontsize=16)
   plt.gca().set_aspect('equal')
 
 ###########################################################################
@@ -88,8 +94,8 @@ def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,addStats=False,skipOutli
       print(dtxt, n, skipi[i], pcodes[n], x[n], y[n])
       plt.text(x[n],y[n],label,color=col,fontsize=10)
 
-  v=plt.axis()
-  maxv=max(v)
+#J8  v=plt.axis()
+#J8  maxv=max(v)
   #maxv=40000
 
   lin=(0,maxv) # 1:1 line
@@ -168,6 +174,7 @@ if __name__ == '__main__':
   #p=EmepScatPlot(x,y,'Testx','Testy')
   #plt.show()
   p=EmepScatPlot(x,y,'Testx','Testy',addStats=True)
+  p=EmepScatPlot(x,y,'Testx','Testy',label='LABEL',addStats=True)
   #p=EmepScatPlot(x,y,'Testx','Testy',addStats=True,pcodes=c)
 
   #p=EmepScatPlot(x,y,'Testx','Testy',addStats=True,pcodes=c,ofile='TestPlots.png')
