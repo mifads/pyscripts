@@ -36,6 +36,7 @@ ObservationsClass.py |
 to_precision.py      |           not used? Returns string of formatted number
 Geometry.py | Returns distance to regresssion line. Used in EmepScatPlots
 WeibullW126.py |
+printGenReactions.py | prints cleaned-up version of GenChem reactions files, minus comments
 LICENSE.txt         |             GPL
 README.md | This file.
 
