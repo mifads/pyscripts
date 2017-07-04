@@ -72,7 +72,10 @@ class EmepFileClass(object):
      print((me+"yCOORDS     ", f.ycoords.min(), f.ycoords.max(), len(f.ycoords), f.yAscending ))
      print((me+"x0 y0 dx dy reg? ", f.x0, f.y0, f.dx, f.dy, f.xRegular, f.yRegular ))
      print((me+"xmax, ymax  ", f.xmax, f.ymax))
-     print((me+"min max vals", f.vals.min(), f.vals.max()))
+     try:
+       print((me+"min max vals", f.vals.min(), f.vals.max()))
+     except:
+       print(me+"min max vals NOT SET YET")
      print(("="*78))
 
 
@@ -108,14 +111,20 @@ def RdEmepCdf( ifile, var, getVals=False, tStep=0, getijPts = [], getijPt=[ Fals
     print((me+'PS PROJ assumed for %s' % ifile))
     dimx, dimy =( 'i_EMEP', 'j_EMEP')
     proj='PS'
+  elif ( 'x' in ecdf.dimensions ) :
+    dimx, dimy =( 'x', 'y')
+    print((me+'PS PROJxy assumed for %s' % ifile))
+    proj='PS'
   else:
-    print("ERROR w PROJ"); sys.exit(0)
+    print("ERROR w PROJ", ecdf.dimensions); sys.exit(0)
   
-  tst=ecdf.variables[dimx]
-  lldim=len(tst.shape)
+  try:
+    tst=ecdf.variables[dimx]
+    lldim=len(tst.shape)
+  except:
+    lldim=2 # HARD CODE CDO x y
  # Test
   dbg = True # ECHAM
-  if dbg: print(" CHECKING TIME ")
   t=ecdf.variables['time']
   times=ecdf.variables['time'][:]
   ntime=len(times)  #  TESTING . was =1 
@@ -123,13 +132,11 @@ def RdEmepCdf( ifile, var, getVals=False, tStep=0, getijPts = [], getijPt=[ Fals
   if dbg: print(t.units)
   #OLD :print(netcdftime.num2date( times[0],units=t.units))
   print(cdf.num2date( times[0],units=t.units))
-  #sys.exit('ECHAM t')
 
   EmepFile=EmepFileClass( ifile, var, proj,lldim,dimx,dimy,ntime) 
   EmepFile.dimx = dimx
   EmepFile.dimy = dimy
   
-  #var=opts.var    # 'SURF_MAXO3'
   if( lldim == 1):
     EmepFile.xcoords=ecdf.variables[dimx][:]
     EmepFile.ycoords=ecdf.variables[dimy][:]
@@ -137,27 +144,21 @@ def RdEmepCdf( ifile, var, getVals=False, tStep=0, getijPts = [], getijPt=[ Fals
     EmepFile.dy = EmepFile.ycoords[1]-EmepFile.ycoords[0]
 
    # For eg ECHAM the x-coords are from 0 to 360, and y-coords are reversed
-   # (N to S). We reset to EMEP
-   # standard here, to simply rest of code. Later we will
-   # also reset any 2-D variables directly after reading
+   # (N to S). We reset to EMEP standard here, to simply rest of code. Later we
+   # will also reset any 2-D variables directly after reading
 
     EmepFile.x0 = EmepFile.xcoords[0] - 0.5 * EmepFile.dx
     EmepFile.y0 = EmepFile.ycoords[0] - 0.5 * EmepFile.dy
     EmepFile.xmax = EmepFile.xcoords[-1] + 0.5 * EmepFile.dx
     EmepFile.ymax = EmepFile.ycoords[-1] + 0.5 * EmepFile.dy # from S to N
 
-    #if EmepFile.xcoords[-1] > 180:
-    #   EmepFile.xcoords[:] -= 180.0
     if EmepFile.ycoords[-1] < EmepFile.ycoords[0]: # from  N to S
        EmepFile.y0   = EmepFile.ycoords[-1] - 0.5 * EmepFile.dy
        EmepFile.ymax = EmepFile.ycoords[0]  + 0.5 * EmepFile.dy
        EmepFile.yAscending = False
-       #print('ECHAM y pre ', EmepFile.ycoords[0] )
        #EmepFile.ycoords=np.flipud( EmepFile.ycoords ) # No ascending
-       #print('ECHAM y post', EmepFile.ycoords[0] )
 
-
-    # Check for regula spacing... simple test if edge dx ~ mid dx
+    # Check for regular spacing... simple test if edge dx ~ mid dx
     nx2= len(EmepFile.xcoords) // 2
     ny2= len(EmepFile.ycoords) // 2
     dx2= EmepFile.xcoords[nx2]-EmepFile.xcoords[nx2-1]
@@ -169,9 +170,22 @@ def RdEmepCdf( ifile, var, getVals=False, tStep=0, getijPts = [], getijPt=[ Fals
     
  # Shouldn't occur now, since we use i_EMEP for PS, lon for lonlat
   elif ( lldim == 2):  
-    EmepFile.ycoords=ecdf.variables[dimy][:,:] 
-    EmepFile.xcoords=ecdf.variables[dimx][:,:]
-    sys.exit('LLDIM2 NOT CODED')
+#    EmepFile.ycoords=ecdf.variables[dimy][:,:] 
+#    EmepFile.xcoords=ecdf.variables[dimx][:,:]
+   # HAR CODE FOR CDO
+    xx=ecdf.dimensions['x']
+    yy=ecdf.dimensions['y']
+    EmepFile.xcoords=np.linspace(0.5,xx.size-0.5,xx.size) # eg 0 .. 131 (2
+    EmepFile.ycoords=np.linspace(0.5,yy.size-0.5,yy.size) # eg 0 .. 158 (9
+    EmepFile.dx = 1.0
+    EmepFile.dy = 1.0
+    EmepFile.x0 = 0.0
+    EmepFile.y0 = 0.0
+    EmepFile.xmax = xx.size-0.5 # CHECK LATER
+    EmepFile.ymax = yy.size-0.5
+    print(EmepFile.ycoords)
+    EmepFile.printme()
+    #sys.exit('LLDIM2 NOT CODED')
   
   if getVals: 
     # tStep will be zero for annual, or by edfault
