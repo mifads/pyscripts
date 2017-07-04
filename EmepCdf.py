@@ -217,7 +217,7 @@ def RdEmepCdf( ifile, var, getVals=False, tStep=0, getijPts = [], getijPt=[ Fals
     sys.exit('ECHAM gc')
   else:
     EmepFile.vals= np.array( [ np.nan, np.nan ])
-    print('ECHAM gd')
+    print(me+'getVals false')
   #sys.exit('Checked time')
 
   if dbg: print(me+"DIMS ",  ifile, dimx, dimy , lldim)
