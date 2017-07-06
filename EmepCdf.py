@@ -390,7 +390,7 @@ def getEmepVal(xPtin,yPtin,EmepCdf,ecdf,minmax=False,dbg=False):
   print(dtxt+'TEST? proj, xPt, yPt ', EmepCdf.proj, xPt, yPt)
   if EmepCdf.proj == 'PS':
     xPt, yPt = coords.LonLat2emepXy(xPt,yPt)  # XPt, yPt are lon,lat
-    print('PS => model xPt, yPt ', xPt, yPt)
+    print('PS lon,lat => model xPt, yPt ', xPtin, yPtin, ' => ',  xPt, yPt)
   elif EmepCdf.xcoords[-1] > 180:
   # if long xcoords are from 0 to 360, we shift Xpt
     if xPtin < 0.0:
@@ -443,8 +443,8 @@ def getEmepVal(xPtin,yPtin,EmepCdf,ecdf,minmax=False,dbg=False):
   # Get data for a square at 0,0,  0,1 etc for bidirectional
   # relative to grid centre-points
   #f00  =EmepCdf.vals[jS,iL]               #f00  =e.variables[varname][:,jS,iL]
-  print(dtxt+'OOPS-xx ', xPt, yPt, iL, iR, EmepCdf.xcoords[iL], EmepCdf.xcoords[iR])
-  print(dtxt+'OOPS-yy ', xPt, yPt, jS, jN, EmepCdf.ycoords[jS], EmepCdf.ycoords[jN])
+  print(dtxt+'iL,iR-xx ', xPt, yPt, iL, iR, EmepCdf.xcoords[iL], EmepCdf.xcoords[iR])
+  print(dtxt+'jS,jN-yy ', xPt, yPt, jS, jN, EmepCdf.ycoords[jS], EmepCdf.ycoords[jN])
 #  sys.exit('OOPS direct')
   f00 = ecdf.variables[EmepCdf.varname][:,jS,iL]
   f10 = ecdf.variables[EmepCdf.varname][:,jS,iR]
