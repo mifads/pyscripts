@@ -1,98 +1,45 @@
 #!/usr/bin/env python3
-# Merged RdTNO.py and RdCAMS.py,   Jul 2017
+"""
+  Reads TNO MACC format emission file and converts to EMEP netcdf
+"""
+#  July 2017
 import collections
 import os
 import sys
 import numpy as np
-import mkCdf # Dave's
+
+#DS stuff
+import macc.MaccEmepCodes as m
+import mkCdf
+
 Usage="""
-Usage:
-     cams2emep.py tno_emission_file   label
-e.g.
+  Usage:
+     cams2emep.py tno_emission_file   label   [-x]
+  e.g.
      cams2emep.py TNO_MACC_III_emissions_v1_1_2011.txt  MACC_III_emissions_v1_1_2011
+
+  where -x triggers the use of detailed snaps, eg 22, 74
 """
 if len(sys.argv) < 3: sys.exit('Error!\n' + Usage)
 ifile=sys.argv[1]
 label=sys.argv[2]
+extraSnaps=False
+if len(sys.argv) == 4:
+  if sys.argv[3] == '-x': extraSnaps=True
+  else:                   sys.exit(Usage)
+
 if not os.path.exists(ifile): sys.exit('Error!\n File does not exist: '+ifile)
 
-# 1) Country codes file: #EMEP   ISO3   ISO2  Name #1     ALB    AL    Albania
+#1) emepcodes: 
+# e.g. FIN ->  {'cc': '7', 'iso2': 'FI', 'iso3': 'FIN', 'name': 'Finland'}),
 
-emepcodes=collections.OrderedDict() # stores iso2, iso3 etc.
-tnonum =dict()
-CountryList="""
-# This file sets EMEP codes, Iso3 and Iso2 (except where the EMEP
-# model uses 3-letter Iso2 - e.g. ATL!)
-#EMEP   ISO3   ISO2  Name
-1     ALB    AL    Albania
-56    ARM    AM    Armenia
-2     AUT    AT    Austria
-69    AZE    AZ    Azerbaijan
-3     BEL    BE    Belgium
-4     BGR    BG    Bulgaria
-50    BIH    BA    Bosnia_and_Herzegovina
-39    BLR    BY    Belarus
-24    CHE    CH    Switzerland
-55    CYP    CY    Cyprus
-46    CZE    CZ    Czech_Republic
-60    DEU    DE    Germany
-6     DNK    DK    Denmark
-22    ESP    ES    Spain
-43    EST    EE    Estonia
-7     FIN    FI    Finland
-8     FRA    FR    France
-27    GBR    GB    United_Kingdom
-54    GEO    GE    Georgia
-11    GRC    GR    Greece
-49    HRV    HR    Croatia
-12    HUN    HU    Hungary
-14    IRL    IE    Ireland
-13    ISL    IS    Iceland
-15    ITA    IT    Italy
-53    KAZ    KZ    Kazakhstan
-68    KGZ    KG    Kyrgyzstan
-45    LTU    LT    Lithuania
-16    LUX    LU    Luxembourg
-44    LVA    LV    Latvia
-41    MDA    MD    Moldova_Republic_of
-52    MKD    MK    Macedonia
-57    MLT    MT    Malta
-17    NLD    NL    Netherlands
-18    NOR    NO    Norway
-19    POL    PL    Poland
-20    PRT    PT    Portugal
-21    ROU    RO    Romania
-61    RUS    RU    Russian_Federation
-47    SVK    SK    Slovakia
-48    SVN    SI    Slovenia
-23    SWE    SE    Sweden
-25    TUR    TR    Turkey
-40    UKR    UA    Ukraine
-51    YUG    CS    Serbia_and_Montenegro		
-30    BAS    BAS   Baltic_Sea
-31    NOS    NOS   North_Sea
-32    ATL    ATL   Atlantic_Ocean
-70    ATX    ATX   Rest_of_Atlantic_Ocean
-33    MED    MED   Mediterranean_Sea
-34    BLS    BLS   Black_Sea
-58    ASI    ASI   Rest_of_Asia
-350   INT    INTSHIPS    International_shipping
-"""
+emepcodes = m.getMaccEmepCodes()    # e.g. 'FIN',
 
-lines=CountryList.splitlines()
-ncc = 0
-for line in lines:
-   if line == '': continue    # header
-   if line.startswith('#'): continue    # header
-   cc, iso3, iso2, name = line.split()
-   emepcodes[iso3] = dict( cc = cc, iso2=iso2, iso3=iso3, name=name )
-   tnonum[iso3] = ncc   # eg GBR -> 27
-   ncc += 1
 
 # 2)  Emissions
 
 # MACC-III style SNAPs, with merged 3+4, split 7
-snaps = (1,2,34,5,6,71,72,73,74,75,8,9,10) # 74 was zero
+snaps = (1,2,21,22,3,34,5,6,7,71,72,73,74,75,8,9,10) # 74 was zero   # Can be more than used
 polls = 'CH4 CO NH3 NMVOC NOX PM10 PM2_5 SO2'.split()  # TNO  style
 epolls= 'ch4 co nh3   voc nox pmco pm25 sox'.split()   # EMEP style
 
@@ -125,7 +72,9 @@ for ipoll in range(1,len(polls)):
    snapemis = dict()
    SumEmis  =  np.zeros([ len(lats),len(lons) ])
    sums     = dict()       # Not used
-   snapsums = np.zeros(11) # Not used
+
+   snapsums = dict.fromkeys(snaps,0.0)
+   print(snapsums)
 
    with open(ifile) as f:
       n=0
@@ -154,7 +103,9 @@ for ipoll in range(1,len(polls)):
         #    sys.exit()
         snap= fields[4]  # str
         isnap = int(snap)
-        if isnap > 12 : isnap = isnap // 10  # 21 to 2, etc
+
+        if not extraSnaps:
+           if isnap > 12 : isnap = isnap // 10  # 21 to 2, 34 to 3,  etc
 
         x = float( fields[ipoll+6] )
         if ipoll ==  5:
@@ -166,6 +117,8 @@ for ipoll in range(1,len(polls)):
               
 
         if x > 0.0:
+           #print('SS ', snapsums )
+           #print('IS ', isnap )
            snapsums[isnap]   +=  x
            sums[iso3][snap]  += float( fields[ipoll+6] ) # 1=CH4 etc
            sums[iso3]['tot'] += float( fields[ipoll+6] )
