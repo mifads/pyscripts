@@ -9,7 +9,7 @@ import os
 import sys
 import numpy as np
 
-import macc.MaccEmepCodes as m
+import macc.maccEmepCodes as m
 
 
 MaccInfo = odict()
