@@ -2,6 +2,15 @@
 """
   Reads TNO MACC format emission file and stores info as maccInfo
   giving e.g. maccInfo['Emis:LUX']['nox'][7]
+  SNAP 71: Road transport exhaust emissions, gasoline
+
+  NB TNO use:
+   SNAP 71: Road transport exhaust emissions, gasoline
+   SNAP 72: Road transport exhaust emissions, diesel
+   SNAP 73: Road transport exhaust emissions, other fuels
+   SNAP 74: Road transport non-exhaust emissions, evaporation of gasoline
+   SNAP 75: Road transport non-exhaust emissions, road, brake and tyre wear
+
 """
 #  July 2017
 from collections import OrderedDict as odict
@@ -120,9 +129,9 @@ if __name__ == '__main__':
   except: # works for Dave ;-)
 
     ifile='/home/davids/Work/EU_Projects/CAMS/CAMS50/CAMS50_stallo/TNO_MACC_III_emissions_v1_1_2011.txt'
-  x=ReadMacc(ifile,dbgcc='FRA')
-  print(x['file'])
-  print(x['domain'])
-  print(x['Emis:FRA']['pm25'])
-  print('France :\n',x['Sum:FRA']['pm25'])
+  m=ReadMacc(ifile,dbgcc='FRA')
+  print(m['file'])
+  print(m['domain'])
+  print(m['Emis:FRA']['pm25'])
+  print('France :\n',m['Sum:FRA']['pm25'])
 
