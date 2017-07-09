@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-  Reads TNO MACC format emission file and stores info as MaccInfo
+  Reads TNO MACC format emission file and stores info as maccInfo
   giving e.g. maccInfo['Emis:LUX']['nox'][7]
 """
 #  July 2017
@@ -12,7 +12,7 @@ import numpy as np
 import macc.maccEmepCodes as m
 
 
-MaccInfo = odict()
+maccInfo = odict()
 
 #1) emepcodes: 
 # e.g. FIN ->  {'cc': '7', 'iso2': 'FI', 'iso3': 'FIN', 'name': 'Finland'}),
@@ -34,8 +34,9 @@ mpoll2epoll = dict( CH4='ch4', CO='co', NH3='nh3', NMVOC='voc', NOX='nox',
   PM2_5='pm25', SO2='sox' )
 
 
-def ReadMacc(ifile,dbg=False):
+def ReadMacc(ifile,dbgcc=None):
    minlon=999.; minlat=999.; maxlon=-999.; maxlat=-999.
+   dtxt='RdMacc'
 
    nsnaps = dict.fromkeys(snaps,0.0)
    maccInfo = odict()
@@ -47,15 +48,16 @@ def ReadMacc(ifile,dbg=False):
         if n==0:
            polls=fields[6:]
            epolls = [ mpoll2epoll[p] for p in polls]
-           maccInfo['maccpolls'] = polls
-           maccInfo['emeppolls'] = epolls
            continue
 
         lon  = float(fields[0])
         lat  = float(fields[1])
         iso3 = fields[2]
+        debug =  iso3==dbgcc
+
         cc2  = emepcodes[iso3]['iso2']
         snap = fields[4]  # str
+        if snap == '34': snap = '3' # simple!
         isnap= int(snap)
         nsnaps[isnap] += 1
 
@@ -73,27 +75,36 @@ def ReadMacc(ifile,dbg=False):
            if x > 0.0:
  
               v = 'Emis:%s'% iso3
+              s = 'Sum:%s'% iso3
               if not v in maccInfo.keys():
                  maccInfo[v] = odict()
+                 maccInfo[s] = odict()
                  for poll in epolls:
                     maccInfo[v][poll] = dict.fromkeys(snaps,0.0)
+                    maccInfo[s][poll] = 0.0
 
               maccInfo[v][poll][isnap] += x
+              maccInfo[s][poll]        += x
 
-              if dbg and  iso3 == 'LUX':
-                 print('DBG ', poll, cc2, snap, isnap, x, maccInfo[v][poll][isnap] )
+   #           if debug:
+   #              print(dtxt+'DBG ', poll, cc2, snap, isnap, x, 
+   #                 maccInfo[v][poll][isnap], maccInfo[s][poll] )
    if nsnaps[7] == 0:
-     if dbg:
-        print('NSNAPS ', nsnaps.keys() )
-        print('NSNAPS ', nsnaps )
-     for v in maccInfo.keys():
+     if debug:
+        print(dtxt+'NSNAPS ', nsnaps.keys() )
+        print(dtxt+'NSNAPS ', nsnaps )
+     for v in maccInfo.keys(): # Only emissions so far, so okay:
+        if v.startswith('Sum'): continue
         for poll in epolls:
             maccInfo[v][poll][7]  = 0.0
             for snap in [ 71, 72, 73, 74, 75 ]:
                maccInfo[v][poll][7]  += maccInfo[v][poll][snap]
-         #      if iso3 == 'LUX': print('SNAP7 ', poll, snap, maccInfo
+               if debug: print(dtxt+'SNAP7 ', poll, snap, maccInfo[v][poll][7] )
+
    maccInfo['file']   = ifile
    maccInfo['domain'] = odict( lon0=minlon,lon1=maxlon,lat0=minlat,lat1=maxlat )
+   maccInfo['maccpolls'] = polls
+   maccInfo['emeppolls'] = epolls
    return  maccInfo
 
 
@@ -102,13 +113,16 @@ if __name__ == '__main__':
   Usage="""
     maccInfo.py  TNO_file.txt
   """
-  if len(sys.argv) < 2: sys.exit('Error!\n' + Usage)
-  ifile=sys.argv[1]
-  if not os.path.exists(ifile): sys.exit('Error!\n File does not exist: '+ifile)
+  try:
+    if len(sys.argv) < 2: sys.exit('Error!\n' + Usage)
+    ifile=sys.argv[1]
+    if not os.path.exists(ifile): sys.exit('Error!\n File does not exist: '+ifile)
+  except: # works for Dave ;-)
 
-  # ifile='../CAMS50_stallo/TNO_MACC_III_emissions_v1_1_2011.txt'
-  x=ReadMacc(ifile)
+    ifile='/home/davids/Work/EU_Projects/CAMS/CAMS50/CAMS50_stallo/TNO_MACC_III_emissions_v1_1_2011.txt'
+  x=ReadMacc(ifile,dbgcc='FRA')
   print(x['file'])
   print(x['domain'])
-  print(x['Emis:LUX']['nox'])
+  print(x['Emis:FRA']['pm25'])
+  print('France :\n',x['Sum:FRA']['pm25'])
 
