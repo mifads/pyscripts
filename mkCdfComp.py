@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import netCDF4 as cdf
 import os
+import sys
 
 #------------------ arguments  ----------------------------------------------
 
@@ -31,12 +32,23 @@ ifiles=[]
 for ifile in args.ifiles:
    #print('TRY ', ifile)
    #print('TRY ', ifile.split('/') )
-   if args.suffix:
-      f = ifile + '/' + suffix  # Adds, NOT TESTED YET
+   if  os.path.isfile(ifile):
+      f = ifile
+#   elsif args.suffix:
+#      f = ifile + '/' + suffix  # Adds, NOT TESTED YET
    else:
       f = ifile + '/Base/Base_month.nc'  # Default
    
-   case[f]= f.split('/')[-3].replace('.%s'%args.year,'')  # rv4.2012 from rv4.2012/Base/Base_month.nc
+
+   tmpc= f.split('/')
+   print('CASES ', len(tmpc), tmpc)
+   if len(tmpc)>2:
+      case[f]= tmpc[-3].replace('.%s'%args.year,'')  # rv4.2012 from rv4.2012/Base/Base_month.nc
+   else:
+     case[f]= tmpc[0]  #  CAMS_IPOA fro CAMS_IPOA/CAMS_IPOA_month.nc
+     print('CASE', case[f])
+#     sys.exit()
+
    cases.append(case[f])
    ifiles.append(f)  # with full path name to .nc
    print(dtxt+'CASE', case[f] )
