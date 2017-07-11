@@ -29,6 +29,7 @@ EmepScatPlots.py | Produces scatter plots, including optinional detection of out
 scanVerification.py | scans multiple Verification(scatterstations) results files and produces summary for annual statistics.
 AreaLonLatCell.py  |
 CountryStuff.py | Figures out country, continent, ISO2, ISO3 etc. from lon, lat coordinates (python2.67 only)
+Daily2MeanValue.py | Calculates mean between start and end-day from daily values. Copes with non-integer (e.g- from Ebas)
 DailyOzoneMetrics.py |
 SeasonalOzoneMetrics.py |
 DateStuff.py |
