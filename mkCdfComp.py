@@ -76,6 +76,9 @@ for var in args.varkeys:
        if dbg: print(' VAR, KEY ', var, key )
        if not var in key:
            continue
+       if key.startswith('D3_'):
+           print(' SKip 3D VAR, KEY ', var, key )
+           continue
 
        tab.write('%-30s' % key)
        print('Processing ', var, key )
@@ -84,6 +87,8 @@ for var in args.varkeys:
 
            ecdf=cdf.Dataset(ifile,'r',format='NETCDF4')
            if key in ecdf.variables.keys():
+             tmpv=ecdf.variables[key][:,:,:]
+             print('TMPV var ', key, tmpv.shape, i0, i1, j0, j1 )
              vals=ecdf.variables[key][:,j0:j1+1,i0:i1+1]
              monthly = np.mean(vals,axis=(1,2))
            else:
