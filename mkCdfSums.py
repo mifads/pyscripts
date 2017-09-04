@@ -34,14 +34,23 @@ else:
    
 ecdf=cdf.Dataset(ifile,'r',format='NETCDF4')
 var = args.var
-if dbg: print(' VAR ', var )
+val0=ecdf.variables[var]
+ndims=len( val0.shape )
+
+i0=0;j0=0;t0=0
+if ndims  == 2:
+  j1, i1 = val0.shape 
+else:
+  t1, j1, i1 = val0.shape 
+if dbg: print(' VAR ', var, 'Shape ', val0.shape, 'Dims = ', len(val0.shape), 'Dom ', j1, i1 )
 
 if args.domain:
   i0, i1, j0, j1 = [ int(i) for i in args.domain.split() ]
+
+if ndims == 3:
   vals=ecdf.variables[var][:,j0:j1+1,i0:i1+1]
-else:
-  i0, i1, j0, j1 = [ -1, -1, -1, -1 ]
-  vals=ecdf.variables[var][:,:,:]
+elif ndims == 2:
+  vals=ecdf.variables[var][j0:j1+1,i0:i1+1]
 
 if dbg: print(dtxt+' domain', i0, i1, j0, j1 )
 vsum = np.sum(vals) # ,axis=(1,2))
