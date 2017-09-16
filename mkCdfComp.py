@@ -14,7 +14,7 @@ parser.add_argument('-i','--ifiles',help='Input files',nargs='*',required=True)
 parser.add_argument('-d','--domain',help='domain wanted, i0 i1 j0 j1, e.g. "30 100 40 80"',required=True)
 parser.add_argument('-o','--odir',help='output directory',default='.')
 parser.add_argument('-p','--plot',help='plot on screen?',action='store_true')
-parser.add_argument('-s','--suffix',help='suffix if not Base/Base_month.nc?',required=False)
+parser.add_argument('-L','--labels',help='labels, e.g. -L"rv4.15 rv4.15a rv4.15b"',required=False)
 parser.add_argument('-V','--verbose',help='extra info',action='store_true')
 parser.add_argument('-y','--year',help='year',required=True)
 args=parser.parse_args()
@@ -30,7 +30,7 @@ case=dict()
 cases=[]
 ifiles=[]
 for ifile in args.ifiles:
-   #print('TRY ', ifile)
+   print('TRY ', ifile)
    #print('TRY ', ifile.split('/') )
    if  os.path.isfile(ifile):
       f = ifile
@@ -38,6 +38,7 @@ for ifile in args.ifiles:
 #      f = ifile + '/' + suffix  # Adds, NOT TESTED YET
    else:
       f = ifile + '/Base/Base_month.nc'  # Default
+   print('=>  ', f)
    
 
    tmpc= f.split('/')
@@ -53,10 +54,14 @@ for ifile in args.ifiles:
    ifiles.append(f)  # with full path name to .nc
    print(dtxt+'CASE', case[f] )
 
-#suffix='.2012/Base/Base_month.nc'
+labels = cases.copy # default
+if args.labels:
+   labels = args.labels.split()
+   for c, b, f in zip( cases, labels, args.ifiles ):
+     print("LABEL CASE FILE ", b, c, f )
 
 first=True
-file0=ifiles[0] #  + cases[0] + suffix # Need file to get keys at start
+file0=ifiles[0] #  Need file to get keys at start
 print('F0', file0)
 
 ecdf=cdf.Dataset(file0,'r',format='NETCDF4')
@@ -65,11 +70,13 @@ odir='.'
 if args.odir:
   odir=args.odir
   os.makedirs(odir,exist_ok=True)
-tab=open(odir+'/ResCdfCompTab_%s.txt' % '_'.join(cases), 'w' )
+#tab=open(odir+'/ResCdfCompTab_%s.txt' % '_'.join(cases), 'w' )
+tab=open(odir+'/ResCdfCompTab_%s_%s.txt' % ( cases[0], '_'.join(labels)), 'w' )
 header='%-30s' % 'Variable'
-for c in cases: 
+for c in labels: 
   header += ( '%18s' % c )
 tab.write('%s\n' %  header )
+months=list(range(1,13))
 for var in args.varkeys:
    if dbg: print(' VAR ', var )
    for key in keys:
@@ -83,6 +90,7 @@ for var in args.varkeys:
        tab.write('%-30s' % key)
        print('Processing ', var, key )
 
+       nf=0
        for ifile in ifiles: 
 
            ecdf=cdf.Dataset(ifile,'r',format='NETCDF4')
@@ -94,14 +102,16 @@ for var in args.varkeys:
            else:
              print(' KEY NOT FOUND ', key, case[ifile])
              monthly = np.full(12,np.nan)
-           plt.plot(monthly,label=case[ifile])
+           plt.plot(months,monthly,label=labels[nf])
+           nf += 1
            tab.write('%18.3f' % np.mean(monthly) )
            if dbg: print('M:', monthly)
 
        plt.title(key)
        plt.ylim(ymin=0.0)
+       plt.xlim(xmin=1.0) # Start in Jan.
        plt.legend()
-       plt.savefig('%s/PlotCdfComp_%s_%s.png' % ( odir, key, '_'.join(cases) ))
+       plt.savefig('%s/PlotCdfComp_%s_%s.png' % ( odir, key, '_'.join(labels) ))
        if args.plot: 
          plt.show()
        #plt.clf()
