@@ -111,7 +111,7 @@ for var in args.varkeys:
        plt.ylim(ymin=0.0)
        plt.xlim(xmin=1.0) # Start in Jan.
        plt.legend()
-       plt.savefig('%s/PlotCdfComp_%s_%s.png' % ( odir, key, '_'.join(labels) ))
+       plt.savefig('%s/PlotCdfComp_%s_%s_%s.png' % ( odir, key, cases[0], '_'.join(labels) ))
        if args.plot: 
          plt.show()
        #plt.clf()
