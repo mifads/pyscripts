@@ -386,6 +386,9 @@ def getEmepVal(xPtin,yPtin,EmepCdf,ecdf,minmax=False,dbg=False):
   # Get coordinates in model grid if polar stereo:
 
   xPt, yPt = xPtin, yPtin
+  if hasattr(xPt,"__len__"): # copes with numpy class or simple list
+    print('ERROR! getEmepVal needs scalar x,y; got array:', type(xPt) )
+    sys.exit()
 
   print(dtxt+'TEST? proj, xPt, yPt ', EmepCdf.proj, xPt, yPt)
   if EmepCdf.proj == 'PS':
@@ -416,9 +419,9 @@ def getEmepVal(xPtin,yPtin,EmepCdf,ecdf,minmax=False,dbg=False):
   if x < 0 or y < 0:
     print(dtxt+"OUTSIDE GRID ", xPt, yPt, x, y)
     return  err, err, err
-  print(dtxt+"INSIDE GRID ", xPt, yPt, x, y)
 
   if dbg:
+     print(dtxt+"INSIDE GRID ", xPt, yPt, x, y)
      print(dtxt+"MIN x0, y0    ", EmepCdf.x0, EmepCdf.y0)
      print(dtxt+"max XCRD YCRD ", EmepCdf.xcoords.max(), EmepCdf.ycoords.max())
      print(dtxt+"xPt, yPt    ", xPt, yPt)   #, " DLON ", xcoords[1]-xcoords[0]
@@ -443,8 +446,11 @@ def getEmepVal(xPtin,yPtin,EmepCdf,ecdf,minmax=False,dbg=False):
   # Get data for a square at 0,0,  0,1 etc for bidirectional
   # relative to grid centre-points
   #f00  =EmepCdf.vals[jS,iL]               #f00  =e.variables[varname][:,jS,iL]
-  print(dtxt+'iL,iR-xx ', xPt, yPt, iL, iR, EmepCdf.xcoords[iL], EmepCdf.xcoords[iR])
-  print(dtxt+'jS,jN-yy ', xPt, yPt, jS, jN, EmepCdf.ycoords[jS], EmepCdf.ycoords[jN])
+  if dbg:
+     print(dtxt+'iL,iR-xx ', xPt, yPt, iL, iR, 
+          EmepCdf.xcoords[iL], EmepCdf.xcoords[iR])
+     print(dtxt+'jS,jN-yy ', xPt, yPt, jS, jN, 
+          EmepCdf.ycoords[jS], EmepCdf.ycoords[jN])
 #  sys.exit('OOPS direct')
   f00 = ecdf.variables[EmepCdf.varname][:,jS,iL]
   f10 = ecdf.variables[EmepCdf.varname][:,jS,iR]
