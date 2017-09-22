@@ -27,7 +27,7 @@ def mean_of_ValidHrs(x):
   x  = np.array(x)             # avoids confusions with list behaviour
   mX = np.NaN
   pValid = np.sum(~np.isnan(x)) #  ( x > -999).sum()  # crude way to count number of valid
-  print('MVH ', len(x), pValid, x )
+  #print('MVH ', len(x), pValid, x )
   if len(x) > 0:
     pValid =  (100.0*pValid)/len(x)
     if pValid>0: mX = np.nanmean(x)
@@ -203,14 +203,15 @@ def get_metrics(o3,tz=0,dbg=False):
   return results.copy()  # COPY needed to avoid other calls resetting contents 
   #  http://python.net/crew/mwh/hacks/objectthink.html (see objectthink.pdf)
 
-def get_metrics2(o3,tz=0,dbg=False):
-  for m in list(metrics.keys()):
-      results[m] = metrics[m](o3,tz,dbg)
-      if dbg: print(('get_metrics: ', metrics[m], results[m] ))
-  return results
+#def get_metrics2(o3,tz=0,dbg=False):
+#  for m in list(metrics.keys()):
+#      results[m] = metrics[m](o3,tz,dbg)
+#      if dbg: print(('get_metrics: ', metrics[m], results[m] ))
+#  return results
 
 
 if __name__ == '__main__':
+
   o3 = np.linspace(0,23,24)
   o3p = o3 + 30.0
   gg=EUAOT40(o3p)
@@ -229,9 +230,9 @@ if __name__ == '__main__':
   print('TestO3  #2 hours   '+ multiwrite(range(0,24),'%5d') )
   print('TestO3  #2 with NaN'+ multiwrite(o3p,'%5.1f') )
 
-  r=get_metrics2(o3p)
+  r=get_metrics(o3p)  # was metrics2, why?
   o3p = np.ones(24)
-  z=get_metrics2(o3p)
+  z=get_metrics(o3p)  # was metrics2, why?
   for kk, vv in r.items():
     print(kk, ' R ', vv, ' Z ', z[kk])    # should now be e.g.   dmax   34.5  24
 
