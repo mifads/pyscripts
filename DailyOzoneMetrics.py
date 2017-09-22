@@ -26,8 +26,8 @@ from StringFunctions import multiwrite  # my code to format lots of elements
 def mean_of_ValidHrs(x):
   x  = np.array(x)             # avoids confusions with list behaviour
   mX = np.NaN
-  pValid = ( x > -999).sum()  # crude way to count number of non-NaNs
-  #print('MVH ', len(x), pValid, x )
+  pValid = np.sum(~np.isnan(x)) #  ( x > -999).sum()  # crude way to count number of valid
+  print('MVH ', len(x), pValid, x )
   if len(x) > 0:
     pValid =  (100.0*pValid)/len(x)
     if pValid>0: mX = np.nanmean(x)
@@ -35,7 +35,7 @@ def mean_of_ValidHrs(x):
 
 def max_of_ValidHrs(x):
   x = np.array(x)             # avoids confusions with list behaviour
-  pValid = ( x > -999).sum()  # crude way to count number of valid
+  pValid = np.sum(~np.isnan(x)) #  ( x > -999).sum()  # crude way to count number of valid
   mX = np.NaN
   #pValid = int( 0.5 + (100.0*pValid)/len(x) )
   pValid =  (100.0*pValid)/len(x)
@@ -44,7 +44,7 @@ def max_of_ValidHrs(x):
 
 def sum_of_ValidHrs(x):
   x = np.array(x)             # avoids confusions with list behaviour
-  pValid = ( x > -999).sum()  # crude way to count number of valid
+  pValid = np.sum(~np.isnan(x)) #  ( x > -999).sum()  # crude way to count number of valid
   pValid =  (100.0*pValid)/len(x)
   mX = np.NaN
   if pValid > 0: mX = np.nansum(x)
@@ -116,6 +116,11 @@ def tzAOT40(o3,tz=None,dbg=False):
 #-----------------------------------------------------------------------------
 # SOMO35 is based upon max of 8 hr values. We have 16 8h periods in day.
 def tzSOMO35(o3,tz=None,dbg=False):
+  return tzSOMOY(o3,tz,Y=35.0)
+def tzSOMO0(o3,tz=None,dbg=False):
+  return tzSOMOY(o3,tz,Y=0.0)
+# For SOMOY, set Y different to 35
+def tzSOMOY(o3,tz=None,dbg=False,Y=35.0):
   #o3m = [] for i in range(len(o3)): o3m.append( np.max( o3[i]-40.0, 0.0 ) )
   D8max = -999.0
   n = 0
@@ -125,18 +130,18 @@ def tzSOMO35(o3,tz=None,dbg=False):
     avg8 = np.nansum(o3[hh1:hh1+8])
     nValid=0
     if np.isfinite(avg8):
-      nValid = ( o3[hh1:hh1+8] > -999).sum()  # crude way to count number of non-NaNs
+      nValid = np.sum(np.isfinite( o3[hh1:hh1+8]))  # count number of non-NaNs
       tmp = avg8
       avg8 = avg8/nValid
       D8max = max( D8max,avg8)
       n += 1
-      if dbg: print('SOMO35', hh1, hh2, nValid, n, tmp, avg8, D8max) 
+      if dbg: print('SOMO-Y', hh1, hh2, nValid, n, tmp, avg8, D8max) 
     if D8max < -900 or nValid < 6 :
       D8max = np.nan
     else:
-       D8max = np.max( [D8max-35.0, 0.0] )
+       D8max = np.max( [D8max- Y, 0.0] )
        nValid8hrs += 1
-  if dbg: print('SOMO35FINA', nValid8hrs, n, D8max) 
+  if dbg: print('SOMO-Y-FINA', nValid8hrs, n, D8max, Y) 
 
   #if dbg: print('tzAO ', o3used)
   return D8max, 100.0*nValid8hrs/16.0
@@ -182,9 +187,9 @@ def W126(o3,tz=None,dbg=False):
 # ---------------------------------------------------------------------------
 # Method of using functions suggested by JohnnyLinBook, ch6
 # NB - we use tzAOT40, not EUAOT40
-metrics = {'Dmean':dmean,  'Dmax':dmax, 'M7':m7, 'M12':m12, 'AOT40':tzAOT40, 'W126':W126, 'SOMO35':tzSOMO35}
+metrics = {'Dmean':dmean,  'Dmax':dmax, 'M7':m7, 'M12':m12, 'AOT40':tzAOT40, 'W126':W126, 'SOMO0':tzSOMO0, 'SOMO35': tzSOMO35 }
 # If we can sum values, set True
-accumulated= {'Dmean':False,  'Dmax':False, 'M7':False, 'M12':False, 'AOT40':True, 'W126':False, 'SOMO35':True}
+accumulated= {'Dmean':False,  'Dmax':False, 'M7':False, 'M12':False, 'AOT40':True, 'W126':False, 'SOMO35':True, 'SOMO0':True}
 # ---------------------------------------------------------------------------
 
 results = {}                      # Initialise results
@@ -217,7 +222,7 @@ if __name__ == '__main__':
 
   r=get_metrics(o3p)
   for kk, vv in r.items():
-    print(kk, vv)
+    print('o3p ', kk, vv)
 
   o3p[12] = np.NaN
   #io=sys.stdout
