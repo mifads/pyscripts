@@ -115,6 +115,9 @@ def tzAOT40(o3,tz=None,dbg=False):
   return sum_of_ValidHrs(o3used)
 #-----------------------------------------------------------------------------
 # SOMO35 is based upon max of 8 hr values. We have 16 8h periods in day.
+# MDA8 is the same, but it is useful to keep 2 names
+def MDA8(o3,tz=None,dbg=False):
+  return tzSOMOY(o3,tz,Y=35.0)
 def tzSOMO35(o3,tz=None,dbg=False):
   return tzSOMOY(o3,tz,Y=35.0)
 def tzSOMO0(o3,tz=None,dbg=False):
@@ -187,9 +190,10 @@ def W126(o3,tz=None,dbg=False):
 # ---------------------------------------------------------------------------
 # Method of using functions suggested by JohnnyLinBook, ch6
 # NB - we use tzAOT40, not EUAOT40
-metrics = {'Dmean':dmean,  'Dmax':dmax, 'M7':m7, 'M12':m12, 'AOT40':tzAOT40, 'W126':W126, 'SOMO0':tzSOMO0, 'SOMO35': tzSOMO35 }
+#metrics = {'Dmean':dmean,  'Dmax':dmax, 'M7':m7, 'M12':m12, 'AOT40':tzAOT40, 'W126':W126, 'SOMO0':tzSOMO0, 'SOMO35': tzSOMO35 }
+metrics = {'Dmean':dmean,  'Dmax':dmax, 'M7':m7, 'M12':m12, 'AOT40':tzAOT40, 'W126':W126, 'MDA8':tzSOMO0, 'SOMO35': tzSOMO35 }
 # If we can sum values, set True
-accumulated= {'Dmean':False,  'Dmax':False, 'M7':False, 'M12':False, 'AOT40':True, 'W126':False, 'SOMO35':True, 'SOMO0':True}
+accumulated= {'Dmean':False,  'Dmax':False, 'M7':False, 'M12':False, 'AOT40':True, 'W126':False, 'SOMO35':True, 'SOMO0':True, 'MDA8':True}
 # ---------------------------------------------------------------------------
 
 results = {}                      # Initialise results
