@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 # More advanced, from http://stackoverflow.com/questions/10231206/can-scipy-stats-identify-and-mask-obvious-outliers
 # See also: http://statsmodels.sourceforge.net/devel/examples/notebooks/generated/robust_models_0.html
+# For installation of statsmodels on python3, I used:
+# install python3-pip, then pip3 install statsmodels
 
 try:
   from statsmodels.formula.api import ols   # Used pip3 (python3-pip) to install
