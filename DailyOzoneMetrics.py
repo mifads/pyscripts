@@ -209,18 +209,21 @@ def W126(o3,hh1=0,hh2=23,dbg=False):
 # ---------------------------------------------------------------------------
 # Method of using functions suggested by JohnnyLinBook, ch6
 # NB - we use AOT40, not EUAOT40
-metrics = {'Dmean':dmean,  'Dmax':dmax, 'M7':m7, 'M12':m12, 
+defmetrics = {'Dmean':dmean,  'Dmax':dmax, 'M7':m7, 'M12':m12, 
    'AOT40':AOT40, 'W126':W126_12h, 'MDA8':SOMO0, 'SOMO35': SOMO35 }
 # If we can sum values, set True
 accumulated= {'Dmean':False,  'Dmax':False, 'M7':False, 'M12':False, 
    'AOT40':True, 'W126':False, 'SOMO35':True, 'SOMO0':True, 'MDA8':True}
 # ---------------------------------------------------------------------------
 
-results = {}                      # Initialise results
-for imetric in list(metrics.keys()):  #  dictionary for each
-     results[imetric] = {}
+first_metrics_call = True
 
-def get_metrics(o3,dbg=False):
+def get_metrics(o3,metrics=defmetrics,dbg=False):
+  #if first_metrics_call:
+  results = {}                      # Initialise results
+  #  for imetric in list(metrics.keys()):  #  dictionary for each
+  #     results[imetric] = {}
+  #  first_metrics_call = False
   for m in list(metrics.keys()):
       results[m] = metrics[m](o3,dbg)
       if dbg: print(('get_metrics: ', metrics[m], results[m] ))
@@ -235,6 +238,8 @@ def get_metrics(o3,dbg=False):
 
 if __name__ == '__main__':
 
+  metrics = {'Dmean':dmean,  'Dmax':dmax } #, 'M7':m7, 'M12':m12, 
+#   'AOT40':AOT40, 'W126':W126_12h, 'MDA8':SOMO0, 'SOMO35': SOMO35 }
   tz = 0
   dbg=True
   for case in  range(3):
@@ -270,7 +275,7 @@ if __name__ == '__main__':
   
     # formatting issues. %g only preserves numer of sig figs, dropping zeros.
     #print('TESTR ', r.values())
-    r=get_metrics(o3,dbg=dbg)
+    r=get_metrics(o3,metrics=metrics,dbg=dbg)
     vals = [ r[kk][0] for kk in r.keys() ] 
     dc   = [ int( r[kk][1]+0.5)  for kk in r.keys() ] 
     #print('TESTR ', vals)
