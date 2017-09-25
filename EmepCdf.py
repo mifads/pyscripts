@@ -124,7 +124,6 @@ def RdEmepCdf( ifile, var, getVals=False, tStep=0, getijPts = [], getijPt=[ Fals
   except:
     lldim=2 # HARD CODE CDO x y
  # Test
-  dbg = True # ECHAM
   t=ecdf.variables['time']
   times=ecdf.variables['time'][:]
   ntime=len(times)  #  TESTING . was =1 
@@ -393,7 +392,8 @@ def getEmepVal(xPtin,yPtin,EmepCdf,ecdf,minmax=False,dbg=False):
   print(dtxt+'TEST? proj, xPt, yPt ', EmepCdf.proj, xPt, yPt)
   if EmepCdf.proj == 'PS':
     xPt, yPt = coords.LonLat2emepXy(xPt,yPt)  # XPt, yPt are lon,lat
-    print('PS lon,lat => model xPt, yPt ', xPtin, yPtin, ' => ',  xPt, yPt)
+    if dbg: 
+      print('PS lon,lat => model xPt, yPt ', xPtin, yPtin, ' => ',  xPt, yPt)
   elif EmepCdf.xcoords[-1] > 180:
   # if long xcoords are from 0 to 360, we shift Xpt
     if xPtin < 0.0:
