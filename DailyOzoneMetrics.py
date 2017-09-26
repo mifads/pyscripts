@@ -91,13 +91,16 @@ def tzo3(o3,hh1=0,hh2=23,tz=None,dbg=None):
     #assert isinstance((tz,np.int) == int, 'tzo3:time-zone needs integer, not %5.1g' % tz
   else:
     tz=0
-  hh1=hh1+tz; hh2 =hh2+tz
+  #BUG hh1=hh1+tz; hh2 =hh2+tz
+  hh1=hh1-tz; hh2 =hh2-tz    # Need to have e.g CET h=2 from GMT h=1
   o3used = []
+  hnew=0
   for h in range(hh1,hh2+1):
      if h > 23: h = h - 24  # we allow wrap-around
      o3used.append( o3[h] )
      if dbg:
-       print( 'tzo3: tz=%d hh1=%d hh2=%d h=%d o3=%7.3f'% (tz,hh1,hh2,h,o3[h]) )
+       print( 'tzo3: tz=%d hh1=%d hh2=%d h=%d hnew=%d o3=%7.3f'% (tz,hh1,hh2,h, hnew, o3[h]) )
+     hnew += 1
   return o3used
 #-----------------------------------------------------------------------------
 def m7(o3,dbg=False):
