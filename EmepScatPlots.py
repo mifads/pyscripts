@@ -133,7 +133,9 @@ def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   if addStats:
      #plt.text(0.6*maxv,0.25*maxv,'Year %4s'% year,fontsize=12)
      #plt.text(0.6*maxv,0.2*maxv,'Max altitude %4.0f m'% vlimit,fontsize=12)
-     plt.text(0.6*maxv,vpos,'y= %4.2f x + %6.1f'%( m, c),color='r',fontsize=12)
+     regline = 'y= %4.2f x + %6.1f'%( m, c)
+     if c < 0: regline = 'y= %4.2f x %6.1f'%( m, c)
+     plt.text(0.6*maxv,vpos,regline,color='r',fontsize=12)
      vpos -= dvpos
      plt.text(0.6*maxv,vpos,'Corr.= %6.2f'%r[0,1],color='r',fontsize=12)
 
