@@ -54,15 +54,18 @@ for ifile in args.ifiles:
    ifiles.append(f)  # with full path name to .nc
    print(dtxt+'CASE', case[f] )
 
-labels = cases.copy # default
+labels = cases.copy() # default
+
 if args.labels:
    labels = args.labels.split()
    for c, b, f in zip( cases, labels, args.ifiles ):
      print("LABEL CASE FILE ", b, c, f )
+print('FINAL LABELS', labels)
 
 first=True
 file0=ifiles[0] #  Need file to get keys at start
 print('F0', file0)
+print('LABELS', labels)
 
 ecdf=cdf.Dataset(file0,'r',format='NETCDF4')
 keys = ecdf.variables.keys()
