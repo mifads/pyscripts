@@ -32,7 +32,7 @@ import sys
 
 #------------------ arguments  ----------------------------------------------
 
-#parser=argparse.ArgumentParser(description=__doc__,
+#parser=argparse.ArgumentParser(usage=__doc__) also works, but text at start
 parser=argparse.ArgumentParser(epilog=__doc__,
    formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('-v','--varkeys',nargs='*',help='varname  string in nc file, can be partial eg ug_PM',required=True)
