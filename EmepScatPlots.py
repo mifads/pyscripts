@@ -20,6 +20,7 @@ import Geometry as geom
 #aot   = r'AOT40$_\mathrm{f}$'
 
 def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
+    labelx=0.1,labely=0.9,labelsize=16,
     addStats=False,skipOutliers=False,dbg=False,ofile=None):
 
   """
@@ -44,7 +45,7 @@ def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   v=plt.axis()
   maxv=max(v)
   if label: # Hard-coded position so far, top-left
-    plt.text(0.1*maxv,0.9*maxv,label, fontsize=16)
+    plt.text(labelx*maxv,labely*maxv,label, fontsize=labelsize)
   plt.gca().set_aspect('equal')
 
 ###########################################################################
