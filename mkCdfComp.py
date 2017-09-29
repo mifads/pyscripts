@@ -1,4 +1,28 @@
 #!/usr/bin/env python3
+#!-*- coding: utf-8 -*-
+"""
+mkCdfComp is intended to plot monthly averages over a specified domain, usually from two
+or more input files. Plots are produced for variables matching a pattern, e.g. SURF_ppb_NO2
+or SURF_ppb - the latter will produce plots for all variables containing SURF_ppb. 
+
+If labels are given (-L option) these are used in the legend, otherwise mkCdfComp will
+attempt to 'guess' these by looking for the pattern. We would get rv4_15a from e.g.:
+
+\n
+   -i /global/work/mifads/TRENDS/rv4_15a.2012/Base/Base_month.nc
+\n
+or -i  rv4_15a.2012/Base/Base
+or -i rv4_15a.2012/rv4_15a_month.nc
+
+This pattern matching for labels is based upon Dave's usual filenames, so is not
+guaranteed to work for all cases ;-)
+
+A typical pattern (for EECCA grids) to look at NO, NO2  and NO3 over north-western Europe might be:
+
+mkCdfComp.py -y 2010 -d "40 70 20 50" -i TRENDS/rv4_15a.2010/Base/Base_month.nc TRENDS/rv4_15anosoil.2010/Base/Base_month.nc -p -v SURF_ppb_NO
+
+(Use -p to get plots to screen; png files are produced anyway.)
+"""
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,8 +32,10 @@ import sys
 
 #------------------ arguments  ----------------------------------------------
 
-parser=argparse.ArgumentParser()
-parser.add_argument('-v','--varkeys',nargs='*',help='varname  string in nc file, can be partial eg ug_PM')
+#parser=argparse.ArgumentParser(description=__doc__,
+parser=argparse.ArgumentParser(epilog=__doc__,
+   formatter_class=argparse.RawDescriptionHelpFormatter)
+parser.add_argument('-v','--varkeys',nargs='*',help='varname  string in nc file, can be partial eg ug_PM',required=True)
 parser.add_argument('-i','--ifiles',help='Input files',nargs='*',required=True)
 parser.add_argument('-d','--domain',help='domain wanted, i0 i1 j0 j1, e.g. "30 100 40 80"',required=True)
 parser.add_argument('-o','--odir',help='output directory',default='.')
