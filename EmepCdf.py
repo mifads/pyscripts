@@ -452,16 +452,18 @@ def getEmepVal(xPtin,yPtin,EmepCdf,ecdf,minmax=False,dbg=False):
      print(dtxt+'jS,jN-yy ', xPt, yPt, jS, jN, 
           EmepCdf.ycoords[jS], EmepCdf.ycoords[jN])
 #  sys.exit('OOPS direct')
-  f00 = ecdf.variables[EmepCdf.varname][:,jS,iL]
-  f10 = ecdf.variables[EmepCdf.varname][:,jS,iR]
-  #print(dtxt+'OOPS ', xPt, yPt, iL,iR,jS,jN)
-  f01 = ecdf.variables[EmepCdf.varname][:,jN,iL]
-  f11 = ecdf.variables[EmepCdf.varname][:,jN,iR]
+  box = ecdf.variables[EmepCdf.varname][:,jS:jN+1,iL:iR+1]
+  f00 = box[:,0,0]
+  f10 = box[:,1,0]
+  f01 = box[:,0,1]
+  f11 = box[:,1,1]
+  #f10 = ecdf.variables[EmepCdf.varname][:,jS,iR] # odd notation
+  #f01 = ecdf.variables[EmepCdf.varname][:,jN,iL] # odd notation
 
   # bidirectional interpolation
   dx = x-int(x)
   dy = y-int(y)
-  value =  f00*(1-dx)*(1-dy) + f10*dx*(1-dy)+f01*(1-dx)*dy + f11*dx*dy
+  value =  f00*(1-dx)*(1-dy) + f01*dx*(1-dy)+f10*(1-dx)*dy + f11*dx*dy
 
   # tips from #http://stackoverflow.com/questions/21816433/element-wise-array-maximum-function-in-numpy-more-than-two-arrays
   #maxvals = maximum.reduce([x0,x1,x2,x3])
@@ -510,6 +512,7 @@ if ( __name__ == "__main__" ):
 #    sys.exit(dtxt+'ERROR')
 
   ifile='/global/work/mifads/FromVilje/pAeroTests/GLOBAL/echamRef.2012/Base/Base_day.nc'
+  ifile='/global/work/mifads/FromVilje/rv4_12series/GLOBAL/rv4_13uYBase.2012/Base/Base_day.nc'
   var='SURF_MAXO3'
 
   print('-'*78) #------------------------------------
