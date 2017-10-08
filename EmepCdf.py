@@ -5,11 +5,17 @@
       EmepFileClass - which defines objects with name,proj,x0, etc.
    methods:
       RdEmepCdf - reads EMEP cdf file, and figures out projection. 
-                  returns : EmepFile (object), and values for either
+                  returns : EmepFile (object), and values of a 
+                  specified variable for the full period or
+                  particular time-slices.
+                  CHECK...
          grid  (2-d array) for one time-slice, 1st if not specified
          Pt    (1-d time array)
 
-      getEmepVal(xPt,yPt,EmepCdf,ecdf,minmax=False,dbg=False):
+      getEmepVal(xPt,yPt,EmepCdf,minmax=False,dbg=False):
+            gets the value at xPt, yPt from bi-linear interpolation
+            of nearest grids. Returns best estimate and min and max
+            of those grids. 
 
       printme()
   Access as e.g. EmepFile.name
@@ -21,7 +27,8 @@ import numpy as np
 import os
 import sys
 import matplotlib.pyplot as plt
-#OLD import netcdftime # Now, to play with dates:
+import time # for timing CPU
+#Not used: import netcdftime # ... to play with dates:
 # Own:
 import get_emepcoords as coords
 
@@ -81,24 +88,25 @@ class EmepFileClass(object):
 
 #-----------------------------------------------------
 
-def RdEmepCdf( ifile, var, getVals=False, tStep=0, getijPts = [], getijPt=[ False, 0, 0 ], dbg=False ):
+def RdEmepCdf( ifile, var, getVals=True, tStep=None, 
+        getijPts = [], getijPt=[ False, 0, 0 ], dbg=False ):
   """
     Reads emep-produced (or other?) netcdf files and returns values of 
-    variable 'var' as vals array, along with projection, ycoords, xcoords
+    variable 'var' as EmepCdf.vals array, along with projection, ycoords, xcoords
     and number of dimensions. 
+    If tStep is specified, vals is 2-d array for that time-step, otherwise
+     vals contains all data for that variable.
     For lonlat projections, xcoords is usually longitude in degrees
     For PS     projections, xcoords is usually real, e.g. 1.0 -- 100.0
 
     This routine can return one time-slice of gridded data, or 
-    time-series for one point
+    time-series for one point --- OR FULL ...
   """
 
-  me='RdEmepCdf: '
+  dtxt='RdEmepCdf: '
   if( not os.path.isfile(ifile) ):
-      print((me+"File %s doesn't exist!"% ifile))
-      #sys.exit(0)
-      ifile='NCTESTS/EECCA.nc'  # TMP!
-
+      print((dtxt+"File %s doesn't exist!"% ifile))
+      sys.exit()
 
   ecdf = cdf.Dataset(ifile,'r',format='NETCDF4')
   
@@ -108,12 +116,12 @@ def RdEmepCdf( ifile, var, getVals=False, tStep=0, getijPts = [], getijPt=[ Fals
   elif ( 'lon' in ecdf.dimensions ) :
     dimx, dimy =( 'lon', 'lat')
   elif ( 'i' in ecdf.dimensions ) :
-    print((me+'PS PROJ assumed for %s' % ifile))
+    print((dtxt+'PS PROJ assumed for %s' % ifile))
     dimx, dimy =( 'i_EMEP', 'j_EMEP')
     proj='PS'
   elif ( 'x' in ecdf.dimensions ) :
     dimx, dimy =( 'x', 'y')
-    print((me+'PS PROJxy assumed for %s' % ifile))
+    print((dtxt+'PS PROJxy assumed for %s' % ifile))
     proj='PS'
   else:
     print("ERROR w PROJ", ecdf.dimensions); sys.exit(0)
@@ -129,7 +137,6 @@ def RdEmepCdf( ifile, var, getVals=False, tStep=0, getijPts = [], getijPt=[ Fals
   ntime=len(times)  #  TESTING . was =1 
   if dbg: print(" SIZE OF TIME ", len(times))
   if dbg: print(t.units)
-  #OLD :print(netcdftime.num2date( times[0],units=t.units))
   print(cdf.num2date( times[0],units=t.units))
 
   EmepFile=EmepFileClass( ifile, var, proj,lldim,dimx,dimy,ntime) 
@@ -184,11 +191,20 @@ def RdEmepCdf( ifile, var, getVals=False, tStep=0, getijPts = [], getijPt=[ Fals
     EmepFile.ymax = yy.size-0.5
     print(EmepFile.ycoords)
     EmepFile.printme()
-    #sys.exit('LLDIM2 NOT CODED')
   
   if getVals: 
     # tStep will be zero for annual, or by edfault
-    print("getVals tStep= ", tStep )
+    if tStep == None:
+       print(dtxt+"getVals all time-steps " )
+       EmepFile.vals=np.array( ecdf.variables[var] )  # 2 or 3d
+    else:
+       print(dtxt+"getVals tStep= ", tStep )
+       EmepFile.vals=np.array( ecdf.variables[var][tStep,:,:] ) 
+    #ev= EmepFile.vals.copy()
+    #print ( dtxt+'SHAPE EV ', tStep, ev.shape )
+    #sys.exit()
+
+    #Echam struggles..
     #tmpvals=ecdf.variables[var][tStep,:,:]
     #tmpvals[:,10] = 100.0
    # This flips j coordinates (for some reason...)
@@ -198,19 +214,16 @@ def RdEmepCdf( ifile, var, getVals=False, tStep=0, getijPts = [], getijPt=[ Fals
     #print('FLIP TEST POST ', tmpvals[0,5], tmpvals[-1,5] )
     #print('FLIP TEST POST ', tmpvals[5,5], tmpvals[-1,5] )
     #EmepFile.vals=tmpvals.copy()
-
-    EmepFile.vals=tmpvals=ecdf.variables[var][tStep,:,:]
     #print('FLIP TEST Emep ', tmpvals[5,5], tmpvals[-1,5] )
-
     #print('ECHAM ga', EmepFile.xcoords[10], EmepFile.vals[1,10] )
     #plt.imshow(EmepFile.vals)
     #plt.colorbar()
     #plt.show()
-#
     #plt.imshow(tmpvals2)
     #plt.colorbar()
     #plt.show()
-    #sys.exit()
+
+  # O2017 - needs checking
   elif len(getijPts) > 0:
     npt=len(getijPts)
     EmepFile.vals = np.zeros([ntime,npt])
@@ -230,18 +243,18 @@ def RdEmepCdf( ifile, var, getVals=False, tStep=0, getijPts = [], getijPt=[ Fals
     sys.exit('ECHAM gc')
   else:
     EmepFile.vals= np.array( [ np.nan, np.nan ])
-    print(me+'getVals false')
+    print(dtxt+'getVals false')
   #sys.exit('Checked time')
 
-  if dbg: print(me+"DIMS ",  ifile, dimx, dimy , lldim)
-  if dbg: print(me+"PROJ ",  proj)
+  if dbg: print(dtxt+"DIMS ",  ifile, dimx, dimy , lldim)
+  if dbg: print(dtxt+"PROJ ",  proj)
   try:
-    print((me+"VALS  ", EmepFile.vals.min(), EmepFile.vals.max(), 
+    print((dtxt+"VALS  ", EmepFile.vals.min(), EmepFile.vals.max(), 
            EmepFile.vals.shape))
   except:
-    print((me+'No vals requested'))
+    print((dtxt+'No vals requested'))
 
-  return EmepFile, ecdf
+  return EmepFile
 
 #--------------- Was getEmepPt.py ----------------------------------
 #  getEmepPt comprises three methods
@@ -376,7 +389,7 @@ def IrregRelXy(x, y, xcoords, ycoords,latlon=True):
   return xrel,yrel
 
 #-------------------------------------------------------------------
-def getEmepVal(xPtin,yPtin,EmepCdf,ecdf,minmax=False,dbg=False):
+def getEmepVal(xPtin,yPtin,EmepCdf,minmax=False,dbg=False):
   """ Uses bi-linear interpolation to estmate value
     of field vals at point xPt, yPt
   """
@@ -394,7 +407,7 @@ def getEmepVal(xPtin,yPtin,EmepCdf,ecdf,minmax=False,dbg=False):
     xPt, yPt = coords.LonLat2emepXy(xPt,yPt)  # XPt, yPt are lon,lat
     if dbg: 
       print('PS lon,lat => model xPt, yPt ', xPtin, yPtin, ' => ',  xPt, yPt)
-  elif EmepCdf.xcoords[-1] > 180:
+  elif EmepCdf.xcoords[-1] > 180:  # QUERY 180
   # if long xcoords are from 0 to 360, we shift Xpt
     if xPtin < 0.0:
        xPt = xPtin + 360
@@ -438,9 +451,9 @@ def getEmepVal(xPtin,yPtin,EmepCdf,ecdf,minmax=False,dbg=False):
   #  jN=int(y) # from N
   #  jS=min( jN+1, len(EmepCdf.ycoords)-1) # TMP!!!
 
-  if jS > 180:
-    print(dtxt+'OOPSjS ', xPt, yPt, iL,jS, xcoords.max(), ycoords.max())
-    sys.exit(0)
+  #QUERY 180 if jS > 180:
+  #QUERY 180   print(dtxt+'OOPSjS ', xPt, yPt, iL,jS, xcoords.max(), ycoords.max())
+  #QUERY 180   sys.exit(0)
   
 
   # Get data for a square at 0,0,  0,1 etc for bidirectional
@@ -451,14 +464,19 @@ def getEmepVal(xPtin,yPtin,EmepCdf,ecdf,minmax=False,dbg=False):
           EmepCdf.xcoords[iL], EmepCdf.xcoords[iR])
      print(dtxt+'jS,jN-yy ', xPt, yPt, jS, jN, 
           EmepCdf.ycoords[jS], EmepCdf.ycoords[jN])
-#  sys.exit('OOPS direct')
-  box = ecdf.variables[EmepCdf.varname][:,jS:jN+1,iL:iR+1]
+
+  print(dtxt+'BOX SHAPE ', EmepCdf.vals.shape )
+  # Crude.... O2017
+  if len( EmepCdf.vals.shape ) > 2:
+    box = EmepCdf.vals[:,jS:jN+1,iL:iR+1]
+  else:
+    box = EmepCdf.vals[jS:jN+1,iL:iR+1]
+    box = box[ np.newaxis, :, : ] # Make 3D
+
   f00 = box[:,0,0]
   f10 = box[:,1,0]
   f01 = box[:,0,1]
   f11 = box[:,1,1]
-  #f10 = ecdf.variables[EmepCdf.varname][:,jS,iR] # odd notation
-  #f01 = ecdf.variables[EmepCdf.varname][:,jN,iL] # odd notation
 
   # bidirectional interpolation
   dx = x-int(x)
@@ -516,12 +534,11 @@ if ( __name__ == "__main__" ):
   var='SURF_MAXO3'
 
   print('-'*78) #------------------------------------
-  print("Testing full grid  ", ifile)
+  print("Testing full grid, tStep=3  ", ifile )
 
-  EmepFile, ecdf = RdEmepCdf( ifile, var, getVals = True, tStep=180 ) # 180 from ECHAM day.nc
+  EmepFile = RdEmepCdf( ifile, var, getVals = True, tStep=3 ) # 180 from ECHAM day.nc
   EmepFile.printme()
 
-  #ecdf.close()
   #print("Testing one point ", ifile)
   #EmepFile2, ecdf2 = RdEmepCdf( ifile, var )
   #EmepFile2.vals=ecdf2.variables[var][:,10,10]
@@ -531,11 +548,17 @@ if ( __name__ == "__main__" ):
   print('-'*78) #------------------------------------
   lon, lat = -9.89, 53.3  # Mace Head
   print('Testing one point:', lon, lat )
-  v= getEmepVal(lon,lat,EmepFile,ecdf,dbg=False)
-  v, minv, maxv = getEmepVal(lon,lat,EmepFile,ecdf,minmax=True,dbg=False)
-  print('Testing min, max:')
+  # Now with all tsteps:
+  EmepFile = RdEmepCdf( ifile, var, getVals = True ) # 180 from ECHAM day.nc
+
+  t3 = time.time()
+  v, minv, maxv = getEmepVal(lon,lat,EmepFile,minmax=True,dbg=False)
+  t4 = time.time()
+
+  print('Testing nmin, nmax:')
   print('1st: ', v[0], minv[0], maxv[0], len(v) )
   print('Last:', v[-1], minv[-1], maxv[-1], len(v) )
+  #sys.exit()
 
 #SPEED  EmepFile=  RdEmepCdf( ifile, var )
 #print(EmepFile.lldim, EmepFile.dimx, EmepFile.vals.max())
@@ -551,13 +574,13 @@ if ( __name__ == "__main__" ):
   print('-'*78) #------------------------------------
   print('Testing several ij points:' )
   gpts=[ [ 12, 24], [12,25], [13,23], [13, 24], [13,25], [14,24], [21, 34], [22,34] ]
-  EmepFile, ecdf=  RdEmepCdf( ifile, var )
+  EmepFile =  RdEmepCdf( ifile, var, getVals=True )
 
  # Fails for ECHAM since direct ecdf.variables used:
   npt=len(gpts)
   npt=0
   for i, j in gpts:
-       print('point ', npt, i, j, ecdf.variables[var][:4,j,i] )
+       print('point ', npt, i, j, EmepFile.vals[:4,j,i] )
        npt += 1
   
 
