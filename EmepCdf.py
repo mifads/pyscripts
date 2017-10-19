@@ -19,6 +19,10 @@
 
       printme()
   Access as e.g. EmepFile.name
+
+  Usually called as module, but a quick test can be done to get values, e.g.
+
+    EmepCdf.py -i /home/fred/somedir/test1_fullrun.nc  -v SURF_MAXO3
 """
 import datetime
 import netCDF4 as cdf
@@ -198,11 +202,14 @@ def RdEmepCdf( ifile, var, getVals=True, tStep=None,
        print(dtxt+"getVals all time-steps " )
        EmepFile.vals=np.array( ecdf.variables[var] )  # 2 or 3d
     else:
-       print(dtxt+"getVals tStep= ", tStep )
+       tmpv= np.array( ecdf.variables[var][:,:,:] ) 
+       maxtstep = tmpv.shape[0]  -1   # -1 for python index
+       if maxtstep < tStep: 
+          print ( dtxt+'TSTEP WARNING!! Requested ', tStep, ' but len=', maxtstep )
+          tStep = maxtstep
+       #print ( dtxt+'SHAPE TMPV ', tStep, tmpv.shape, tmpv.shape[0]  )
+       
        EmepFile.vals=np.array( ecdf.variables[var][tStep,:,:] ) 
-    #ev= EmepFile.vals.copy()
-    #print ( dtxt+'SHAPE EV ', tStep, ev.shape )
-    #sys.exit()
 
     #Echam struggles..
     #tmpvals=ecdf.variables[var][tStep,:,:]
@@ -514,27 +521,20 @@ if ( __name__ == "__main__" ):
   import argparse
   dtxt='EmepCdf main:'
 #------------------ arguments  ----------------------------------------------
+  parser=argparse.ArgumentParser(epilog=__doc__,
+   formatter_class=argparse.RawDescriptionHelpFormatter)
+  parser.add_argument('-v','--varname',help='varname in nc file',required=True)
+  parser.add_argument('-i','--ifile',help='Input file',required=True)
+  args=parser.parse_args()
+  print(dtxt+'ARGS', args)
 
-#  parser=argparse.ArgumentParser()
-#  parser.add_argument('-v','--varname',help='varname in nc file')
-#  parser.add_argument('-i','--ifile',help='Input file',required=True)
-#  args=parser.parse_args()
-#  print(dtxt+'ARGS', args)
-
-     #ifile= sys.argv[-2]; var=sys.argv[-1]
-     # e.g. ifile='Base_month.nc'; var='SURF_ppb_O3'
-#  try:
-#    ifile= args.ifile
-#    var=args.varname
-#  except:
-#    sys.exit(dtxt+'ERROR')
-
-  ifile='/global/work/mifads/FromVilje/pAeroTests/GLOBAL/echamRef.2012/Base/Base_day.nc'
-  ifile='/global/work/mifads/FromVilje/rv4_12series/GLOBAL/rv4_13uYBase.2012/Base/Base_day.nc'
-  var='SURF_MAXO3'
+  ifile= args.ifile
+  var=args.varname
+  if not os.path.isfile(ifile):
+     sys.exit('FILE NOT FOUND!!!' + ifile )
 
   print('-'*78) #------------------------------------
-  print("Testing full grid, tStep=3  ", ifile )
+  print("Testing full grid, tStep=3  ", args.ifile )
 
   EmepFile = RdEmepCdf( ifile, var, getVals = True, tStep=3 ) # 180 from ECHAM day.nc
   EmepFile.printme()
