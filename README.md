@@ -9,7 +9,7 @@ Scripts are mainly designed to work with EMEP files, especially the netcdf outpu
 Some comments
 ==============
 
-I'm still a beginner with python. All scripts can be done better!
+I'm still a beginner with python. All scripts can be done better! Please let me know of any improvements (rather than changing files in my repository directly - I'd like to keep control of these so that I understand them at least).
 
 The codes are listed below, roughly in order or importance/usage.
 
