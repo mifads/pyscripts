@@ -21,10 +21,11 @@ import Geometry as geom
 
 def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
     labelx=0.1,labely=0.9,labelsize=16,
+    addxy=0.0,  # Increases maxv to e.g. cope with label  overwrites
     addStats=False,skipOutliers=False,dbg=False,ofile=None):
 
   """
-   Scatter plot, EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,addStats=False,ofile=None)
+   Scatter plot, EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,addxy=0.0,addStats=False,ofile=None)
   """
   x = np.array(x)
   y = np.array(y)
@@ -44,6 +45,8 @@ def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   plt.ylabel(ylabel, fontsize=16)
   v=plt.axis()
   maxv=max(v)
+  if addxy>0.0:
+      maxv += addxy
   if label: # Hard-coded position so far, top-left
     plt.text(labelx*maxv,labely*maxv,label, fontsize=labelsize)
   plt.gca().set_aspect('equal')
