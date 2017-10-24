@@ -30,11 +30,12 @@ def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   x = np.array(x)
   y = np.array(y)
   if dbg:
-   print( 'INTO EmepScatPlot lens: ', len(x), len(y) )
-   print( 'INTO EmepScatPlot x: ', x.shape )
-   print( 'INTO EmepScatPlot y: ', y.shape )
+   print( 'INTO EmepScatPlot lengths x,y: ', len(x), len(y) )
+   print( 'INTO EmepScatPlot shape x: ', x.shape )
+   print( 'INTO EmepScatPlot shape y: ', y.shape )
    for i in range(len(x)):
-     print( 'INTO EmepScatPlot p,x,y: ', pcodes[i], x[i], y[i] )
+     p= pcodes[i] if pcodes else '#%d'%i
+     print( 'INTO EmepScatPlot p,x,y: ', p, x[i], y[i] )
 #vlimit=300.0
 #f=alt<vlimit
   dtxt = 'EmepScatPlot'
@@ -84,7 +85,8 @@ def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
      #DS figure = smgraphics.regressionplots.plot_fit(regression, 1)
      # Add line #
      #DS smgraphics.regressionplots.abline_plot(model_results=regression, ax=figure.axes[0])
-###########################################################################
+
+#### station codes if wanted ##############################################
 
   if pcodes is None : # uses site codes, e.g AT00031R
     print('No PCODES')
@@ -93,22 +95,27 @@ def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
     print('PCODES0 ', len(y), len(pcodes))
     for n in range(0, len(y) ):
 
-      #print('PCODES ', len(y), len(pcodes), n, pcodes[n] )
       label = '%4s'%pcodes[n]
       col='k'
       if skipi[n] : col='r'
       print(dtxt, n, skipi[i], pcodes[n], x[n], y[n])
       plt.text(x[n],y[n],label,color=col,fontsize=10)
 
-#J8  v=plt.axis()
-#J8  maxv=max(v)
-  #maxv=40000
+#J8  v=plt.axis() #J8  maxv=max(v)
+
+#### 1:1 line  ############################################################
 
   lin=(0,maxv) # 1:1 line
   plt.plot(lin,lin,'g--')
 
-###########################################################################
+#### regression line - all data ###########################################
+  #[m,c]=np.polyfit(x,y,1) #r=np.corrcoef(x,y)
 
+  fit=( c, c+m*lin[1] )
+  plt.plot(lin,fit,'r--')
+
+###########################################################################
+  # Data without outliers
   if len(skip) > 0:
      xn = np.delete( x, skip ) 
      yn = np.delete( y, skip ) 
@@ -117,20 +124,13 @@ def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
      yn = y.copy()
 
 ###########################################################################
-  #[m,c]=np.polyfit(x,y,1)
-  #r=np.corrcoef(x,y)
-
-  fit=( c, c+m*lin[1] )
-  plt.plot(lin,fit,'k--')
-  #plt.xlim(0,2*maxv)
-
-   
 # After removing outliers
+
   if skipOutliers:
     [mn,cn]=np.polyfit(xn,yn,1)
     rn=np.corrcoef(xn,yn)
     fitn=( cn, cn+mn*lin[1] )
-    plt.plot(lin,fitn,'r--')
+    plt.plot(lin,fitn,'k--')
 
   vpos=0.17*maxv   #  vertical position  for text below, was 0.22
   dvpos=0.05*maxv  # for text below
@@ -162,7 +162,6 @@ def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   else:
     plt.show()
 
-
 #maxv=24000
 #P.axis([0,maxv,0,maxv])
 #P.xlim(0,maxv)
@@ -181,8 +180,8 @@ if __name__ == '__main__':
   c = [ 'AT92', 'AA', 'CCC', 'DDD', 'EEE', 'OUT' ]
   #p=EmepScatPlot(x,y,'Testx','Testy')
   #plt.show()
-  p=EmepScatPlot(x,y,'Testx','Testy',addStats=True)
-  p=EmepScatPlot(x,y,'Testx','Testy',label='LABEL',addStats=True)
+  p=EmepScatPlot(x,y,'Testx','Testy',addStats=True,dbg=True)
+  p=EmepScatPlot(x,y,'Testx','Testy',label='LABEL',addStats=True,dbg=True)
   #p=EmepScatPlot(x,y,'Testx','Testy',addStats=True,pcodes=c)
 
   #p=EmepScatPlot(x,y,'Testx','Testy',addStats=True,pcodes=c,ofile='TestPlots.png')
