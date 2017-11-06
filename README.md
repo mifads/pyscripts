@@ -17,7 +17,7 @@ Code                          | Comment
 :--------------------------   |:---------------------------------------
 EmepCdf.py |  Main code to read EMEP files - checks projections, dimensions, etc. Gets values for givem lat/long point using bi-linear interpolation of nearby cells. Can also return the values of surrounding points - to make the shadowing used in Dave's time series scripts.
 mkCdf.py | Creates cdf files from a list of variable names and data. Works for lon/lat so far.
-mkCdfComp.py | IN DEVELOPMENT ... compares 2 or more monthly files, for key patterns and given domain.
+mkCdfComp.py | Compares 2 or more annual or monthly files, for key patterns and given domain. Produces line plots for monthly files, and bar plots for annual. Still in development, but useful.
   | 
 get_emepcoords.py |
 get_emepcoords_projOnly.py |

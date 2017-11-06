@@ -57,14 +57,13 @@ cases=[]
 ifiles=[]
 for ifile in args.ifiles:
    print('TRY ', ifile)
-   #print('TRY ', ifile.split('/') )
    if  os.path.isfile(ifile):
       f = ifile
-#   elsif args.suffix:
-#      f = ifile + '/' + suffix  # Adds, NOT TESTED YET
    else:
       f = ifile + '/Base/Base_month.nc'  # Default
    print('=>  ', f)
+   if  not os.path.isfile(f):
+     sys.exit('File not found! ' + f)
    
 
    tmpc= f.split('/')
@@ -100,7 +99,7 @@ if args.odir:
   odir=args.odir
   os.makedirs(odir,exist_ok=True)
 #tab=open(odir+'/ResCdfCompTab_%s.txt' % '_'.join(cases), 'w' )
-tab=open(odir+'/ResCdfCompTab_%s_%s.txt' % ( cases[0], '_'.join(labels)), 'w' )
+tab=open(odir+'/ResCdfCompTab_%s_%s.txt' % ( cases[0], '_'.join(labels[1:])), 'w' )
 header='%-30s' % 'Variable'
 for c in labels: 
   header += ( '%18s' % c )
@@ -116,29 +115,56 @@ for var in args.varkeys:
            print(' SKip 3D VAR, KEY ', var, key )
            continue
 
-       tab.write('%-30s' % key)
        print('Processing ', var, key )
 
        nf=0
+       nfiles = len(ifiles)
+       colours = 'red orange yellow blue green'.split()
        for ifile in ifiles: 
 
            ecdf=cdf.Dataset(ifile,'r',format='NETCDF4')
+           monthly = np.full(12,np.nan)
+           tmpvals = np.full(nfiles+1,np.nan) # TMP used for fake fullrun
+
+           tmpx    = np.linspace(0.5,nfiles+0.5,nfiles+1)
            if key in ecdf.variables.keys():
              tmpv=ecdf.variables[key][:,:,:]
-             print('TMPV var ', key, tmpv.shape, i0, i1, j0, j1 )
              vals=ecdf.variables[key][:,j0:j1+1,i0:i1+1]
+             if np.max(vals) < 1.0e-3:
+                print('ZERO VALUES? ', ifile, key )
+                continue
+             print('TMPV var ', key, tmpv.shape, i0, i1, j0, j1, np.max(vals) )
              monthly = np.mean(vals,axis=(1,2))
+             print('TMPV monthly ', monthly, len(monthly))
            else:
              print(' KEY NOT FOUND ', key, case[ifile])
-             monthly = np.full(12,np.nan)
-           plt.plot(months,monthly,label=labels[nf])
+             continue
+
+           if( len(monthly) ==1 ): # Just have one value, e.g. annual
+             tmpvals[nf] =  monthly[0]
+             #plt.bar(tmpx,tmpvals,label=labels[nf],color='C0')
+             plt.bar(tmpx,tmpvals,label=labels[nf],color=colours[nf])
+             xmin=0.0   # Start in Jan.
+             xmax=nfiles+2  #
+           else:
+             plt.plot(months,monthly,label=labels[nf])
+             xmin=1.0   # Start in Jan.
+             xmax=12.0  #  QUERY??
            nf += 1
+           if nf ==1: tab.write('%-30s' % key)
            tab.write('%18.3f' % np.mean(monthly) )
            if dbg: print('M:', monthly)
 
-       plt.title(key)
+       if nf == 0:
+         print('NO VALUES FOUND', ifile )
+         continue
+           
+       plt.title(key + '   (Domain %s)'%args.domain)
        plt.ylim(ymin=0.0)
-       plt.xlim(xmin=1.0) # Start in Jan.
+       plt.xlim(xmin=xmin) 
+       plt.xlim(xmax=xmax) 
+       if( len(monthly) ==1 ): # Just have one value, e.g. annual
+         plt.xticks(visible=False)
        plt.legend()
        plt.savefig('%s/PlotCdfComp_%s_%s_%s.png' % ( odir, key, cases[0], '_'.join(labels) ))
        if args.plot: 
