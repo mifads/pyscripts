@@ -18,20 +18,20 @@ Code                          | Comment
 EmepCdf.py |  Main code to read EMEP files - checks projections, dimensions, etc. Gets values for givem lat/long point using bi-linear interpolation of nearby cells. Can also return the values of surrounding points - to make the shadowing used in Dave's time series scripts.
 mkCdf.py | Creates cdf files from a list of variable names and data. Works for lon/lat so far.
 mkCdfComp.py | Compares 2 or more annual or monthly files, for key patterns and given domain. Produces line plots for monthly files, and bar plots for annual. Still in development, but useful.
-  | 
-get_emepcoords.py |
-get_emepcoords_projOnly.py |
 StringFunctions.py | *stringClean* - Function to get rid of funny chars in names, e.g Bratt's Lake
 "                  | *blankRemove* - obvious ...
 "                  | *multiwrite*  - combines elements from an array with given format string
 EmepScatPlots.py | Produces scatter plots, including optinional detection of outliers and addition of labels
 "                  | (needed python pip3 install statsmodels on Xubuntu 17.04)
 scanVerification.py | scans multiple Verification(scatterstations) results files and produces summary for annual statistics.
-AreaLonLatCell.py  |
+get_emepcoords.py | doc needed
+get_emepcoords_projOnly.py | doc needed
+AreaLonLatCell.py  | doc needed
 CountryStuff.py | Figures out country, continent, ISO2, ISO3 etc. from lon, lat coordinates (python2.67 only)
 Daily2MeanValue.py | Calculates mean between start and end-day from daily values. Copes with non-integer (e.g- from Ebas)
-DailyOzoneMetrics.py |
-SeasonalOzoneMetrics.py |
+DailyOzoneMetrics.py | doc needed
+SeasonalOzoneMetrics.py | doc needed
+startDays.py | print out daynumbers at the start of each month.
 DateStuff.py |
 macc2emep.py  |  Converts TNO/MACC format files to EMEP emission netcdf files
 mkEUmask.py  |
