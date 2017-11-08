@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 #!-*- coding: utf-8 -*-
 """
-mkCdfComp is intended to plot monthly averages over a specified domain, usually from two
-or more input files. Plots are produced for variables matching a pattern, e.g. SURF_ppb_NO2
-or SURF_ppb - the latter will produce plots for all variables containing SURF_ppb. 
+mkCdfComp is intended to plot monthly averages over the full grid or
+over a specified domain, usually from two or more input files. Plots are
+produced for variables matching a pattern, e.g. SURF_ppb_NO2 or SURF_ppb -
+the latter will produce plots for all variables containing SURF_ppb.
 
-If labels are given (-L option) these are used in the legend, otherwise mkCdfComp will
-attempt to 'guess' these by looking for the pattern. We would get rv4_15a from e.g.:
+If labels are given (-L option) these are used in the legend, otherwise
+mkCdfComp will attempt to 'guess' these by looking for the pattern. We
+would get rv4_15a from e.g.:
 
 \n
    -i /global/work/mifads/TRENDS/rv4_15a.2012/Base/Base_month.nc
@@ -14,10 +16,11 @@ attempt to 'guess' these by looking for the pattern. We would get rv4_15a from e
 or -i  rv4_15a.2012/Base/Base
 or -i rv4_15a.2012/rv4_15a_month.nc
 
-This pattern matching for labels is based upon Dave's usual filenames, so is not
-guaranteed to work for all cases ;-)
+This pattern matching for labels is based upon Dave's usual filenames,
+so is not guaranteed to work for all cases ;-)
 
-A typical pattern (for EECCA grids) to look at NO, NO2  and NO3 over north-western Europe might be:
+A typical pattern (for EECCA grids) to look at NO, NO2  and NO3 over
+north-western Europe might be:
 
 mkCdfComp.py -y 2010 -d "40 70 20 50" -i TRENDS/rv4_15a.2010/Base/Base_month.nc TRENDS/rv4_15anosoil.2010/Base/Base_month.nc -p -v SURF_ppb_NO
 
@@ -35,12 +38,13 @@ import sys
 #parser=argparse.ArgumentParser(usage=__doc__) also works, but text at start
 parser=argparse.ArgumentParser(epilog=__doc__,
    formatter_class=argparse.RawDescriptionHelpFormatter)
-parser.add_argument('-v','--varkeys',nargs='*',help='varname  string in nc file, can be partial eg ug_PM',required=True)
+parser.add_argument('-v','--varkeys',nargs='*',
+    help='varname  string in nc file, can be partial eg ug_PM',required=True)
 parser.add_argument('-i','--ifiles',help='Input files',nargs='*',required=True)
-parser.add_argument('-d','--domain',help='domain wanted, i0 i1 j0 j1, e.g. "30 100 40 80"',required=True)
+parser.add_argument('-d','--domain',help='domain wanted, i0 i1 j0 j1, e.g. "30 100 40 80"\n(Optional)',required=False)
 parser.add_argument('-o','--odir',help='output directory',default='.')
-parser.add_argument('-p','--plot',help='plot on screen?',action='store_true')
-parser.add_argument('-L','--labels',help='labels, e.g. -L"rv4.15 rv4.15a rv4.15b"',required=False)
+parser.add_argument('-p','--plot',help='plot on screen?\n(Optional)',action='store_true')
+parser.add_argument('-L','--labels',help='labels, e.g. -L"rv4.15 rv4.15a rv4.15b"\n(Optional)',required=False)
 parser.add_argument('-V','--verbose',help='extra info',action='store_true')
 parser.add_argument('-y','--year',help='year',required=True)
 args=parser.parse_args()
@@ -49,14 +53,18 @@ dbg=False
 if args.verbose: dbg=True
 if dbg: print(dtxt+'ARGS', args)
 
-i0, i1, j0, j1 = [ int(i) for i in args.domain.split() ]
+if args.domain:
+  i0, i1, j0, j1 = [ int(i) for i in args.domain.split() ]
+else:
+  i0, i1, j0, j1 = [ 0, -2, 0, -2 ] # full domain: -2 used so that j1+1 -> -1
+  args.domain='Full'
 print(dtxt+' domain', i0, i1, j0, j1 )
 
 case=dict()
 cases=[]
 ifiles=[]
-for ifile in args.ifiles:
-   print('TRY ', ifile)
+for n, ifile in enumerate(args.ifiles):
+   print('TRY ', n, ifile)
    if  os.path.isfile(ifile):
       f = ifile
    else:
@@ -64,20 +72,18 @@ for ifile in args.ifiles:
    print('=>  ', f)
    if  not os.path.isfile(f):
      sys.exit('File not found! ' + f)
-   
 
    tmpc= f.split('/')
-   print('CASES ', len(tmpc), tmpc)
+   print(f, '=>fTERMS ', n, tmpc)
    if len(tmpc)>2:
       case[f]= tmpc[-3].replace('.%s'%args.year,'')  # rv4.2012 from rv4.2012/Base/Base_month.nc
    else:
      case[f]= tmpc[0]  #  CAMS_IPOA fro CAMS_IPOA/CAMS_IPOA_month.nc
      print('CASE', case[f])
-#     sys.exit()
 
    cases.append(case[f])
    ifiles.append(f)  # with full path name to .nc
-   print(dtxt+'CASE', case[f] )
+   print(dtxt+'CASE', n, case[f] )
 
 labels = cases.copy() # default
 
@@ -85,12 +91,11 @@ if args.labels:
    labels = args.labels.split()
    for c, b, f in zip( cases, labels, args.ifiles ):
      print("LABEL CASE FILE ", b, c, f )
-print('FINAL LABELS', labels)
 
 first=True
 file0=ifiles[0] #  Need file to get keys at start
 print('F0', file0)
-print('LABELS', labels)
+print('FINAL LABELS', labels)
 
 ecdf=cdf.Dataset(file0,'r',format='NETCDF4')
 keys = ecdf.variables.keys()
@@ -98,15 +103,16 @@ odir='.'
 if args.odir:
   odir=args.odir
   os.makedirs(odir,exist_ok=True)
-#tab=open(odir+'/ResCdfCompTab_%s.txt' % '_'.join(cases), 'w' )
-tab=open(odir+'/ResCdfCompTab_%s_%s.txt' % ( cases[0], '_'.join(labels[1:])), 'w' )
+tab=open(odir+'/ResCdfCompTab_%s_%s.txt' %
+           ( cases[0], '_'.join(labels[1:])), 'w' )
 header='%-30s' % 'Variable'
 for c in labels: 
   header += ( '%18s' % c )
 tab.write('%s\n' %  header )
 months=list(range(1,13))
+colours = 'red orange yellow blue green'.split()
+
 for var in args.varkeys:
-   if dbg: print(' VAR ', var )
    for key in keys:
        if dbg: print(' VAR, KEY ', var, key )
        if not var in key:
@@ -117,10 +123,8 @@ for var in args.varkeys:
 
        print('Processing ', var, key )
 
-       nf=0
        nfiles = len(ifiles)
-       colours = 'red orange yellow blue green'.split()
-       for ifile in ifiles: 
+       for nf, ifile in enumerate(ifiles): 
 
            ecdf=cdf.Dataset(ifile,'r',format='NETCDF4')
            monthly = np.full(12,np.nan)
@@ -129,13 +133,14 @@ for var in args.varkeys:
            tmpx    = np.linspace(0.5,nfiles+0.5,nfiles+1)
            if key in ecdf.variables.keys():
              tmpv=ecdf.variables[key][:,:,:]
+             if dbg: print('KEY VALUES? ', ifile, key, np.max(tmpv) )
              vals=ecdf.variables[key][:,j0:j1+1,i0:i1+1]
              if np.max(vals) < 1.0e-3:
                 print('ZERO VALUES? ', ifile, key )
                 continue
              print('TMPV var ', key, tmpv.shape, i0, i1, j0, j1, np.max(vals) )
              monthly = np.mean(vals,axis=(1,2))
-             print('TMPV monthly ', monthly, len(monthly))
+             if dbg: print('TMPV monthly ', monthly, len(monthly))
            else:
              print(' KEY NOT FOUND ', key, case[ifile])
              continue
