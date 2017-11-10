@@ -130,6 +130,12 @@ def RdEmepCdf( ifile, var, getVals=True, tStep=None,
   else:
     print("ERROR w PROJ", ecdf.dimensions); sys.exit(0)
   
+  # TEST IF WE HAVE THIS VAR!
+  if var not in ecdf.variables.keys():
+    print(dtxt+'TEST VAR NOT IN FILE! ', var,  ifile)
+    return 'VarNotFound'
+    #sys.exit()
+
   try:
     tst=ecdf.variables[dimx]
     lldim=len(tst.shape)
@@ -461,7 +467,6 @@ def getEmepVal(xPtin,yPtin,EmepCdf,minmax=False,dbg=False):
   #QUERY 180 if jS > 180:
   #QUERY 180   print(dtxt+'OOPSjS ', xPt, yPt, iL,jS, xcoords.max(), ycoords.max())
   #QUERY 180   sys.exit(0)
-  
 
   # Get data for a square at 0,0,  0,1 etc for bidirectional
   # relative to grid centre-points
@@ -499,9 +504,10 @@ def getEmepVal(xPtin,yPtin,EmepCdf,minmax=False,dbg=False):
 
   if dbg:
      print(dtxt,' --------- OUTFs ------------------------------------')
-     print(dtxt+"ijcoords ", iL, iR, jS, jN )
+     print(dtxt+"x,y -> ijcoords ", xPtin, yPtin, iL, iR, jS, jN )
      print(dtxt+"x, y, dx dy    ", x, y, dx, dy)
-     print(dtxt, jS, iL, EmepCdf.vals[jS,iL], EmepCdf.vals.min(), EmepCdf.vals.max())
+     print(dtxt+"x, y, dx dy    ", x, y, dx, dy)
+     print(dtxt, jS, iL, EmepCdf.vals[1,jS,iL], EmepCdf.vals.min(), EmepCdf.vals.max())
      print(dtxt,x,y, dx, dy, iL,iR, jS, jN , EmepCdf.varname, EmepCdf.vals.max())
      #print('Fs ', f00, f10, f01, f11)
      #print('F00', f00, (1-dx)*(1-dy))
