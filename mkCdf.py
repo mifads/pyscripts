@@ -2,27 +2,24 @@
 import netCDF4 as nc
 import numpy as np
 import time             # Just for creation date
+import sys
 
-
-def createCDF(varname,ofile,typ,lons,lats,data,txt='',dbg=False):
+def createCDF(variables,ofile,typ,lons,lats,data,txt='',dbg=False):
   """
     Creates a netcdf file for a simple 2-D data set and lonlat projection
+    together with a variables dictionary containing names, units, etc
   """
   print('OFILE ',ofile)
   cdf=nc.Dataset(ofile,'w',format='NETCDF4_CLASSIC')
+  cdf.Conventions = 'CF-1.6'
   cdf.projection = 'lon lat'
   cdf.history = 'Created ' + time.ctime(time.time())
   cdf.description = 'From mkCdf module '+ txt
   nx=len(lons)
   ny=len(lats)
-  if dbg :
-    print('NX NY ', nx, ny, lons.max(), lats.max())
-    print('SHAPE data ', data.shape)
-
 
   lon= cdf.createDimension('lon',nx)
   lat= cdf.createDimension('lat',ny)
-#lonvar = cdf.createVariable('longitude',typ ,('lon',))
 # typ can be e.g. u2, u8, f4
 # where u2 = 16 bit unsigned int, i2 = 16 bit signed int, 
 # f = f4, d = f8 
@@ -33,25 +30,38 @@ def createCDF(varname,ofile,typ,lons,lats,data,txt='',dbg=False):
   latvar = cdf.createVariable('lat', 'f4' ,('lat',))
   lonvar.units = 'degrees_east'
   latvar.units = 'degrees_north'
-  print('LATS', latvar )
+  lonvar.long_name = 'longitude'
+  latvar.long_name = 'latitude'
 
-  #datvar = cdf.createVariable(varname,typ ,('lon', 'lat',),zlib=True)
+  if dbg :
+    print('NX NY ', nx, ny, lons.max(), lats.max())
+    print('SHAPE data ', data.shape)
+    print('LATS', latvar )
 
-  # Fill data
+  # Fill coord  data
   lonvar[:] = lons[:]
   latvar[:] = lats[:]
 
-  if isinstance(varname, str):
-    print('TYPE ', type(varname)) #if type(varname) == 'str':
-    print('STR ', varname)
-    datvar = cdf.createVariable(varname,typ ,('lat', 'lon',),zlib=True)
-    datvar[:,:] = data[:,:]
-  else: # if isinstance(varname, list))
-    print('ARRAY' , varname )
-    print('SHAPE data ', data.shape)
-    for n in range(len(varname)):
-      datvar = cdf.createVariable(varname[n],typ ,('lat', 'lon',),zlib=True)
-      datvar[:,:] = data[n,:,:]
+
+  # We need a list of dictionaries. If variables is just a single
+  # dict, we make it into a list
+
+  if isinstance(variables, dict):
+
+    variables = [ variables, ]
+    varname=variables[0]['name']
+
+  for n, var in enumerate(variables):
+     varname=var['name']
+     datvar = cdf.createVariable(varname,typ ,('lat', 'lon',),zlib=True)
+     if len(data.shape) == 2:
+       datvar[:,:] = data[:,:]
+     else:
+       datvar[:,:] = data[n,:,:]
+
+     for key in var.keys():
+       if key == 'name' : continue # alrady done
+       datvar.setncattr(key,var[key])
 
   print( 'NX NY VAR ', nx, ny, np.max(cdf.variables['lon'][:]),
      np.max(cdf.variables['lat'][:]))
@@ -74,7 +84,8 @@ if __name__ == '__main__':
   #plt.show()
 
   # 1. Example of simple scalar field
-  createCDF('TestVar','tmp_mkCdfm.nc','f4',lons,lats,data,dbg=False)
+  TestVar=dict( name='TEST1', units='uuu' )
+  createCDF(TestVar,'tmp_mkCdfm.nc','f4',lons,lats,data,dbg=True)
 
   # 2. Example of multiple scalar fields
   # nb order of variable names has to match data order
@@ -83,5 +94,10 @@ if __name__ == '__main__':
   for n in range(3):
        data3[n,:,:] = data[:,:]*(n+1)
 
-  createCDF(['Var1','Var2','Var3'],'tmp_mkCdfm3.nc','f4',lons,lats,data3,
+  variables= [   
+     dict(name='Var1',units='ppb',long_name='test_variable with CF-illegal units'), 
+     dict(name='Var2',units='ug/m3'), 
+     dict(name='Var3',units='m s-1')
+  ]
+  createCDF(variables,'tmp_mkCdfm3.nc','f4',lons,lats,data3,
              txt='Demo of 3 variables',dbg=False)
