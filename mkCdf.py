@@ -6,7 +6,7 @@ import sys
 
 def createCDF(variables,ofile,typ,lons,lats,data,txt='',dbg=False):
   """
-    Creates a netcdf file for a simple 2-D data set and lonlat projection
+    Creates a netcdf file for a simple 2 or 3-D data sets and lonlat projection
     together with a variables dictionary containing names, units, etc
   """
   print('OFILE ',ofile)
