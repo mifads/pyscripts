@@ -40,9 +40,10 @@ import get_emepcoords as coords
 class EmepFileClass(object):
   """ Class to hold info on EMEP file's projection and dimensions
   """
-  def __init__(self,name=None,varname=None,proj=None,lldim=None, \
+  def __init__(self,name=None,handle=None,varname=None,proj=None,lldim=None, \
       dimx=None,dimy=None,ntime=None):
     self.name=name
+    self.handle=handle
     self.varname=varname
     self.proj=proj              # lonlat or PS so far
     self.lldim= int( lldim )    # is e.g. lat 1-D or 2-D
@@ -149,7 +150,7 @@ def RdEmepCdf( ifile, var, getVals=True, tStep=None,
   if dbg: print(t.units)
   print(cdf.num2date( times[0],units=t.units))
 
-  EmepFile=EmepFileClass( ifile, var, proj,lldim,dimx,dimy,ntime) 
+  EmepFile=EmepFileClass( ifile, ecdf, var, proj,lldim,dimx,dimy,ntime) 
   EmepFile.dimx = dimx
   EmepFile.dimy = dimy
   
