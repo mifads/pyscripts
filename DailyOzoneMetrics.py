@@ -22,6 +22,7 @@
     # Data for hh==8 say is from 08:00:00 to 09:00:00
     # and 20 gives up to 20:59 say, all GMT
 
+    Valid data? Any O3 less than zero is set to np.nan
 """
 import numpy as np
 import sys
@@ -224,11 +225,14 @@ first_metrics_call = True
 def get_metrics(o3,metrics=defmetrics,dbg=False):
   #if first_metrics_call:
   results = {}                      # Initialise results
+  o3valid = o3.copy()
+  for n in range(len(o3)):
+    if o3[n] < 0.0: o3valid[n] = np.nan
   #  for imetric in list(metrics.keys()):  #  dictionary for each
   #     results[imetric] = {}
   #  first_metrics_call = False
   for m in list(metrics.keys()):
-      results[m] = metrics[m](o3,dbg)
+      results[m] = metrics[m](o3valid,dbg)
       if dbg: print(('get_metrics: ', metrics[m], results[m] ))
   return results.copy()  # COPY needed to avoid other calls resetting contents 
   #  http://python.net/crew/mwh/hacks/objectthink.html (see objectthink.pdf)
