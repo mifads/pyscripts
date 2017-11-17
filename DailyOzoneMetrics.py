@@ -38,13 +38,14 @@ def mean_of_ValidHrs(x):
     if pValid>0: meanX = np.nanmean(x)
   return  meanX, pValid
 
-def max_of_ValidHrs(x):
+def max_of_ValidHrs(x,dbg=False):
   x = np.array(x)             # avoids confusions with list behaviour
   pValid = np.sum(~np.isnan(x)) #  ( x > -999).sum()  # crude way to count number of valid
   maxX = np.NaN
   #pValid = int( 0.5 + (100.0*pValid)/len(x) )
   pValid =  (100.0*pValid)/len(x)
   if pValid > 0: maxX = np.nanmax(x)
+  if dbg: print('DMAXX ', x, pValid, maxX)
   return  maxX, pValid
 
 def sum_of_ValidHrs(x):
@@ -61,7 +62,7 @@ def dmean(o3,dbg=False):
   return mean_of_ValidHrs( o3 ) 
 
 def dmax(o3,dbg=False):
-  if dbg: print('InDmax  res=',  mean_of_ValidHrs( o3 ) )
+  if dbg: print('InDmax  res=',  max_of_ValidHrs( o3 ) )
   return max_of_ValidHrs( o3 ) 
 
 # the following functions should be used with corrections for local time.
