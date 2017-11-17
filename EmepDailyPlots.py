@@ -2,6 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import EmepStats
+dtxt='EmepDailyPlot'
 
 def PlotDaily(jdays,obs,mod=[],modmin=[],modmax=[],
     xlabel='Days',ylabel='Conc',
@@ -68,10 +69,13 @@ def PlotDaily(jdays,obs,mod=[],modmin=[],modmax=[],
   if notetxt: # Hard-coded position so far, top-left
     plt.figtext(xnote,ynote,notetxt)
 
+  if dbg: print(dtxt, len(jdays), len(obs), len(mod) )
   if ofile:
     plt.savefig(ofile)
+    if dbg: print(dtxt, ' SAVES ', ofile )
   else:
     plt.show()
+    if dbg: print(dtxt, ' NO PLOT ' )
 
 if __name__ == '__main__':
 
