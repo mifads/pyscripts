@@ -301,7 +301,13 @@ def RelXy(x, y, x0, y0, dx, dy):
   yrel= (y-y0 )/dy
   if xrel < 0.0 or yrel < 0.0:
     print("WARNING XYrel not coded ", x, x0, xrel, y, y0, yrel)
-    #M2017 print("XYrel not coded ", xrel, yrel); sys.exit(0)
+    print("WARNING Yrel", yrel)
+    if yrel < 0.0:
+        print("WARNING XYrel South Pole Fix!")
+        yrel = max(0.0, yrel)
+        sys.exit('XYrel SP!')
+    if xrel < 0.0:
+        sys.exit('XYrel')
   return xrel,yrel
 
 #-------------------------------------------------------------------
