@@ -15,7 +15,7 @@
   them or not.
 
   Time-zones? These codes assume that the data are in the correct
-  time-zone already. If needed, the function tzo3 can make this
+  time-zone already. If needed, the function settzo3 can make this
   shift, and also just return smaller array if hours limited
   NB:
   EU AOT40 is 08:00 - 19:59 CET ie 09:00-20:59 GMT
@@ -79,7 +79,7 @@ def tzhrs(hh1,hh2,tz=None):
   hh1=hh1+tz; hh2 =hh2+tz            # 09:00 - 15:59
   return hh1, hh2
 #-----------------------------------------------------------------------------
-def tzo3(o3,hh1=0,hh2=23,tz=None,dbg=None):
+def settzo3(o3,hh1=0,hh2=23,tz=None,dbg=None):
   """ Returns copy of input o3 values, but time-shifted for time-zones if
       needed, and for resricted hours if hh1, hh2 specified. 
       If time zone present, adds to hh1, hh2 and assigns values
@@ -97,6 +97,7 @@ def tzo3(o3,hh1=0,hh2=23,tz=None,dbg=None):
   hh1=hh1-tz; hh2 =hh2-tz    # Need to have e.g CET h=2 from GMT h=1
   o3used = []
   hnew=0
+  #print('settzo3', len(o3) )
   for h in range(hh1,hh2+1):
      if h > 23: h = h - 24  # we allow wrap-around
      o3used.append( o3[h] )
@@ -107,33 +108,34 @@ def tzo3(o3,hh1=0,hh2=23,tz=None,dbg=None):
 #-----------------------------------------------------------------------------
 def m7(o3,dbg=False):
   if dbg: print ('InM7 ', o3 )
-  o3used = tzo3(o3,10,16,dbg)          # 09:00 - 15:59
+  o3used = settzo3(o3,10,16,dbg)          # 09:00 - 15:59
   if dbg:
      print ('InM7 ', o3used )
      print('InM7 res=',  mean_of_ValidHrs( o3used ) )
   return mean_of_ValidHrs( o3used ) 
 #-----------------------------------------------------------------------------
 def m12(o3,dbg=False):
-  o3used = tzo3(o3,9,20)          # 08:00 - 19:59
+  o3used = settzo3(o3,9,20)          # 08:00 - 19:59
   return mean_of_ValidHrs( o3used ) 
 #-----------------------------------------------------------------------------
 def AOT40(o3,dbg=False):
   #o3m = [] for i in range(len(o3)): o3m.append( np.max( o3[i]-40.0, 0.0 ) )
   o3m = [ max( o3[i] - 40.0, 0.0)  for  i in range(len(o3)) ]
-  o3used = tzo3(o3m,9,20)          # 08:00 - 19:59
+  #print('AOT40o3m: ', o3m )
+  o3used = settzo3(o3m,9,20)          # 08:00 - 19:59
   if dbg: print('AOT40 ', o3used)
   return sum_of_ValidHrs(o3used)
 #-----------------------------------------------------------------------------
 # SOMO35 is based upon max of 8 hr values. We have 16 8h periods in day.
 # MDA8 is the same, but it is useful to keep 2 names
 def MDA8(o3,dbg=False):
- # o3used = tzo3(o3,10,16,dbg)          # 09:00 - 15:59
+ # o3used = settzo3(o3,10,16,dbg)          # 09:00 - 15:59
   return SOMOY(o3,Y=0.0)
 def SOMO35(o3,dbg=False):
- # o3used = tzo3(o3,10,16,dbg)          # 09:00 - 15:59
+ # o3used = settzo3(o3,10,16,dbg)          # 09:00 - 15:59
   return SOMOY(o3,Y=35.0)
 def SOMO0(o3,dbg=False):
- # o3used = tzo3(o3,10,16,dbg)          # 09:00 - 15:59
+ # o3used = settzo3(o3,10,16,dbg)          # 09:00 - 15:59
   return SOMOY(o3,Y=0.0)
 # For SOMOY, set Y different to 35
 
@@ -198,6 +200,7 @@ def W126_24h(o3,dbg=False):
 def W126(o3,hh1=0,hh2=23,dbg=False):
   W126=0.0 # np.zeros(len(o3))
   pValid = 0
+  #dbg=True
   if dbg: print('PVAL START ', pValid, hh1, hh2, len(o3) )
   for i in range(hh1,hh2+1): #  range(0,len(o3)):
     if np.isfinite( o3[i] ):
@@ -205,7 +208,7 @@ def W126(o3,hh1=0,hh2=23,dbg=False):
        w126i    = C/( 1+4403*np.exp(-0.126*C) )
        W126 += w126i
        pValid += 1
-    if dbg: print('PVAL ', i, pValid, hh1, hh2, o3[i], w126i, W126)
+       if dbg: print('PVAL ', i, pValid, hh1, hh2, o3[i], w126i, W126)
   pValid = 100*pValid/(hh2-hh1+1) # (0.01 * len(o3) )
   if dbg: print('PVAL DONE ',  pValid, W126)
     
@@ -218,7 +221,7 @@ defmetrics = {'Dmean':dmean,  'Dmax':dmax, 'M7':m7, 'M12':m12,
    'AOT40':AOT40, 'W126':W126_12h, 'MDA8':SOMO0, 'SOMO35': SOMO35 }
 # If we can sum values, set True
 accumulated= {'Dmean':False,  'Dmax':False, 'M7':False, 'M12':False, 
-   'AOT40':True, 'W126':False, 'SOMO35':True, 'SOMO0':True, 'MDA8':True}
+   'AOT40':True, 'W126':False, 'SOMO35':True, 'SOMO0':True, 'MDA8':False}
 # ---------------------------------------------------------------------------
 
 first_metrics_call = True
@@ -226,7 +229,9 @@ first_metrics_call = True
 def get_metrics(o3,metrics=defmetrics,dbg=False):
   #if first_metrics_call:
   results = {}                      # Initialise results
-  o3valid = o3.copy()
+  #TESTING o3valid = o3.copy() was tuple?
+  o3valid = np.array(o3)
+  #print('get-met', len(o3), len(o3valid))
   for n in range(len(o3)):
     if o3[n] < 0.0: o3valid[n] = np.nan
   #  for imetric in list(metrics.keys()):  #  dictionary for each
@@ -263,7 +268,7 @@ if __name__ == '__main__':
        tz = 0
        o3gmt[12] = np.NaN
 
-    o3 = tzo3(o3gmt,tz=tz)
+    o3 = settzo3(o3gmt,tz=tz)
     print("============ CASE ========== ", case, tz, o3[12] )
     print('Test%d with tz=%d ' % (case,tz) + multiwrite(o3,'%3.0f') )
 
@@ -296,6 +301,5 @@ if __name__ == '__main__':
     #o3p[:] = np.NaN
     #m, n = mean_of_ValidHrs(o3p)
     #print('TESTNaN mean_of_ValidHrs ', m, n)
-  
   
   #def meapValidHrs(x,n):
