@@ -226,7 +226,8 @@ accumulated= {'Dmean':False,  'Dmax':False, 'M7':False, 'M12':False,
 
 first_metrics_call = True
 
-def get_metrics(o3,metrics=defmetrics,dbg=False):
+#def get_metrics(o3,metrics=defmetrics,dbg=False):
+def get_metrics(o3,keys=defmetrics.keys(),dbg=False):
   #if first_metrics_call:
   results = {}                      # Initialise results
   #TESTING o3valid = o3.copy() was tuple?
@@ -237,8 +238,9 @@ def get_metrics(o3,metrics=defmetrics,dbg=False):
   #  for imetric in list(metrics.keys()):  #  dictionary for each
   #     results[imetric] = {}
   #  first_metrics_call = False
-  for m in list(metrics.keys()):
-      results[m] = metrics[m](o3valid,dbg)
+  #NOV20 for m in list(metrics.keys()):
+  for m in keys:
+      results[m] = defmetrics[m](o3valid,dbg)
       if dbg: print(('get_metrics: ', metrics[m], results[m] ))
   return results.copy()  # COPY needed to avoid other calls resetting contents 
   #  http://python.net/crew/mwh/hacks/objectthink.html (see objectthink.pdf)
@@ -252,6 +254,7 @@ def get_metrics(o3,metrics=defmetrics,dbg=False):
 if __name__ == '__main__':
 
   metrics = {'Dmean':dmean,  'Dmax':dmax } #, 'M7':m7, 'M12':m12, 
+  keys  = 'Dmean Dmax'.split()
 #   'AOT40':AOT40, 'W126':W126_12h, 'MDA8':SOMO0, 'SOMO35': SOMO35 }
   tz = 0
   dbg=True
@@ -288,7 +291,7 @@ if __name__ == '__main__':
   
     # formatting issues. %g only preserves numer of sig figs, dropping zeros.
     #print('TESTR ', r.values())
-    r=get_metrics(o3,metrics=metrics,dbg=dbg)
+    r=get_metrics(o3,keys=keys,dbg=dbg)
     vals = [ r[kk][0] for kk in r.keys() ] 
     dc   = [ int( r[kk][1]+0.5)  for kk in r.keys() ] 
     #print('TESTR ', vals)
