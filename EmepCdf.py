@@ -135,7 +135,6 @@ def RdEmepCdf( ifile, var, getVals=True, tStep=None,
   if var not in ecdf.variables.keys():
     print(dtxt+'TEST VAR NOT IN FILE! ', var,  ifile)
     return 'VarNotFound'
-    #sys.exit()
 
   try:
     tst=ecdf.variables[dimx]
@@ -305,7 +304,7 @@ def RelXy(x, y, x0, y0, dx, dy):
     if yrel < 0.0:
         print("WARNING XYrel South Pole Fix!")
         yrel = max(0.0, yrel)
-        sys.exit('XYrel SP!')
+        #sys.exit('XYrel SP!')
     if xrel < 0.0:
         sys.exit('XYrel')
   return xrel,yrel
