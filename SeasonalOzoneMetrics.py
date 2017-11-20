@@ -1,29 +1,30 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf8 -*-
 
 import numpy as np
 import calendar
 import sys
 dtxt='getSeasonalMetrics'
-
 #=============================================================================
 def getDiurnal(xo3,year,season=None,dbg=None):
    """ takes a vector of hourly or  365(6)x24 matrix of o3 and returns 24 mean
         hourly values """
+
+   dtxt='getD:'
 
    mo3 = np.zeros(24)
    no3 = np.zeros(24)
 
    ileap= 1 if calendar.isleap(year) else 0
    ndays = 365 + ileap
-   if dbg: print('ND ', year, ndays )
+   if dbg: print(dtxt+'ND ', year, ndays )
 
    #M16 if len(xo3) ==  24*ndays:
-   if dbg: print('PRE-SHAPE ', len(xo3), xo3.size, xo3.shape, np.nanmax(xo3), np.nanmin(xo3) )
+   if dbg: print(dtxt+'PRE-SHAPE ', len(xo3), xo3.size, xo3.shape, np.nanmax(xo3), np.nanmin(xo3) )
    if xo3.size ==  24*ndays:
       xo3 = xo3.reshape(ndays,24)
-   if dbg: print('IN-SHAPE ', len(xo3), xo3.size, xo3.shape )
-   if dbg: print('POS-SHAPE ', len(xo3), xo3.size, xo3.shape, np.nanmax(xo3), np.nanmin(xo3) )
+   if dbg: print(dtxt+'IN-SHAPE ', len(xo3), xo3.size, xo3.shape )
+   if dbg: print(dtxt+'POS-SHAPE ', len(xo3), xo3.size, xo3.shape, np.nanmax(xo3), np.nanmin(xo3) )
 
    if season == 'summer':
      jd1=91+ileap; jd2=271+ileap
@@ -37,7 +38,7 @@ def getDiurnal(xo3,year,season=None,dbg=None):
        if np.isfinite(o3):
          mo3[hh] = mo3[hh] + o3
          no3[hh] += 1.0
-       if hh==0 and jd < 20 : print('JDo3 ', jd, hh, o3, mo3[hh], no3[hh] )
+       if hh==0 and jd < 20 : print(dtxt+'JDo3 ', jd, hh, o3, mo3[hh], no3[hh] )
 
    for hh in range(24): # Up to 50% DC? Not so serious for diurnal, for most sites
      tmp = mo3[hh]
@@ -45,7 +46,7 @@ def getDiurnal(xo3,year,season=None,dbg=None):
        mo3[hh] /= no3[hh]
      else:
        mo3[hh] = np.NaN
-     if dbg: print('GetDiurnal ', hh, tmp, no3[hh], 0.5*(jd2-jd1),  mo3[hh] )
+     if dbg: print(dtxt+'Res ', hh, tmp, no3[hh], 0.5*(jd2-jd1),  mo3[hh] )
 
    return mo3.copy()
 
@@ -81,45 +82,47 @@ def getDayNightIndex(o3,dbg=False):
   return di24
 #-----------------------------------------------------------------------------
 
-def getSeasonalMetrics(yr, x, metric,mm1,nmm,accumulate,dbg=False):
+def getSeasonalMetrics(yr, x, metric,mm1,nmm,accumulate,
+   monthlyWanted=False,  # returns seasonal and monthly if True
+   min_days_fraction=0.75,dbg=False,extra_dbg=False):
   """ expects a year full of daily values of some metric x (e.g. O3 conc, 
      AOT, M7)  and outputs either sum or average (with data-capture testing).
      Returns seasonal and monthly values
   """
+  dtxt='getSM:'
 
   year= int(yr)  # needed in case yr is str
   nmdays =  calendar.mdays   # -> 0, 31, 28, ...
   nmdays = np.array(nmdays)  # eases summations below
   if calendar.isleap(year) : nmdays[2] = 29
   nydays = sum ( nmdays )
-  MIN_DAY_FRACTION = 0.75
+
+  assert len(x) == nydays, print(dtxt+'Wrong length! ', len(x), year)
 
   d1  = calendar.datetime.datetime(year,mm1,1)
   t1  = d1.timetuple()
-  #12 monthg now: day = t1.tm_yday - 1  # start day in x
-  day = 0
-  if dbg: print('Day 1:',t1, day)
 
-  assert len(x) == nydays, print('Wrong length! ', len(x), year)
-
-  #S msum=np.zeros(nmm)
   msum=np.zeros(13)
   nsum=np.zeros(13)
   frac=np.zeros(13)
-  monthlyDC=np.zeros(12,dtype=int)
-  monthlyOut=np.zeros(12)
+  monthlyDC=np.zeros(13,dtype=int) # Will use [0] for seasonal
+  monthlyOut=np.zeros(13)
 
   nActiveMonths = 0
   nValidDays   = 0
   nActiveDays  = 0
 
-  ValidSeason = True
-
   # Screen for active seasons. DANGER. Need to define as np array to allow use
   # as mask. Otherwise, problems, see http://stackoverflow.com/questions/
   # 17779468/numpy-indexing-with-a-one-dimensional-boolean-array
 
+  ValidSeason = True
   in_season= np.array( [ False ] * 13 )
+
+  dtxt='getSM:'
+  mtxt=dtxt+metric+':'  # eg getSM:AOT40:
+  day = 0
+  if dbg: print(mtxt+'Day 1:',t1, day)
 
   for imm in range(nmm):
      mm = mm1 + imm
@@ -129,50 +132,53 @@ def getSeasonalMetrics(yr, x, metric,mm1,nmm,accumulate,dbg=False):
 
   for mm in range(1,13):
 
-     #mm = mm1 + imm
-     #if mm > 12: mm = mm - 12
-
      for dd  in range(1,nmdays[mm]+1):
-         #if dbg: print(dtxt, metric, day, mm,dd, x[day], np.nansum(msum), \
-         #      in_season[mm], nmdays[mm] )
-         if np.isfinite( x[day] ):
+         if extra_dbg: print(mtxt+'dd:', day, mm,dd, x[day], \
+              np.nansum(msum),in_season[mm], nmdays[mm] )
+
+         if in_season[mm] :
+
+           nActiveDays += 1
+           if np.isfinite( x[day] ):
              msum[mm] += x[day]
              nsum[mm] += 1.0
              nValidDays += 1
-
-         if in_season[mm] : nActiveDays += 1
          day += 1
-         #S if day >= nydays:  day = day - nydays
 
-     frac[mm-1] = nsum[mm] / nmdays[mm]
-     if dbg: print('\n'+dtxt+' Date ', day,  mm, dd, msum[mm], nsum[mm],
-                      nActiveDays, nValidDays )
-     if frac[mm-1] > MIN_DAY_FRACTION:
-         if dbg: print(dtxt+'   Valid month ', mm, msum[mm], msum[mm]/frac[mm-1] )
-         msum[mm] *= 1.0/frac[mm-1]
+     frac[mm] = nsum[mm] / nmdays[mm]
+     if dbg: print('\nMM'+mtxt+' Date ', day,  mm, dd, 
+       ' Msum=', msum[mm], ' Nsum=', nsum[mm], 
+       ' nActive=', nActiveDays, ' nValid=', nValidDays )
+
+     if frac[mm] > min_days_fraction:
+         if dbg: print('VM'+mtxt+'   Valid month ', mm, 
+           ' Msum=', msum[mm], ' MsumCorr=', msum[mm]/frac[mm] )
+         msum[mm] *= 1.0/frac[mm]   # Correct here for data-capture
      else:
         # need all months to get valid seasonal
-         if in_season[mm] : ValidSeason = False 
-         if dbg: print(dtxt+' Invalid month ', mm, nsum[mm] )
+         if in_season[mm] : ValidSeason = False  # Invalid if any one month wrong!?
+         if dbg and in_season[mm]: 
+            print('VM'+mtxt+' Invalid month,season ', mm, nsum[mm] )
          msum[mm] = np.nan
 
-     monthlyOut[mm-1] =  msum[mm]
-     monthlyDC[mm-1]  =  int(0.5+100.0*nsum[mm]/nmdays[mm])
-     if  not accumulate :
-        monthlyOut[mm-1]  /=  nmdays[mm]
+     monthlyOut[mm] =  msum[mm]
+     monthlyDC[mm]  =  int(0.5+100.0*nsum[mm]/nmdays[mm])
+     if not accumulate :
+        monthlyOut[mm]  /=  nmdays[mm]
 
   # End of year. We make seasonal sums or averages, weighting the
   # latter by nmdays
 
+  monthlyDC[0]  =  int(0.5+100.0*nValidDays/nActiveDays )
   if ValidSeason: 
-        seasonal  = np.sum( msum[ in_season ]  )
-        sumdays   = np.sum( nmdays[ in_season ]  )
+        monthlyOut[0]  = np.sum( msum[ in_season ]  )
+        #OLD monthlyDC[0]   = np.sum( nmdays[ in_season ]  )
         #print('IN SEA SUM ', metric, mm1, nmm, nActiveDays, seasonal, sumdays, np.sum(msum) )
         #print('IN SEA ??? ',  msum, '\n', 'IN SEA SUM ', in_season )
         if  not accumulate :
-          seasonal  /= nActiveDays
+          monthlyOut[0]  /= nActiveDays
   else:
-        seasonal  = np.nan
+        monthlyOut[0]  = np.nan
 
 #  with np.errstate(all='ignore'):
 #        mdivs = np.divide( msum, nsum )   # gives inf for /0.0
@@ -189,17 +195,37 @@ def getSeasonalMetrics(yr, x, metric,mm1,nmm,accumulate,dbg=False):
   #  else:
   #    f.close()
 
-  return seasonal, monthlyOut, monthlyDC
+  #OLD return seasonal, monthlyOut, monthlyDC
+  if monthlyWanted:
+    return monthlyOut, monthlyDC
+  else:
+    return monthlyOut[0], monthlyDC[0]
+
 
 if __name__ == '__main__':
 
   year = 2012
   ndays = 366
-  o3 =  np.ones(ndays)
-  seasonal, monthlyOut, monthlyDC = getSeasonalMetrics(year,o3,'AOT40',4,6,True,dbg=True)
+  aot40 =  np.ones(ndays) # 1 ppb h per day
+  #OLD seasonal, monthlyOut, monthlyDC = getSeasonalMetrics(year,aot40,'AOT40',4,6,True,dbg=True)
 
-  print('Seasonal = ', seasonal )
-  print('Monthly = ', monthlyOut )
+  for n in [ 127, 137 ]: # blanks first 5 then 10 days
+
+     aot40[122:n] = np.nan # blank May 2nd-6th
+
+     seasonOut, seasonDC = getSeasonalMetrics(year,aot40,'AOT40',4,6,
+                                   accumulate=True,dbg=True)
+     print('Test Seasonal   skip 127:', n, ' => ', seasonOut, seasonDC)
+
+  # Test with monthly putputs
+  monthlyOut, monthlyDC = getSeasonalMetrics(year,aot40,'AOT40',4,6,
+        accumulate=True,monthlyWanted=True,dbg=True)
+  print('Test Seasonal   skip 127:', n, ' => ', monthlyOut[0] ) # [0] is now full-period
+  print('Test SeasonalDC skip 127:', n, monthlyDC[0] )
+  print('Test Monthly    skip 127:', n, monthlyOut[1:] )
+  print('Test MonthlyDC  skip 127:', n, monthlyDC[1:] )
+  
+  #sys.exit('XXX')
 
   o3 = np.full([ndays,24],40.0)
   o3[:,12] = 50.0
