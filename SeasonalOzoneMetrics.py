@@ -84,6 +84,7 @@ def getDayNightIndex(o3,dbg=False):
 
 def getSeasonalMetrics(yr, x, metric,mm1,nmm,accumulate,
    monthlyWanted=False,  # returns seasonal and monthly if True
+   correctionWanted=True, # scales for missing values.
    min_days_fraction=0.75,dbg=False,extra_dbg=False):
   """ expects a year full of daily values of some metric x (e.g. O3 conc, 
      AOT, M7)  and outputs either sum or average (with data-capture testing).
@@ -97,10 +98,8 @@ def getSeasonalMetrics(yr, x, metric,mm1,nmm,accumulate,
   if calendar.isleap(year) : nmdays[2] = 29
   nydays = sum ( nmdays )
 
-  assert len(x) == nydays, print(dtxt+'Wrong length! ', len(x), year)
+  assert len(x) == nydays, print(dtxt+'Wrong length! ', len(x), nydays, year)
 
-  d1  = calendar.datetime.datetime(year,mm1,1)
-  t1  = d1.timetuple()
 
   msum=np.zeros(13)
   nsum=np.zeros(13)
@@ -121,14 +120,19 @@ def getSeasonalMetrics(yr, x, metric,mm1,nmm,accumulate,
 
   dtxt='getSM:'
   mtxt=dtxt+metric+':'  # eg getSM:AOT40:
-  day = 0
-  if dbg: print(mtxt+'Day 1:',t1, day)
+
 
   for imm in range(nmm):
      mm = mm1 + imm
      if mm > 12: mm = mm - 12
      in_season[mm] = True 
      if dbg: print(dtxt+' Screen active: ', metric, imm, mm, in_season[mm] )
+
+  day = 0
+  if dbg:
+     d1  = calendar.datetime.datetime(year,mm1,1)
+     t1  = d1.timetuple()
+     print(mtxt+'Day 1:',t1, day)
 
   for mm in range(1,13):
 
@@ -172,9 +176,6 @@ def getSeasonalMetrics(yr, x, metric,mm1,nmm,accumulate,
   monthlyDC[0]  =  int(0.5+100.0*nValidDays/nActiveDays )
   if ValidSeason: 
         monthlyOut[0]  = np.sum( msum[ in_season ]  )
-        #OLD monthlyDC[0]   = np.sum( nmdays[ in_season ]  )
-        #print('IN SEA SUM ', metric, mm1, nmm, nActiveDays, seasonal, sumdays, np.sum(msum) )
-        #print('IN SEA ??? ',  msum, '\n', 'IN SEA SUM ', in_season )
         if  not accumulate :
           monthlyOut[0]  /= nActiveDays
   else:
@@ -183,19 +184,6 @@ def getSeasonalMetrics(yr, x, metric,mm1,nmm,accumulate,
 #  with np.errstate(all='ignore'):
 #        mdivs = np.divide( msum, nsum )   # gives inf for /0.0
 
-  #if mfile:
-  #  try:
-  #    with open(mfile,'w') as f:
-  #      #print('MFILE ', mfile)
-  #      for mm in range(12):
-  #        #print('%2d  %12.3f\n' % ( mm+1, monthlyOut[mm] ) )
-  #        f.write('%2d  %12.3f\n' % ( mm+1, monthlyOut[mm] ) )
-  #  except IOError:
-  #    sys.exit('FAILED TO OPEN MONTHLY %s' % mfile )
-  #  else:
-  #    f.close()
-
-  #OLD return seasonal, monthlyOut, monthlyDC
   if monthlyWanted:
     return monthlyOut, monthlyDC
   else:
@@ -207,7 +195,6 @@ if __name__ == '__main__':
   year = 2012
   ndays = 366
   aot40 =  np.ones(ndays) # 1 ppb h per day
-  #OLD seasonal, monthlyOut, monthlyDC = getSeasonalMetrics(year,aot40,'AOT40',4,6,True,dbg=True)
 
   for n in [ 127, 137 ]: # blanks first 5 then 10 days
 
@@ -225,8 +212,6 @@ if __name__ == '__main__':
   print('Test Monthly    skip 127:', n, monthlyOut[1:] )
   print('Test MonthlyDC  skip 127:', n, monthlyDC[1:] )
   
-  #sys.exit('XXX')
-
   o3 = np.full([ndays,24],40.0)
   o3[:,12] = 50.0
   print('DN = ', getDayNightIndex(o3) )
