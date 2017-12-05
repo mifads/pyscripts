@@ -241,14 +241,14 @@ def get_metrics(o3,keys=defmetrics.keys(),dbg=False):
   #NOV20 for m in list(metrics.keys()):
   for m in keys:
       results[m] = defmetrics[m](o3valid,dbg)
-      if dbg: print(('get_metrics: ', metrics[m], results[m] ))
+      if dbg: print(('get_metrics: ', defmetrics[m], results[m] ))
   return results.copy()  # COPY needed to avoid other calls resetting contents 
   #  http://python.net/crew/mwh/hacks/objectthink.html (see objectthink.pdf)
 
 #def get_metrics2(o3,dbg=False):
 #  for m in list(metrics.keys()):
 #      results[m] = metrics[m](o3,dbg)
-#      if dbg: print(('get_metrics: ', metrics[m], results[m] ))
+#      if dbg: print(('get_metrics: ', defmetrics[m], results[m] ))
 #  return results
 
 if __name__ == '__main__':
