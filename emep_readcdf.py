@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
- EmepCdf contains:
+ emep_readcdf contains:
    class:
       EmepFileClass - which defines objects with name,proj,x0, etc.
    methods:
-      RdEmepCdf - reads EMEP cdf file, and figures out projection. 
+      readcdf - reads EMEP cdf file, and figures out projection. 
                   returns : EmepFile (object), and values of a 
                   specified variable for the full period or
                   particular time-slices.
@@ -12,7 +12,7 @@
          grid  (2-d array) for one time-slice, 1st if not specified
          Pt    (1-d time array)
 
-      getEmepVal(xPt,yPt,EmepCdf,minmax=False,dbg=False):
+      get_vals(xPt,yPt,EmepCdf,minmax=False,dbg=False):
             gets the value at xPt, yPt from bi-linear interpolation
             of nearest grids. Returns best estimate and min and max
             of those grids. 
@@ -22,10 +22,10 @@
 
   Usually called as module, but a quick test can be done to get values, e.g.
 
-    EmepCdf.py -i /home/fred/somedir/test1_fullrun.nc  -v SURF_MAXO3
+    emep_readcdf.py -i /home/fred/somedir/test1_fullrun.nc  -v SURF_MAXO3
 """
 import datetime
-import netCDF4 as cdf
+import netCDF4 # as nc4
 from numpy import maximum, vstack
 import numpy as np
 import os
@@ -79,6 +79,7 @@ class EmepFileClass(object):
      print((me+"SUMMARY     ", f.name))
      print((me+"Variable    ", f.varname))
      print((me+"PROJ, dims  ", f.proj,  " : ", f.lldim, 'D ', f.dimx, f.dimy))
+     print((me+"xReg, yReg, yAsc?  ", f.xRegular, f.yRegular, f.yAscending))
      print((me+"ntime       ", f.ntime))
      print((me+"XCOORDS     ", f.xcoords.min(), f.xcoords.max(), len(f.xcoords) ))
      print((me+"yCOORDS     ", f.ycoords.min(), f.ycoords.max(), len(f.ycoords), f.yAscending ))
@@ -93,7 +94,7 @@ class EmepFileClass(object):
 
 #-----------------------------------------------------
 
-def RdEmepCdf( ifile, var, getVals=True, tStep=None, 
+def readcdf( ifile, var, getVals=True, tStep=None, 
         getijPts = [], getijPt=[ False, 0, 0 ], dbg=False ):
   """
     Reads emep-produced (or other?) netcdf files and returns values of 
@@ -108,12 +109,12 @@ def RdEmepCdf( ifile, var, getVals=True, tStep=None,
     time-series for one point --- OR FULL ...
   """
 
-  dtxt='RdEmepCdf: '
+  dtxt='readcdf: '
   if( not os.path.isfile(ifile) ):
       print((dtxt+"File %s doesn't exist!"% ifile))
       sys.exit()
 
-  ecdf = cdf.Dataset(ifile,'r',format='NETCDF4')
+  ecdf = netCDF4.Dataset(ifile,'r',format='NETCDF4')
   
   proj='lonlat' # default
   if( 'longitude' in ecdf.dimensions ):
@@ -147,7 +148,16 @@ def RdEmepCdf( ifile, var, getVals=True, tStep=None,
   ntime=len(times)  #  TESTING . was =1 
   if dbg: print(" SIZE OF TIME ", len(times))
   if dbg: print(t.units)
-  print(cdf.num2date( times[0],units=t.units))
+  print(netCDF4.num2date( times[0],units=t.units))
+  print(netCDF4.num2date( times[1],units=t.units))
+  print(netCDF4.num2date( times[365],units=t.units))
+# ECHAM had 367 records for 2012:
+#   0 2012-01-01 12:00:00
+#   1 2012-01-02 11:30:00
+# 365 2012-12-31 11:30:00
+# 366 2013-01-01 00:00:00
+#  print(netCDF4.num2date( times[366],units=t.units)) # ChECK
+#  sys.exit()
 
   EmepFile=EmepFileClass( ifile, ecdf, var, proj,lldim,dimx,dimy,ntime) 
   EmepFile.dimx = dimx
@@ -156,6 +166,12 @@ def RdEmepCdf( ifile, var, getVals=True, tStep=None,
   if( lldim == 1):
     EmepFile.xcoords=ecdf.variables[dimx][:]
     EmepFile.ycoords=ecdf.variables[dimy][:]
+
+    if EmepFile.ycoords[-1] < EmepFile.ycoords[0]: # from  N to S
+        # We flip the coordinates
+       EmepFile.ycoords=np.flipud( EmepFile.ycoords )
+       EmepFile.yAscending = False
+
     EmepFile.dx = EmepFile.xcoords[1]-EmepFile.xcoords[0]
     EmepFile.dy = EmepFile.ycoords[1]-EmepFile.ycoords[0]
 
@@ -168,10 +184,10 @@ def RdEmepCdf( ifile, var, getVals=True, tStep=None,
     EmepFile.xmax = EmepFile.xcoords[-1] + 0.5 * EmepFile.dx
     EmepFile.ymax = EmepFile.ycoords[-1] + 0.5 * EmepFile.dy # from S to N
 
-    if EmepFile.ycoords[-1] < EmepFile.ycoords[0]: # from  N to S
-       EmepFile.y0   = EmepFile.ycoords[-1] - 0.5 * EmepFile.dy
-       EmepFile.ymax = EmepFile.ycoords[0]  + 0.5 * EmepFile.dy
-       EmepFile.yAscending = False
+    #FLIPD if EmepFile.ycoords[-1] < EmepFile.ycoords[0]: # from  N to S
+    #FLIPD    EmepFile.y0   = EmepFile.ycoords[-1] - 0.5 * EmepFile.dy
+    #FLIPD    EmepFile.ymax = EmepFile.ycoords[0]  + 0.5 * EmepFile.dy
+    #FLIPD   EmepFile.yAscending = False
        #EmepFile.ycoords=np.flipud( EmepFile.ycoords ) # No ascending
 
     # Check for regular spacing... simple test if edge dx ~ mid dx
@@ -189,6 +205,7 @@ def RdEmepCdf( ifile, var, getVals=True, tStep=None,
 #    EmepFile.ycoords=ecdf.variables[dimy][:,:] 
 #    EmepFile.xcoords=ecdf.variables[dimx][:,:]
    # HAR CODE FOR CDO
+    sys.exit('HAR CODE DANGEROUS - NEEDS CHECK')
     xx=ecdf.dimensions['x']
     yy=ecdf.dimensions['y']
     EmepFile.xcoords=np.linspace(0.5,xx.size-0.5,xx.size) # eg 0 .. 131 (2
@@ -217,24 +234,17 @@ def RdEmepCdf( ifile, var, getVals=True, tStep=None,
        
        EmepFile.vals=np.array( ecdf.variables[var][tStep,:,:] ) 
 
-    #Echam struggles..
-    #tmpvals=ecdf.variables[var][tStep,:,:]
-    #tmpvals[:,10] = 100.0
-   # This flips j coordinates (for some reason...)
-    #print('FLIP TEST PRE  ', tmpvals[0,5], tmpvals[-1,5] )
-    #print('FLIP TEST PRE  ', tmpvals[5,5], tmpvals[-1,5] )
-    #tmpvals=np.flipud(tmpvals)
-    #print('FLIP TEST POST ', tmpvals[0,5], tmpvals[-1,5] )
-    #print('FLIP TEST POST ', tmpvals[5,5], tmpvals[-1,5] )
-    #EmepFile.vals=tmpvals.copy()
-    #print('FLIP TEST Emep ', tmpvals[5,5], tmpvals[-1,5] )
-    #print('ECHAM ga', EmepFile.xcoords[10], EmepFile.vals[1,10] )
-    #plt.imshow(EmepFile.vals)
-    #plt.colorbar()
-    #plt.show()
-    #plt.imshow(tmpvals2)
-    #plt.colorbar()
-    #plt.show()
+    if EmepFile.yAscending == False: # ECHAM
+      # ECHAM has j coordinates from N to S, and some (old?) files has 367 records
+      # for 2012. We flip and chop
+       i=5; j=19 # about 53N, 9E, j from top
+       nj = len(EmepFile.ycoords) - j - 1
+       print('FLIP PRE  ',  EmepFile.vals[42,j,i], np.max(EmepFile.vals[:,j,i] ) )
+       #EmepFile.vals=EmepFile.vals[:-1,::-1,:]  # Flips on j, chops time by one
+       EmepFile.vals=EmepFile.vals[:,::-1,:]  # Flips on j
+       print('FLIP POST ',  EmepFile.vals[42,nj,i], np.max(EmepFile.vals[:,nj,i] ) )
+       print('SHAPE ECHAM VALS ', EmepFile.vals.shape )
+
 
   # O2017 - needs checking
   elif len(getijPts) > 0:
@@ -273,7 +283,7 @@ def RdEmepCdf( ifile, var, getVals=True, tStep=None,
 #  getEmepPt comprises three methods
 #    RelIj
 #    RelXy
-#    getEmepVal - which uses bi-linear interpolation to get best-estimate
+#    get_vals - which uses bi-linear interpolation to get best-estimate
 #
 #-------------------------------------------------------------------
 def RelIj(x, y, x0, y0, dx, dy):
@@ -316,7 +326,6 @@ def IrregRelP(p, pcoords,wrapP= -999,dbg=False):
    with.  wrapP not implemented yet """
   dtxt='IrregRelP:'
 
-  dbg=True # DEC TMP
   if p < np.min(pcoords): #2 if p < pcoords[0]:
      print('WARNING - wrap around not implemented yet for  pp', p, pcoords[0]  )
      return -888.
@@ -326,6 +335,7 @@ def IrregRelP(p, pcoords,wrapP= -999,dbg=False):
 
   flipped_coords = False
   if ( pcoords[1] < pcoords[0] ):  # Coords from -ve to +ve, e.g. N to S
+    sys.exit('IREG') # Shouldn't happen now that Echam flipped
     flipped_coords = True
     coords = np.flipud(coords)     # Simplifies thoughts n code, from low to high
 
@@ -416,20 +426,23 @@ def IrregRelXy(x, y, xcoords, ycoords,latlon=True):
   return xrel,yrel
 
 #-------------------------------------------------------------------
-def getEmepVal(xPtin,yPtin,EmepCdf,minmax=False,dbg=False):
+def get_vals(xPtin,yPtin,EmepCdf,minmax=False,dbg=False):
   """ Uses bi-linear interpolation to estmate value
     of field vals at point xPt, yPt
   """
-  dtxt='getEmepVal:'
+  dtxt='get_vals:'
 
   # Get coordinates in model grid if polar stereo:
 
   xPt, yPt = xPtin, yPtin
   if hasattr(xPt,"__len__"): # copes with numpy class or simple list
-    print('ERROR! getEmepVal needs scalar x,y; got array:', type(xPt) )
+    print(dtxt+'ERROR! needs scalar x,y; got array:', type(xPt) )
     sys.exit()
 
-  print(dtxt+'TEST? proj, xPt, yPt ', EmepCdf.proj, xPt, yPt)
+  print(dtxt+'TEST? proj, xPt, yPt ', EmepCdf.proj, xPt, yPt, 
+           'xrange:', EmepCdf.xcoords[0],EmepCdf.xcoords[-1],
+           'yrange:', EmepCdf.ycoords[0],EmepCdf.ycoords[-1])
+
   if EmepCdf.proj == 'PS':
     xPt, yPt = coords.LonLat2emepXy(xPt,yPt)  # XPt, yPt are lon,lat
     if dbg: 
@@ -556,11 +569,11 @@ if ( __name__ == "__main__" ):
   print('-'*78) #------------------------------------
   print("Testing full grid, tStep=3  ", args.ifile )
 
-  EmepFile = RdEmepCdf( ifile, var, getVals = True, tStep=3 ) # 180 from ECHAM day.nc
+  EmepFile = readcdf( ifile, var, getVals = True, tStep=3 ) # 180 from ECHAM day.nc
   EmepFile.printme()
 
   #print("Testing one point ", ifile)
-  #EmepFile2, ecdf2 = RdEmepCdf( ifile, var )
+  #EmepFile2, ecdf2 = readcdf( ifile, var )
   #EmepFile2.vals=ecdf2.variables[var][:,10,10]
   #EmepFile2.printme()
   #print "XY emep for proj %s %6.2f %6.2f is %6.2f %6.2f:" % (EmepFile.proj, lon,lat, xemep, yemep)
@@ -569,23 +582,22 @@ if ( __name__ == "__main__" ):
   lon, lat = -9.89, 53.3  # Mace Head
   print('Testing one point:', lon, lat )
   # Now with all tsteps:
-  EmepFile = RdEmepCdf( ifile, var, getVals = True ) # 180 from ECHAM day.nc
+  EmepFile = readcdf( ifile, var, getVals = True ) # 180 from ECHAM day.nc
 
   t3 = time.time()
-  v, minv, maxv = getEmepVal(lon,lat,EmepFile,minmax=True,dbg=False)
+  v, minv, maxv = get_vals(lon,lat,EmepFile,minmax=True,dbg=False)
   t4 = time.time()
 
   print('Testing nmin, nmax:')
   print('1st: ', v[0], minv[0], maxv[0], len(v) )
   print('Last:', v[-1], minv[-1], maxv[-1], len(v) )
-  #sys.exit()
 
-#SPEED  EmepFile=  RdEmepCdf( ifile, var )
+#SPEED  EmepFile=  readcdf( ifile, var )
 #print(EmepFile.lldim, EmepFile.dimx, EmepFile.vals.max())
 #SPEED  EmepFile.printme()
  # For points, here use i,j model coordinates coordinates
  # Use getEmepPt for use of lat/long
-#SPEED  EmepFile=  RdEmepCdf( ifile, var, getijPt = [ True, 23, 45]  )
+#SPEED  EmepFile=  readcdf( ifile, var, getijPt = [ True, 23, 45]  )
 #SPEED  EmepFile.printme()
 #SPEED  from StringFunctions import multiwrite
 #SPEED  print('Ozone series ', multiwrite( EmepFile.vals[0:10],'%5.1f') )
@@ -594,7 +606,7 @@ if ( __name__ == "__main__" ):
   print('-'*78) #------------------------------------
   print('Testing several ij points:' )
   gpts=[ [ 12, 24], [12,25], [13,23], [13, 24], [13,25], [14,24], [21, 34], [22,34] ]
-  EmepFile =  RdEmepCdf( ifile, var, getVals=True )
+  EmepFile =  readcdf( ifile, var, getVals=True )
 
  # Fails for ECHAM since direct ecdf.variables used:
   npt=len(gpts)
