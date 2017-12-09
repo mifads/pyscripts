@@ -16,8 +16,8 @@ The codes are listed below, roughly in order or importance/usage.
 Code                          | Comment
 :--------------------------   |:---------------------------------------
 read_emepcdf.py |  Main code to read EMEP files - checks projections, dimensions, etc. Gets values for givem lat/long point using bi-linear interpolation of nearby cells. Can also return the values of surrounding points - to make the shadowing used in Dave's time series scripts. Was EmepCdf.py
+emep_monthlyComp.py | Compares 2 or more annual or monthly files, for key patterns and given domain. Produces line plots for monthly files, and bar plots for annual. Still in development, but useful.
 mkCdf.py | Creates cdf files from a list of variable names and data. Works for lon/lat so far.
-mkCdfComp.py | Compares 2 or more annual or monthly files, for key patterns and given domain. Produces line plots for monthly files, and bar plots for annual. Still in development, but useful.
 StringFunctions.py | *stringClean* - Function to get rid of funny chars in names, e.g Bratt's Lake
 "                  | *blankRemove* - obvious ...
 "                  | *multiwrite*  - combines elements from an array with given format string
