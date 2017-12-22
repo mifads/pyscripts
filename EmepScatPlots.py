@@ -59,7 +59,7 @@ def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   [m,c]=np.polyfit(x,y,1)
   r=np.corrcoef(x,y)
 ###########################################################################
-  skipOutliers=True
+  #skipOutliers=True
   skipi = np.zeros(len(x),dtype='int')
   skip = [] 
   if skipOutliers:
@@ -101,7 +101,7 @@ def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
       label = '%4s'%pcodes[n]
       col='k'
       if skipi[n] : col='r'
-      print(dtxt, n, skipi[i], pcodes[n], x[n], y[n])
+      print(dtxt, n, skipi[n], pcodes[n], x[n], y[n])
       plt.text(x[n],y[n],label,color=col,fontsize=10)
 
 #J8  v=plt.axis() #J8  maxv=max(v)
@@ -141,10 +141,12 @@ def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
      #plt.text(0.6*maxv,0.25*maxv,'Year %4s'% year,fontsize=12)
      #plt.text(0.6*maxv,0.2*maxv,'Max altitude %4.0f m'% vlimit,fontsize=12)
      regline = 'y= %4.2f x + %6.1f'%( m, c)
+     col='k'
+     if skipOutliers: col='r'  # keep black for non-outliers
      if c < 0: regline = 'y= %4.2f x %6.1f'%( m, c)
-     plt.text(0.6*maxv,vpos,regline,color='r',fontsize=12)
+     plt.text(0.6*maxv,vpos,regline,color=col,fontsize=12)
      vpos -= dvpos
-     plt.text(0.6*maxv,vpos,'Corr.= %6.2f'%r[0,1],color='r',fontsize=12)
+     plt.text(0.6*maxv,vpos,'Corr.= %6.2f'%r[0,1],color=col,fontsize=12)
 
   if skipOutliers:
      vpos -= dvpos
@@ -164,6 +166,11 @@ def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
     plt.savefig(ofile)
   else:
     plt.show()
+  
+  if skipOutliers:
+     return  mn, cn, rn[0,1]   # Stats
+  else:
+     return  m, c, r[0,1]   # Stats
 
 #maxv=24000
 #P.axis([0,maxv,0,maxv])
