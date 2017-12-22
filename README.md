@@ -17,12 +17,12 @@ Code                          | Comment
 :--------------------------   |:---------------------------------------
 read_emepcdf.py |  Main code to read EMEP files - checks projections, dimensions, etc. Gets values for givem lat/long point using bi-linear interpolation of nearby cells. Can also return the values of surrounding points - to make the shadowing used in Dave's time series scripts. Was EmepCdf.py
 emep_monthlyComp.py | Compares 2 or more annual or monthly files, for key patterns and given domain. Produces line plots for monthly files, and bar plots for annual. Still in development, but useful.
+emepscatplots.py | Produces scatter plots, including optinional detection of outliers and addition of labels
 mkCdf.py | Creates cdf files from a list of variable names and data. Works for lon/lat so far.
 StringFunctions.py | *stringClean* - Function to get rid of funny chars in names, e.g Bratt's Lake
 "                  | *blankRemove* - obvious ...
 "                  | *multiwrite*  - combines elements from an array with given format string
 EmepDailyPlots.py | Produces time-series plots of daily data, including optional fill range
-EmepScatPlots.py | Produces scatter plots, including optinional detection of outliers and addition of labels
 "                  | (needed python pip3 install statsmodels on Xubuntu 17.04)
 EmepStats.py |  Basic stats, mean, R, data-capture. Will expand in future
 scanVerification.py | scans multiple Verification(scatterstations) results files and produces summary for annual statistics.
