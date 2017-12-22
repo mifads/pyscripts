@@ -3,12 +3,12 @@
 """
   Simple numerical functions to help remember what to do
 
-    round_int - equivalent to nint. Copes with negative numbers
-                which int ot int(x+0.5) gets wrong
+    nint - equivalent to fortran nint. Copes with negative numbers
+                which int or int(x+0.5) gets wrong
     intround  - rounds integers to given number of significant digits
 """
 
-def round_int(x):
+def nint(x):
       return int(round(x))
 
 def intround(n, p):
