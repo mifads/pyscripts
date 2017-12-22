@@ -126,6 +126,7 @@ def sortObsDB(db):
 
 
 if __name__ == '__main__':
+   """ Just testing the system """
 
    stations  = 'Mace_Head xxx yyy'.split()
    stations[0] = 'Mace Head' 
@@ -148,7 +149,7 @@ if __name__ == '__main__':
        ObsStations.printObs(obs)
        db[obs.code] = obs
        tt, hh= obs.printStr()
-       print("TT ", tt)
+       print("TT ", tt, "HH ", hh)
        tt, hh= obs.printStr(ccodes=True)
        print("CC ", tt)
        n += 1
