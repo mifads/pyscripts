@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 import numpy as np
 import matplotlib.pyplot as plt
+
+# Styles, added Dec 2017,  see e.g.
+# print(plt.style.available)
+# https://tonysyu.github.io/raw_content/matplotlib-style-gallery/gallery.html
+
+# Outliers, info:
 # More advanced, from http://stackoverflow.com/questions/10231206/can-scipy-stats-identify-and-mask-obvious-outliers
 # See also: http://statsmodels.sourceforge.net/devel/examples/notebooks/generated/robust_models_0.html
-# For installation of statsmodels on python3, I used:
-# install python3-pip, then pip3 install statsmodels
+# For statsmodels on python3: install python3-pip; pip3 install statsmodels
 
 try:
   from statsmodels.formula.api import ols   # Used pip3 (python3-pip) to install
@@ -14,32 +19,31 @@ except:
   print('Stats: NOT FOUND statsmodels')
   ImportStats=False
 import Geometry as geom
-#DS import statsmodels.graphics as smgraphics
 
-#maxalt=300   # Max altitude of stations
-#aot   = r'AOT40$_\mathrm{f}$'
 
-def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
+def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
     title=None,
+    plotstyle='classic',
     labelx=0.1,labely=0.9,labelsize=16,
     addxy=0.0,  # Increases maxv to e.g. cope with label  overwrites
     addStats=False,skipOutliers=False,dbg=False,ofile=None):
 
   """
-   Scatter plot, EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,addxy=0.0,addStats=False,ofile=None)
+   Scatter plot, emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,addxy=0.0,addStats=False,ofile=None)
   """
+  dtxt = 'emepscatplot'
+  plt.style.use(plotstyle)
   x = np.array(x)
   y = np.array(y)
   if dbg:
-   print( 'INTO EmepScatPlot lengths x,y: ', len(x), len(y) )
-   print( 'INTO EmepScatPlot shape x: ', x.shape )
-   print( 'INTO EmepScatPlot shape y: ', y.shape )
+   print( dtxt+' lengths x,y: ', len(x), len(y) )
+   print( dtxt+' shape x, y: ', x.shape, y.shape )
+   print( dtxt+' plotstyle : ', plotstyle)
    for i in range(len(x)):
      p= pcodes[i] if pcodes else '#%d'%i
-     print( 'INTO EmepScatPlot p,x,y: ', p, x[i], y[i] )
+     print( 'INTO emepscatplot p,x,y: ', p, x[i], y[i] )
 #vlimit=300.0
 #f=alt<vlimit
-  dtxt = 'EmepScatPlot'
   plt.subplot(111)
   plt.clf()
   fig=plt.scatter(x,y)
@@ -59,7 +63,6 @@ def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   [m,c]=np.polyfit(x,y,1)
   r=np.corrcoef(x,y)
 ###########################################################################
-  #skipOutliers=True
   skipi = np.zeros(len(x),dtype='int')
   skip = [] 
   if skipOutliers:
@@ -165,6 +168,7 @@ def EmepScatPlot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   if ofile:
     plt.savefig(ofile)
   else:
+    print(dtxt+'SHOWS ', plotstyle)
     plt.show()
   
   if skipOutliers:
@@ -188,11 +192,19 @@ if __name__ == '__main__':
   x = [ 1.0, 2.0, 3.3, 3.9, 5.2, 5.3 ]
   y = [ 1.2, 2.2, 2.7, 3.5, 5.2, 2.2 ]
   c = [ 'AT92', 'AA', 'CCC', 'DDD', 'EEE', 'OUT' ]
-  #p=EmepScatPlot(x,y,'Testx','Testy')
-  #plt.show()
-  p=EmepScatPlot(x,y,'Testx','Testy',addStats=True,dbg=True)
-  p=EmepScatPlot(x,y,'Testx','Testy',label='LABEL',addStats=True,dbg=True)
-  #p=EmepScatPlot(x,y,'Testx','Testy',addStats=True,pcodes=c)
+  #p=emepscatplot(x,y,'Testx','Testy')
+  #maxalt=300   # Max altitude of stations
+  #aot   = r'AOT40$_\mathrm{f}$'
 
-  #p=EmepScatPlot(x,y,'Testx','Testy',addStats=True,pcodes=c,ofile='TestPlots.png')
+  p=emepscatplot(x,y,'Testx','Testy',addStats=True,dbg=True)
+  p=emepscatplot(x,y,'Testx','Testy',label='LABEL',addStats=True,dbg=True)
+
+ # Illustrate some styles
+
+  for style in 'bmh ggplot seaborn-colorblind seaborn-deep'.split():
+    print('TESTING STYLE', style)
+    p=emepscatplot(x,y,'Testx','Testy',label=style,plotstyle=style,addStats=True,dbg=True)
+#    p.show()
+
+  #p=emepscatplot(x,y,'Testx','Testy',addStats=True,pcodes=c,ofile='TestPlots.png')
 
