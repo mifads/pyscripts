@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 import numpy as np
 import matplotlib.pyplot as plt
-import EmepStats
-dtxt='EmepDailyPlot'
+import emxmisc.emepstats as emepstats
+dtxt='plotdaily:'
 
-def PlotDaily(jdays,obs,mod=[],modmin=[],modmax=[],
+def plotdaily(jdays,obs,mod=[],modmin=[],modmax=[],
     xlabel='Days',ylabel='Conc',
     ymin=0,ymax=None,             #  lower and upper y curves
     yaxisMin=None, yaxisMax=None, # y-axis limits
@@ -13,7 +13,7 @@ def PlotDaily(jdays,obs,mod=[],modmin=[],modmax=[],
     notetxt=None,                 # Text, can be multi-line
     xnote=0.15,ynote=0.75,notefont=16,  #  default location
     dbg=False,ofile=None):
-  """ Arguments as from EmepScatPlots """
+  """ Arguments as from plotscatt """
 
   obs = np.array(obs)
   for n, xx in enumerate(obs):
@@ -23,7 +23,7 @@ def PlotDaily(jdays,obs,mod=[],modmin=[],modmax=[],
   if len(mod)>1:
     mod = np.array(mod)
 
-  # now in EmepStats
+  # now in emepstats
   #f=np.isfinite(obs)
   #dc = int( 0.5 +  sum(f)/(0.01*len(obs)) ) # Data capture in %
   #print('DC ', dc, len(jdays) )
@@ -87,6 +87,6 @@ if __name__ == '__main__':
   y[40:60] = np.nan
   ymin = y - 10
   ymax = y + 2
-  stats=EmepStats.ObsModStats(x,y)
+  stats=emepstats.obsmodstats(x,y)
   testnote=' Germany\n 20 edgE 60N 200m\n Run rv\n xxx'
-  PlotDaily(jdays,x,y,ymin,ymax,yaxisMax=200,notetxt=testnote)
+  plotdaily(jdays,x,y,ymin,ymax,yaxisMax=200,notetxt=testnote)

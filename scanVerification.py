@@ -11,7 +11,16 @@ runs=sys.argv[1:]
 yearly =3 # offsets from poll name
 yearday=4
 
+# SPACES are important - will search for whole string!
 polls='''
+SO4_aerosol  ugS/m3
+XSO4_aerosol  ugS/m3
+NO2_air  ugN/m3
+HNO3+NO3_air+aerosol  ugN/m3
+NH3+NH4_air+aerosol  ugN/m3
+'''.strip().split('\n')
+
+xpolls='''
 Ozone_daily_max ppb
 Ozone_daily_mean ppb
 SO2_in_Air ugS/m3
@@ -46,13 +55,13 @@ for p in polls:  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';'):
 
   for run in runs:
     #QQ  if ( 'BM_' in tst0 ): tst = '%s-EmChem09soa' % tst0
-    #print( "RUN :", run)
     try:
       tst=run.split('.')[-3]   # "%s/Res.%s.%s.%s" % ( idir, tst, grid, year)
     except:
       #tst=run.split('_')[1]   # Res_%s-xx.%s" % ( idir, tst, grid, year)
       r=re.search('Res_(\w+)', run ) # Stops at '-' in e.g h500-outluers_condays
       tst=r.groups()[0]
+      #print( "XRUN :", run, tst)
 
     #print("TST ", tst, ":", run)
     Ns = '-' 
@@ -67,13 +76,17 @@ for p in polls:  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';'):
        t = f.read()
        tt=t.split('\n')
        f.close()
+       #print('FPP', p, tt.index(p))
+      
        try:  # species may not always exist in file
            row = tt[yearly + tt.index(p)]
+           #print('ROW', row)
+           #sys.exit()
            ioa = row.split()[-1]
            r2  = row.split()[-2]
            bias = row.split()[-4]
            Ns   = row.split()[-10]
-           row = tt[yearday + tt.index(p)]
+#TMPpy           row = tt[yearday + tt.index(p)]
            dioa = row.split()[-1]
            dr2  = row.split()[-2]
        except:

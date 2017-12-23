@@ -34,7 +34,7 @@ import matplotlib.pyplot as plt
 import time # for timing CPU
 #Not used: import netcdftime # ... to play with dates:
 # Own:
-import get_emepcoords as coords
+import emxmisc.get_emepcoords as coords
 
 # ---------------------------------------------------------------------------#
 class EmepFileClass(object):
@@ -444,7 +444,7 @@ def get_vals(xPtin,yPtin,EmepCdf,minmax=False,dbg=False):
            'yrange:', EmepCdf.ycoords[0],EmepCdf.ycoords[-1])
 
   if EmepCdf.proj == 'PS':
-    xPt, yPt = coords.LonLat2emepXy(xPt,yPt)  # XPt, yPt are lon,lat
+    xPt, yPt = coords.lonlat2emepXy(xPt,yPt)  # XPt, yPt are lon,lat
     if dbg: 
       print('PS lon,lat => model xPt, yPt ', xPtin, yPtin, ' => ',  xPt, yPt)
   elif EmepCdf.xcoords[-1] > 180:  # QUERY 180

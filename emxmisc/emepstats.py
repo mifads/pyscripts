@@ -2,7 +2,7 @@
 import numpy as np
 from collections import OrderedDict as odict
 
-def ObsModStats (x,y,ymin=0.0,dcLimit=75,dbg=False):
+def obsmodstats (x,y,ymin=0.0,dcLimit=75,dbg=False):
   """
     Calculate stats, with the usual case that x is
     obsverations and may have missing values, and y
@@ -48,7 +48,7 @@ if __name__ == '__main__':
   y = 40.0 +50* np.sin(jdays)
 
   x[40:60] = np.nan
-  t1= ObsModStats (x,y,dcLimit=75)
+  t1= obsmodstats (x,y,dcLimit=75)
   print(t1)
-  t2= ObsModStats (x,y,dcLimit=50)
+  t2= obsmodstats (x,y,dcLimit=50)
   print(t2)
