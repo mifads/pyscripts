@@ -9,7 +9,7 @@
 import numpy as np
 
 # Preferred:
-def LonLat2emepXy(lon,lat,dbg=False):
+def lonlat2emepXy(lon,lat,dbg=False):
   """
     Usage:  x, y = LongLat2emepXy 
     returns EMEP 50km PS model's  x and y coordinates
@@ -22,7 +22,7 @@ def LonLat2emepXy(lon,lat,dbg=False):
     if dbg : print(' Used proj4 ') 
   except:
     if dbg : print(' Used home-grown equatations ') 
-    x, y = EmepLonLat2Xy50(lon,lat)
+    x, y = emeplonlat2Xy50(lon,lat)
   return x, y
 
 # Convert array of lat/long to EMEP 50 i,j
@@ -33,7 +33,7 @@ def LonLat2emepXy(lon,lat,dbg=False):
 # Extended Jan 2016 to cope with scalar or vector inputs using ideas from
 # From http://stackoverflow.com/questions/12653120/how-can-i-make-a-numpy-function-that-accepts-a-numpy-array-an-iterable-or-a-sc...
 
-def EmepLonLat2Xy50(lon,lat):
+def emeplonlat2Xy50(lon,lat):
   # Conversion clculations
   xpol=8.0
   ypol=110.0
@@ -65,10 +65,10 @@ def EmepLonLat2Xy50(lon,lat):
 
   return x , y
 
-def EmepLonLat2Ij50(lon,lat):
+def emeplonlat2Ij50(lon,lat):
   x=[]; y=[]; i=[]; j=[]
-  #(x, y ) = EmepLonLat2Xy50(lon,lat)
-  x, y =  LonLat2emepXy(lon,lat)
+  #(x, y ) = emeplonlat2Xy50(lon,lat)
+  x, y =  lonlat2emepXy(lon,lat)
   for k in range(0,np.size(lat)):
      i.append( int(x[k] + 0.5 ) )
      j.append( int(y[k] + 0.5 ) )
@@ -83,9 +83,9 @@ if ( __name__ == "__main__" ):
   lon = ( 11.0, 11., 11.0, -9.89 )
   ii=[]; jj=[]
   xx=[]; yy=[]
-  xx, yy =  EmepLonLat2Xy50(lon,lat)
-  ii, jj =  EmepLonLat2Ij50(lon,lat )
-  xxp, yyp =  LonLat2emepXy(lon,lat,dbg=True)
+  xx, yy =  emeplonlat2Xy50(lon,lat)
+  ii, jj =  emeplonlat2Ij50(lon,lat )
+  xxp, yyp =  lonlat2emepXy(lon,lat,dbg=True)
 
   print('TESTING EMEP conversions for 4 locations')
   for k in range(0,len(lat)):
@@ -97,16 +97,16 @@ if ( __name__ == "__main__" ):
   # 2) Test scalars
 
   lat, lon = 53.3, -9.89  # MH
-  xx, yy =  EmepLonLat2Xy50(lon,lat)
+  xx, yy =  emeplonlat2Xy50(lon,lat)
   print('SCALAR ', k, lon, lat, xx, yy) 
-  xx, yy =  LonLat2emepXy(lon,lat,dbg=True)
+  xx, yy =  lonlat2emepXy(lon,lat,dbg=True)
   print('PSCALAR ', k, lon, lat, xx, yy) 
 
   # 3) Test 1-element array
 
   lat, lon = [53.3], [-9.89]  # MH
-  xx, yy =  EmepLonLat2Xy50(lon,lat)
+  xx, yy =  emeplonlat2Xy50(lon,lat)
   print('1pt array ', k, lon, lat, xx, yy) 
 
-  xx, yy =  LonLat2emepXy(lon,lat,dbg=True)
+  xx, yy =  lonlat2emepXy(lon,lat,dbg=True)
   print('1pt array ', k, lon, lat, xx, yy) 
