@@ -18,7 +18,7 @@ try:
 except:
   print('Stats: NOT FOUND statsmodels')
   ImportStats=False
-import Geometry as geom
+import emxmisc.geometry as geom
 
 
 def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
