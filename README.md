@@ -62,14 +62,15 @@ weibullw126.py |
 
 emxplots code                  | Comment
 :--------------------------   |:---------------------------------------
-dailyplots.py | Produces time-series plots of daily data, including optional fill range
+plotdaily.py | Produces time-series plots of daily data, including optional fill range
 "                  | (needed python pip3 install statsmodels on Xubuntu 17.04)
-scatplots.py | Produces scatter plots, including optinional detection of outliers and addition of labels
+plotscatt.py | Produces scatter plots, including optinional detection of outliers and addition of labels
+plotdiurnal.py | Diurnal (1-24h) plots
 
 
 Code                          | Comment
 :--------------------------   |:---------------------------------------
-emep_monthlyComp.py | Compares 2 or more annual or monthly files, for key patterns and given domain. Produces line plots for monthly files, and bar plots for annual. Still in development, but useful.
+emepmonthlycomp.py | Compares 2 or more annual or monthly files, for key patterns and given domain. Produces line plots for monthly files, and bar plots for annual. Still in development, but useful.
 
 scanVerification.py | scans multiple Verification(scatterstations) results files and produces summary for annual statistics.
 LICENSE.txt         |             GPL
