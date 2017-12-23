@@ -550,7 +550,7 @@ def get_vals(xPtin,yPtin,EmepCdf,minmax=False,dbg=False):
     return value
 
 #=============================================================================
-if ( __name__ == "__main__" ):
+def main():
   import argparse
   dtxt='EmepCdf main:'
 #------------------ arguments  ----------------------------------------------
@@ -625,3 +625,6 @@ if ( __name__ == "__main__" ):
   #t0   = dtim.datetime(1990, 1, 1, 0, 0, 0 )
   #nt0  = emeptime.date2num(t0)
   #times=e.variables['time']
+
+if ( __name__ == "__main__" ):
+  main()
