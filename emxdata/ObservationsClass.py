@@ -5,7 +5,7 @@
    ObsStations - class to hold info on NILU/EMEP/GAW type stations
    printObs - prints summary table
 """
-import StringFunctions as str   # pyscripts
+import emxmisc.stringfunctions as estr   # pyscripts
 
 # We will often print tables, but will need to adapt field widths for differnt
 # cases. We try a flexible system:
@@ -58,7 +58,7 @@ class ObsStations(object):
     self.tz  = tz              # time relative to GMT
 
     if self.name:
-       self.name=  str.blankRemove(name)
+       self.name=  estr.blankRemove(name)
 
     #hdrfmt= '%8s  %-30s %20s %3s %3s %6s %8s %8s %8s %5s %5s %6s'
     #numfmt= '%s  %-30s %20s %3s %3s %6.2f %8.3f %8.3f %8.2f %5.1f, %5.1f %6.1f'

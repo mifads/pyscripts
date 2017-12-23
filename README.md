@@ -17,20 +17,22 @@ The code is organised in 'emx' directories (emx = emep/esx)
 
 * emxcdf    - read and write cdf files
 * emxdata   - related to observations
+* emxds     - needs some file from Dave's system. Can be adapted though.
 * emxemis   - emissions, mainly MACC processing so far
-* emxmisc
-* emxplot
+* emxmisc   - bits n pieces
+* emxplot   - daily, diurnal and scatter plots
 
-emxcdf  code                  | Comment
+
+emxcdf                        | Comment
 :--------------------------   |:---------------------------------------
 readcdf.py |  Main code to read EMEP files - checks projections, dimensions, etc. Gets values for givem lat/long point using bi-linear interpolation of nearby cells. Can also return the values of surrounding points - to make the shadowing used in Dave's time series scripts. Was EmepCdf.py
 makecdf.py | Creates cdf files from a list of variable names and data. Works for lon/lat so far.
 
-emxdata code                  | Comment
+emxdata                       | Comment
 :--------------------------   |:---------------------------------------
-ObservationsClass.py |
+ObservationsClass.py | Class with various info on observations. May be overkill in retrospect
 
-emxemis code                  | Comment
+emxemis                       | Comment
 :--------------------------   |:---------------------------------------
 macc2emep.py  |  Converts TNO/MACC format files to EMEP emission netcdf files
 
@@ -68,10 +70,9 @@ plotscatt.py | Produces scatter plots, including optinional detection of outlier
 plotdiurnal.py | Diurnal (1-24h) plots
 
 
-Code                          | Comment
+Misc code                     | Comment
 :--------------------------   |:---------------------------------------
 emepmonthlycomp.py | Compares 2 or more annual or monthly files, for key patterns and given domain. Produces line plots for monthly files, and bar plots for annual. Still in development, but useful.
-
 scanVerification.py | scans multiple Verification(scatterstations) results files and produces summary for annual statistics.
 LICENSE.txt         |             GPL
 README.md | This file.

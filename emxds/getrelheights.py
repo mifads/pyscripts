@@ -4,10 +4,9 @@ import numpy as np
 import netCDF4 as cdf
 import os
 import sys
-from great_circle import great_circle_distance
+from emxmisc.great_circle import great_circle_distance
 
-
-def LonLat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None):
+def lonlat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None):
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #  # # # # # # # # # # # # # # # # # # #
 # -Input: latlon-coordinates and altitude for stations
@@ -217,7 +216,7 @@ def LonLat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None):
 
 
 if ( __name__ == "__main__" ):
-  """ Testing LonLat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None)
+  """ Testing lonlat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None)
   """
   import sys
 
@@ -234,13 +233,12 @@ if ( __name__ == "__main__" ):
   #print(alt_h5)
 
   #print(sys.args)
-#  if sys.argv[1]==None:
-  xlat=30.08;xlon=31.28;xalt=35.0;xname='Cairo'
-  if sys.argv[1] == '--xyz':
+  if len(sys.argv) ==1 :
+     xlat=30.08;xlon=31.28;xalt=35.0;xname='Cairo'
+  elif sys.argv[1] == '--xyz':
     xlon, xlat, xalt = map( float,  sys.argv[2].split())
     xname='User'
-  alt_h5, alt_avg =  LonLat2hRel( [xlon], [xlat],[xalt],[xname],mapdims='ETOPO',dbg=True)
+  alt_h5, alt_avg =  lonlat2hRel( [xlon], [xlat],[xalt],[xname],mapdims='ETOPO',dbg=True)
   print( 'hRel(5km) = ', alt_h5[0], ' Avg terrain: ', alt_avg[0])
-
 
 
