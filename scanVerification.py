@@ -12,7 +12,7 @@ yearly =3 # offsets from poll name
 yearday=4
 
 # SPACES are important - will search for whole string!
-polls='''
+xpolls='''
 SO4_aerosol  ugS/m3
 XSO4_aerosol  ugS/m3
 NO2_air  ugN/m3
@@ -20,7 +20,7 @@ HNO3+NO3_air+aerosol  ugN/m3
 NH3+NH4_air+aerosol  ugN/m3
 '''.strip().split('\n')
 
-xpolls='''
+polls='''
 Ozone_daily_max ppb
 Ozone_daily_mean ppb
 SO2_in_Air ugS/m3
