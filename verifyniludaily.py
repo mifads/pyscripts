@@ -34,11 +34,12 @@ parser.add_argument('-o','--odir',help='Output directory', default='TMPPLOTS',re
 parser.add_argument('-r','--runlabel',help='Run label',required=True)
 parser.add_argument('-n','--noplots',help='Skip daily plots',required=False)
 parser.add_argument('-y','--year',help='year',required=True)
+parser.add_argument('-a','--afile',help='Addintional model day.nc file for comparison', default=None,required=False)
 args=parser.parse_args()
 #args=vars(parser.args())
 #print('ARGS', args)
 emepfile = args.ifile
-
+emepfile2 = args.afile
 
 #------------------ directory setup -----------------------------------------
 
@@ -134,6 +135,23 @@ for poll in  nilumap.keys(): # 'no2', :
           modFound = True
           convfac = nilumap[poll]['modconv'][nvar] 
           break
+  
+  # Get emep concentrations for full grid, all days for second emep file
+  modFound2=False
+  if emepfile2:
+      for nvar, var in enumerate( nilumap[poll]['modvars'] ) :
+           surf_var=var
+           if not 'precip' in obs_comp:
+              surf_var='SURF_' + var
+           #print('Search for ', nvar, obs_comp, surf_var )
+           EmepFile2 = readcdf.readcdf( emepfile2, surf_var, getVals = True ) # 180 from ECHAM day.nc
+           if EmepFile2 == 'VarNotFound':
+              #print('Notfound EmepFile2', nvar, obs_comp, surf_var )
+              continue # try again
+           else:
+              modFound2 = True
+              convfac2 = nilumap[poll]['modconv'][nvar] 
+              break
        
   if not  modFound:
       print('PROBLEM cannot find ',poll, obs_comp, ' in ', nilumap[poll]['modvars'] )
@@ -156,34 +174,54 @@ for poll in  nilumap.keys(): # 'no2', :
     #if scode=='SE14': sys.exit()
     #PROBLEMS obsdata = np.genfromtxt(obsfile)  #   1 2012  1  1    1.80   000000000
     # dtype setting is hard!
-    jdays = []; obs=[]; flags=[]
+    obs_jdays = []; obs=[]; flags=[]
     with open(obsfile,'r') as ob:
        lines = ob.readlines()
        for nl, line in enumerate(lines):
-          jd, conc, flag4 = line.split()
-          flag=flag4[:3] # NILU MAin has 4 digits, ending in zero
-          jdays.append(int(jd))
+          jd, conc, flag = line.split()
+          obs_jdays.append(int(jd))
           flags.append(flag)
           conc=float(conc)
-          
-          # NILU data have -99(9) flags as well as Ebas-style:
-          if int(flag)> -1 and  obs_flags[flag] == 'V' and conc > -0.0001 : 
+          if conc > -0.0001 : 
              obs.append(conc)
-              #  print(nl, jd, obs[nl] )
+          #   print(nl, jd, obs[nl] )
           else:
              obs.append(np.nan)
 
     #mod, modmin, modmax  = getEmepVal(degE,degN,EmepFile,minmax=True) 
     mod, modmin, modmax  = readcdf.get_vals(degE,degN,EmepFile,minmax=True) 
                # e.g. MaceHead is at 53.3, -9.89 
-
+    
+    if mod==None:
+        continue
+    
     mod    *= convfac
     modmin *= convfac
     modmin *= convfac
-   
-    print(scode, len(obs),len(mod), var, convfac )
-
-    stats=emepstats.obsmodstats(obs,mod,dbg=True)
+    
+    mod_jdays = readcdf.get_jdays(EmepFile)
+    
+    obs = np.array(obs)
+    obs_jdays = np.array(obs_jdays)
+    
+    #obs_mask = np.array([obs_jday in mod_jdays for obs_jday in obs_jdays])
+    obs_mask = np.in1d(obs_jdays, mod_jdays, True)
+    mod_mask = np.in1d(mod_jdays, obs_jdays, True)
+    
+    if emepfile2 and modFound2:
+        mod2, modmin2, modmax2  = readcdf.get_vals(degE,degN,EmepFile2,minmax=True)
+        mod2    *= convfac2
+        modmin2 *= convfac2
+        modmin2 *= convfac2
+        mod_jdays2 = readcdf.get_jdays(EmepFile2)
+        mod_mask2 = np.in1d(mod_jdays2, obs_jdays, True)&np.in1d(mod_jdays2, mod_jdays, True)
+        
+        #print(mod_jdays2)
+        #print(mod2[mod_mask2])
+    
+    print(scode, len(obs[obs_mask]),len(mod[mod_mask]), var, convfac )
+    
+    stats=emepstats.obsmodstats(obs[obs_mask],mod[mod_mask],dbg=True)
     if stats['dc'] > 75:
        print('POLL ', poll, nilumap )
 
@@ -195,8 +233,12 @@ for poll in  nilumap.keys(): # 'no2', :
           note += 'Bias %d R=%4.2f' % ( stats['bias'], stats['R'] ) 
           ofile='%s/Daily_%s_%s_%s_%s.png' % ( out_dir, obs_comp, scode, year, args.runlabel )
           print('DPLOT ' , scode, ofile )
-          plotdaily.plotdaily(jdays,obs,mod,title=title,
-             notetxt=note,ynote=0.75,ofile=ofile,dbg=False)
+          if emepfile2 and modFound2 and mod2!=None:
+              plotdaily.plotdaily(mod_jdays[mod_mask],obs[obs_mask],mod[mod_mask],mod2=mod2[mod_mask2],title=title,
+                  notetxt=note,ynote=0.75,ofile=ofile,dbg=False)
+          else:
+              plotdaily.plotdaily(mod_jdays[mod_mask],obs[obs_mask],mod[mod_mask],title=title,
+                  notetxt=note,ynote=0.75,ofile=ofile,dbg=False)
 
        obs_site.append( scode )
        obs_stat.append( stats['meanx'] )

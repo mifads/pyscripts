@@ -57,6 +57,7 @@ class EmepFileClass(object):
     self.ymax=np.NaN  # will be bottom edge
     self.dx=np.NaN  # will be left edge
     self.dy=np.NaN  # will be bottom edge
+    self.times=[]
     self.xcoords=[]
     self.ycoords=[]
     self.yAscending=True  # True for S to N in y coords
@@ -150,7 +151,7 @@ def readcdf( ifile, var, getVals=True, tStep=None,
   if dbg: print(t.units)
   print(netCDF4.num2date( times[0],units=t.units))
   print(netCDF4.num2date( times[1],units=t.units))
-  print(netCDF4.num2date( times[365],units=t.units))
+  #print(netCDF4.num2date( times[365],units=t.units))
 # ECHAM had 367 records for 2012:
 #   0 2012-01-01 12:00:00
 #   1 2012-01-02 11:30:00
@@ -158,10 +159,13 @@ def readcdf( ifile, var, getVals=True, tStep=None,
 # 366 2013-01-01 00:00:00
 #  print(netCDF4.num2date( times[366],units=t.units)) # ChECK
 #  sys.exit()
-
+  
   EmepFile=EmepFileClass( ifile, ecdf, var, proj,lldim,dimx,dimy,ntime) 
   EmepFile.dimx = dimx
   EmepFile.dimy = dimy
+  
+  for tim in times:
+    EmepFile.times.append(netCDF4.num2date(tim,units=t.units))
   
   if( lldim == 1):
     EmepFile.xcoords=ecdf.variables[dimx][:]
@@ -308,15 +312,15 @@ def RelXy(x, y, x0, y0, dx, dy):
 
   xrel= (x-x0 )/dx
   yrel= (y-y0 )/dy
-  if xrel < 0.0 or yrel < 0.0:
-    print("WARNING XYrel not coded ", x, x0, xrel, y, y0, yrel)
-    print("WARNING Yrel", yrel)
-    if yrel < 0.0:
-        print("WARNING XYrel South Pole Fix!")
-        yrel = max(0.0, yrel)
-        #sys.exit('XYrel SP!')
-    if xrel < 0.0:
-        sys.exit('XYrel')
+  #if xrel < 0.0 or yrel < 0.0:
+  #  print("WARNING XYrel not coded ", x, x0, xrel, y, y0, yrel)
+  #  print("WARNING Yrel", yrel)
+  #  if yrel < 0.0:
+  #      print("WARNING XYrel South Pole Fix!")
+  #      yrel = max(0.0, yrel)
+  #      #sys.exit('XYrel SP!')
+  #  if xrel < 0.0:
+  #      sys.exit('XYrel')
   return xrel,yrel
 
 #-------------------------------------------------------------------
@@ -455,7 +459,12 @@ def get_vals(xPtin,yPtin,EmepCdf,minmax=False,dbg=False):
 
   #else: # lon lat already ok
   #  xemep, yemep = RelXy(xPt,yPt,EmepCdf.x0,EmepCdf.y0,EmepCdf.dx,EmepCdf.dy)
-
+  
+  # New more consistent check is point is inside grid. John 2018-01-16
+  if xPt < EmepCdf.x0 or yPt < EmepCdf.y0 or xPt > EmepCdf.xmax or yPt > EmepCdf.ymax:
+      print("OUTSIDE GRID ", xPt, yPt, EmepCdf.x0, EmepCdf.y0, EmepCdf.xmax, EmepCdf.ymax)
+      return None, None, None
+  
   err = np.array( [ np.NaN ] )
   if xPt > EmepCdf.xmax or yPt > EmepCdf.ymax:
     print("OUTSIDE GRID ", xPt, yPt, EmepCdf.xmax, EmepCdf.ymax )
@@ -548,6 +557,14 @@ def get_vals(xPtin,yPtin,EmepCdf,minmax=False,dbg=False):
     return value,minval,maxval 
   else:
     return value
+
+#-------------------------------------------------------------------
+def get_jdays(EmepCdf):
+  """ Returns the day numbers of the all days
+     in the EMEP cdf file.
+  """
+  origin_datetime = datetime.datetime(EmepCdf.times[0].year, 1, 1) - datetime.timedelta(days=1)
+  return np.array([int((tim - origin_datetime).total_seconds()/(24.*3600.)) for tim in EmepCdf.times])
 
 #=============================================================================
 def main():

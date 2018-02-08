@@ -5,6 +5,7 @@ import emxmisc.emepstats as emepstats
 dtxt='plotdaily:'
 
 def plotdaily(jdays,obs,mod=[],modmin=[],modmax=[],
+    mod2=[],modmin2=[],modmax2=[],
     xlabel='Days',ylabel='Conc',
     ymin=0,ymax=None,             #  lower and upper y curves
     yaxisMin=None, yaxisMax=None, # y-axis limits
@@ -47,6 +48,9 @@ def plotdaily(jdays,obs,mod=[],modmin=[],modmax=[],
   if len(mod)>1:
      plt.plot(jdays,mod,'--',lw=1.5,color='b',label='Mod')
 
+  if len(mod2)>1:
+     plt.plot(jdays,mod2,'--',lw=1.5,color='r',label='Mod2')
+
   if len(modmin)>1:
   #if not modmin == None:
      plt.fill_between(jdays,modmin,modmax,color='b',alpha=0.1)
@@ -57,7 +61,7 @@ def plotdaily(jdays,obs,mod=[],modmin=[],modmax=[],
   plt.ylabel(ylabel, fontsize=16)
   v=plt.axis()
   maxv=max(v)
-  plt.xlim([1,len(jdays)])
+  plt.xlim([jdays[0],jdays[-1]])
   if yaxisMax: plt.ylim(ymax=yaxisMax)
   if yaxisMin: plt.ylim(ymin=yaxisMin)
 
