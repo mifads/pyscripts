@@ -10,8 +10,7 @@ def get_ebasflags():
   with open(os.path.join(current_dir, 'ebas_flags.txt')) as data:
     for line in data:
        if line.startswith('#'): continue
-       #print(line)
        num, flag, rest = line.split(maxsplit=2)
        flags[num] = flag
-       print(num, flag, flags[num] )
+       #print(num, flag, flags[num] )
   return flags
