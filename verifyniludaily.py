@@ -162,7 +162,7 @@ for poll in  nilumap.keys(): # 'no2', :
           jdays.append(int(jd))
           flags.append(flag)
           conc=float(conc)
-          if conc > -0.0001 : 
+          if flag==0 and conc > -0.0001 :   # flag criteria added Feb 2018
              obs.append(conc)
           #   print(nl, jd, obs[nl] )
           else:
