@@ -20,7 +20,7 @@ import emxmisc.emepstats as emepstats
 import emxplots.plotdaily as plotdaily
 import emxplots.plotscat  as plotscat
 import emxcdf.readcdf as readcdf   # Reads netcf
-from ebas_flags import get_ebasflags
+from   emxverify.ebas_flags import get_ebasflags
 
 #------------------ arguments  ----------------------------------------------
 # This script assumes files are in the default locations specified...
