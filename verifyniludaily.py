@@ -20,6 +20,7 @@ import emxmisc.emepstats as emepstats
 import emxplots.plotdaily as plotdaily
 import emxplots.plotscat  as plotscat
 import emxcdf.readcdf as readcdf   # Reads netcf
+from ebas_flags import get_ebasflags
 
 #------------------ arguments  ----------------------------------------------
 # This script assumes files are in the default locations specified...
@@ -51,6 +52,7 @@ else:
   tdir=args.ObsDir
 obs_dir='%s/%s/' % ( tdir, year )
 niluTab='%s/TabNiluMain.txt' % tdir  # site locations, names, altitudes, etc
+obs_flags = get_ebasflags()
 
 
 #------------------ component definitions -----------------------------------------
@@ -158,13 +160,16 @@ for poll in  nilumap.keys(): # 'no2', :
     with open(obsfile,'r') as ob:
        lines = ob.readlines()
        for nl, line in enumerate(lines):
-          jd, conc, flag = line.split()
+          jd, conc, flag4 = line.split()
+          flag=flag4[:3] # NILU MAin has 4 digits, ending in zero
           jdays.append(int(jd))
           flags.append(flag)
           conc=float(conc)
-          if flag==0 and conc > -0.0001 :   # flag criteria added Feb 2018
+          
+          # NILU data have -99(9) flags as well as Ebas-style:
+          if int(flag)> -1 and  obs_flags[flag] == 'V' and conc > -0.0001 : 
              obs.append(conc)
-          #   print(nl, jd, obs[nl] )
+              #  print(nl, jd, obs[nl] )
           else:
              obs.append(np.nan)
 
