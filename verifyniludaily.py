@@ -178,11 +178,13 @@ for poll in  nilumap.keys(): # 'no2', :
     with open(obsfile,'r') as ob:
        lines = ob.readlines()
        for nl, line in enumerate(lines):
-          jd, conc, flag = line.split()
+          jd, conc, flag4 = line.split()
+          flag=flag4[:3]   # Ebas flag 123 was 1230 in NILU file
+          obs_valid= int(flag) >=0 and obs_flags[flag]=='V'
           obs_jdays.append(int(jd))
           flags.append(flag)
           conc=float(conc)
-          if conc > -0.0001 : 
+          if obs_valid and conc conc > -0.0001 : 
              obs.append(conc)
           #   print(nl, jd, obs[nl] )
           else:
