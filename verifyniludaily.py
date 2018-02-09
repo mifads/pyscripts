@@ -184,7 +184,7 @@ for poll in  nilumap.keys(): # 'no2', :
           obs_jdays.append(int(jd))
           flags.append(flag)
           conc=float(conc)
-          if obs_valid and conc conc > -0.0001 : 
+          if obs_valid and conc > -0.0001 : 
              obs.append(conc)
           #   print(nl, jd, obs[nl] )
           else:
