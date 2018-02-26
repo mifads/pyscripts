@@ -4,17 +4,19 @@ import numpy as np
 import time             # Just for creation date
 import sys
 
-def createCDF(variables,ofile,typ,lons,lats,data,txt='',dbg=False):
+def createCDF(variables,ofile,typ,lons,lats,data,lonlatfmt='full',txt='',dbg=False):
   """
     Creates a netcdf file for a simple 2 or 3-D data sets and lonlat projection
-    together with a variables dictionary containing names, units, etc
+    together with a variables dictionary containing names, units, etc.
+    Variables lon,lat can be output in full format "float longitude(lon)"
+    or short - set with lonlatfmt. (Not sure why this was needed!)
   """
   print('OFILE ',ofile)
   cdf=nc.Dataset(ofile,'w',format='NETCDF4_CLASSIC')
   cdf.Conventions = 'CF-1.6'
   cdf.projection = 'lon lat'
   cdf.history = 'Created ' + time.ctime(time.time())
-  cdf.description = 'From mkCdf module '+ txt
+  cdf.description = 'From emxcdf.makecdf module '+ txt
   nx=len(lons)
   ny=len(lats)
 
@@ -25,9 +27,12 @@ def createCDF(variables,ofile,typ,lons,lats,data,txt='',dbg=False):
 # f = f4, d = f8 
 # CAREFUL. If file exists, or some problem, can get error
 # "Can't add HDF5 file metadata"
-# May 12th . changed longitude to lon in 1st:
-  lonvar = cdf.createVariable('lon','f4' ,('lon',))
-  latvar = cdf.createVariable('lat', 'f4' ,('lat',))
+# May 12th . changed longitude to lon in 1st. 2018-02-26 - added back full:
+  lonv, latv = 'lon', 'lat' 
+  if lonlatfmt == 'full':
+     lonv, latv = 'longitude', 'latitude'
+  lonvar = cdf.createVariable(lonv,'f4' ,('lon',))
+  latvar = cdf.createVariable(latv,'f4' ,('lat',))
   lonvar.units = 'degrees_east'
   latvar.units = 'degrees_north'
   lonvar.long_name = 'longitude'
@@ -63,8 +68,8 @@ def createCDF(variables,ofile,typ,lons,lats,data,txt='',dbg=False):
        if key == 'name' : continue # alrady done
        datvar.setncattr(key,var[key])
 
-  print( 'NX NY VAR ', nx, ny, np.max(cdf.variables['lon'][:]),
-     np.max(cdf.variables['lat'][:]))
+  print( 'NX NY VAR ', nx, ny, np.max(cdf.variables[lonv][:]),
+     np.max(cdf.variables[latv][:]))
 
   cdf.close()
 ####################
