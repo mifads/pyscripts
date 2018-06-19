@@ -3,14 +3,17 @@
   Reads TNO MACC format emission file and converts to EMEP netcdf
 """
 #  July 2017
-import collections
+#import collections
+from collections import OrderedDict as odict
 import os
 import sys
 import numpy as np
 
 #DS stuff
-import macc.MaccEmepCodes as m
-import mkCdf
+#import macc.MaccEmepCodes as m
+#import mkCdf
+import emxemis.maccEmepCodes as m
+import emxcdf.makecdf as makecdf
 
 Usage="""
   Usage:
@@ -147,16 +150,20 @@ for ipoll in range(1,len(polls)):
    emis1=np.zeros([ 1,len(lats),len(lons) ])
    emis2=np.zeros([ 1,len(lats),len(lons) ])
 
-   varnames = [ 'total_all' ] # will assign emis1 here
-   nv = 0
-   for v in snapemis.keys():
-       varnames.append( v )
-       emis2[0,:,:] = snapemis[v][:,:]
-       SumEmis = SumEmis + emis2[0,:,:]
-       emis1=np.concatenate([emis1,emis2])
+#J   varnames = [ 'total_all' ] # will assign emis1 here
+#J   nv = 0
+#J   for v in snapemis.keys():
+#J       varnames.append( v )
+#J       emis2[0,:,:] = snapemis[v][:,:]
+#J       SumEmis = SumEmis + emis2[0,:,:]
+#J       emis1=np.concatenate([emis1,emis2])
 #      print('IJDBGA', nv, v, emis1[nv,jdbg,idbg], emis2[0,jdbg,idbg] )
-       nv += 1
-   emis1[0,:,:] = SumEmis[:,:]
+#J       nv += 1
+#J   emis1[0,:,:] = SumEmis[:,:]
+   variables= odict()
+   for v in snapemis.keys():
+      variables[v] = dict(units='WOTunits',long_name=v,data=snapemis[v])
    ofile='SnapEmis_%s_%s.nc' % ( label, epolls[ipoll] )
-   mkCdf.createCDF(varnames,ofile,'f4',lons,lats,emis1) 
+   #mkCdf.createCDF(varnames,ofile,'f4',lons,lats,emis1) 
+   makecdf.create_cdf(variables,ofile,'f4',lons,lats,txt='TESTING',dbg=False) 
 
