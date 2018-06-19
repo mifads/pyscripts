@@ -148,7 +148,7 @@ def readcdf( ifile, var, getVals=True, tStep=None,
   times=ecdf.variables['time'][:]
   ntime=len(times)  #  TESTING . was =1 
   if dbg: print(" SIZE OF TIME ", len(times))
-  if dbg: print(t.units)
+  if dbg: print(" Time UNITS   ", t.units)
   print(netCDF4.num2date( times[0],units=t.units))
   print(netCDF4.num2date( times[1],units=t.units))
   #print(netCDF4.num2date( times[365],units=t.units))
