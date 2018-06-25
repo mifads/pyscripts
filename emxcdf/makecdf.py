@@ -15,6 +15,7 @@ def create_cdf(variables,ofile,typ,lons,lats,lonlatfmt='full',txt='',dbg=False):
     together with a variables dictionary containing names, units, etc.
     Variables lon,lat can be output in full format "float longitude(lon)"
     or short - set with lonlatfmt. (Not sure why this was needed!)
+    Update: if full, don't see lon, lat with ncdump -c ! 
   """
   print('OFILE ',ofile)
   cdf=nc.Dataset(ofile,'w',format='NETCDF4_CLASSIC')
@@ -55,17 +56,16 @@ def create_cdf(variables,ofile,typ,lons,lats,lonlatfmt='full',txt='',dbg=False):
 
   for var in variables.keys():
 
-   print('VAR:', var)
-   print('VAR:', variables[var])
+   if dbg: print('VAR:', var) #, variables[var])
    datvar = cdf.createVariable(var,typ ,('lat', 'lon',),zlib=True)
    datvar[:,:] = variables[var]['data'][:,:] # fill data
 
    for key in variables[var].keys():
-     print('KEY', key)
+     #print('KEY', key)
      if key is 'data':
        pass
      else:
-       print('ATTR', key, variables[var][key])
+       if dbg: print('ATTR', key, variables[var][key])
        datvar.setncattr(key,variables[var][key])
 
   print( 'NX NY VAR ', nx, ny, np.max(cdf.variables[lonv][:]),
