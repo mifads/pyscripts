@@ -22,15 +22,15 @@ def create_cdf(variables,ofile,typ,lons,lats,lonlatfmt='full',txt='',dbg=False):
   cdf.Conventions = 'CF-1.6'
   cdf.projection = 'lon lat'
   cdf.history = 'Created ' + time.ctime(time.time())
-  cdf.description = 'From emxcdf.makecdf  module '+ txt
+  cdf.description = 'From emxcdf.makecdf module '+ txt
   nx=len(lons)
   ny=len(lats)
 
   lon= cdf.createDimension('lon',nx)
   lat= cdf.createDimension('lat',ny)
-
-# typ can be e.g. u2, u8, f4 where u2 = 16 bit unsigned int, i2 = 16 bit signed
-#  int, f = f4, d = f8 
+# typ can be e.g. u2, u8, f4
+# where u2 = 16 bit unsigned int, i2 = 16 bit signed int, 
+# f = f4, d = f8 
 # CAREFUL. If file exists, or some problem, can get error
 # "Can't add HDF5 file metadata"
 # May 12th . changed longitude to lon in 1st. 2018-02-26 - added back full:
