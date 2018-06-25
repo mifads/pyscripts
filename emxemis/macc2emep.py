@@ -3,14 +3,17 @@
   Reads TNO MACC format emission file and converts to EMEP netcdf
 """
 #  July 2017
-import collections
+#import collections
+from collections import OrderedDict as odict
 import os
 import sys
 import numpy as np
 
 #DS stuff
-import macc.MaccEmepCodes as m
-import mkCdf
+#import macc.MaccEmepCodes as m
+#import mkCdf
+import emxemis.maccEmepCodes as m
+import emxcdf.makecdf as makecdf
 
 Usage="""
   Usage:
@@ -43,22 +46,25 @@ snaps = (1,2,21,22,3,34,5,6,7,71,72,73,74,75,8,9,10) # 74 was zero   # Can be mo
 polls = 'CH4 CO NH3 NMVOC NOX PM10 PM2_5 SO2'.split()  # TNO  style
 epolls= 'ch4 co nh3   voc nox pmco pm25 sox'.split()   # EMEP style
 
-# HARD CODE # From stallo nc:
-lon0= -29.93750; lon1 = 59.9375
+# HARD CODE
+lon0= -29.93750; lon1 = 60.0625   # :MACCIII_from_A 59.9375
 lat0=  30.03125; lat1=  71.96875 
-nlon=720; nlat=672
+nlon=721; nlat=672
 dy=1.0/16 # 0.0625
 dx=1.0/8  # 0.125
 
-xmin= lon0 - 0.5*dx     # left edge
-xmax= lon1 + 0.5*dx     # right edge
-ymin= lat0 - 0.5*dy     # bottom edge, 27.625
-ymax= lat1 + 0.5*dy     # top edge
+xmin= lon0 - 0.5*dx     # left edge, here -30
+xmax= lon1 + 0.5*dx     # right edge, here 60.125
+ymin= lat0 - 0.5*dy     # bottom edge, here 30.0  
+ymax= lat1 + 0.5*dy     # top edge, here 72.0
 nlons= int( (xmax-xmin)/dx )  
 nlats= int( (ymax-ymin)/dy ) 
-lons=np.linspace(xmin,xmin+nlons*dx,nlons+1) # Ensure 100% uniform
-lats=np.linspace(ymin,ymin+nlats*dy,nlats+1) # Ensure 100% uniform
-print( 'Lon', xmin, dx, xmax, len(lons), 'dx:', lons[1]-lons[0])
+# BUG gave +1 on nlon, nlat
+#BUG lons=np.linspace(xmin,xmin+nlons*dx,nlons) # Ensure 100% uniform
+#BUG lats=np.linspace(ymin,ymin+nlats*dy,nlats) # Ensure 100% uniform
+lons=np.linspace(xmin,xmin+(nlons-1)*dx,nlons) # Ensure 100% uniform
+lats=np.linspace(ymin,ymin+(nlats-1)*dy,nlats) # Ensure 100% uniform
+print( 'Lon', xmin, dx, xmax, len(lons), 'dx:', lons[1]-lons[0], lons[0], lons[-1])
 print( 'Lat', ymin, dy, ymax, len(lats), 'dy:', lats[1]-lats[0])
 
 idbg=316; jdbg=416 # DK
@@ -98,8 +104,10 @@ for ipoll in range(1,len(polls)):
         lat = float(fields[1])
         ix  = int( (lon-xmin)/dx )
         iy  = int( (lat-ymin)/dy )
+        if ix > nlons-1 or iy > nlats-1:
+           print('OOPS', lon, lat, iso3, ix, iy)
+           sys.exit()
         #if ix < 0 or iy < 0:
-        #    print('OOPS', lon, lat, ix, iy)
         #    sys.exit()
         snap= fields[4]  # str
         isnap = int(snap)
@@ -147,16 +155,24 @@ for ipoll in range(1,len(polls)):
    emis1=np.zeros([ 1,len(lats),len(lons) ])
    emis2=np.zeros([ 1,len(lats),len(lons) ])
 
-   varnames = [ 'total_all' ] # will assign emis1 here
-   nv = 0
-   for v in snapemis.keys():
-       varnames.append( v )
-       emis2[0,:,:] = snapemis[v][:,:]
-       SumEmis = SumEmis + emis2[0,:,:]
-       emis1=np.concatenate([emis1,emis2])
+#J   varnames = [ 'total_all' ] # will assign emis1 here
+#J   nv = 0
+#J   for v in snapemis.keys():
+#J       varnames.append( v )
+#J       emis2[0,:,:] = snapemis[v][:,:]
+#J       SumEmis = SumEmis + emis2[0,:,:]
+#J       emis1=np.concatenate([emis1,emis2])
 #      print('IJDBGA', nv, v, emis1[nv,jdbg,idbg], emis2[0,jdbg,idbg] )
-       nv += 1
-   emis1[0,:,:] = SumEmis[:,:]
+#J       nv += 1
+#J   emis1[0,:,:] = SumEmis[:,:]
+   variables= odict()
+#   variables['lon'] = dict(units='degrees_east',long_name='longitude',data=lons)
+#   variables['lat'] = dict(units='degrees_north',long_name='latitude',data=lats)
+   for v in snapemis.keys():
+      variables[v] = dict(units='tonnes/yr',long_name=v,data=snapemis[v])
    ofile='SnapEmis_%s_%s.nc' % ( label, epolls[ipoll] )
-   mkCdf.createCDF(varnames,ofile,'f4',lons,lats,emis1) 
+   #mkCdf.createCDF(varnames,ofile,'f4',lons,lats,emis1) 
+   #lonlatfmt changed to get lon lat with ncdump -c. Odd.
+   makecdf.create_cdf(variables,ofile,'f4',lons,lats,lonlatfmt=False,txt='TESTING',dbg=False) 
+   #sys.exit()
 
