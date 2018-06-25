@@ -10,6 +10,8 @@ def plotdaily(jdays,obs,mod=[],modmin=[],modmax=[],
     ymin=0,ymax=None,             #  lower and upper y curves
     yaxisMin=None, yaxisMax=None, # y-axis limits
     useMarkers=None,
+    addStats=False,               # Adds bias, R to note
+    dcLimit=75,                   # Data capture limit if addStats
     title=None,                   # 
     notetxt=None,                 # Text, can be multi-line
     xnote=0.15,ynote=0.75,notefont=16,  #  default location
@@ -63,13 +65,21 @@ def plotdaily(jdays,obs,mod=[],modmin=[],modmax=[],
   maxv=max(v)
   plt.xlim([jdays[0],jdays[-1]])
   if yaxisMax: plt.ylim(ymax=yaxisMax)
-  if yaxisMin: plt.ylim(ymin=yaxisMin)
+  if yaxisMin is not None: plt.ylim(ymin=yaxisMin)
 
   #if notetxt: # Hard-coded position so far, top-left
   #  plt.text(xnote*maxv,ynote*maxv,notetxt, fontsize=notefont)
 
   if title:
     plt.title(title)
+  if addStats:
+    stats=emepstats.obsmodstats(obs,mod,dcLimit=dcLimit)
+    ynote -= 0.05 # need more room. Works only for O3 so far
+    print('STATS', stats)
+    if np.isfinite( stats['bias']  ):
+      notetxt += '\nBias:%2d%%  R=%4.2f' % (stats['bias'], stats['R'])
+    else:
+      notetxt += '\n(Invalid stats, DC< %d)'% dcLimit
   if notetxt: # Hard-coded position so far, top-left
     plt.figtext(xnote,ynote,notetxt)
 
