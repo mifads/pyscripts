@@ -42,9 +42,11 @@ parser.add_argument('-v','--varkeys',nargs='*',
     help='varname  string in nc file, can be partial eg ug_PM',required=True)
 parser.add_argument('-i','--ifiles',help='Input files',nargs='*',required=True)
 parser.add_argument('-d','--domain',help='domain wanted, i0 i1 j0 j1, e.g. "30 100 40 80"\n(Optional)',required=False)
-parser.add_argument('-o','--odir',help='output directory',default='.')
+parser.add_argument('-o','--ofile',help='output file',required=False)
+parser.add_argument('-O','--odir',help='output directory',default='.')
 parser.add_argument('-p','--plot',help='plot on screen?\n(Optional)',action='store_true')
 parser.add_argument('-L','--labels',help='labels, e.g. -L"rv4.15 rv4.15a rv4.15b"\n(Optional)',required=False)
+parser.add_argument('-t','--title',help='title',required=False)
 parser.add_argument('-V','--verbose',help='extra info',action='store_true')
 parser.add_argument('-y','--year',help='year',required=True)
 args=parser.parse_args()
@@ -68,6 +70,7 @@ for n, ifile in enumerate(args.ifiles):
    if  os.path.isfile(ifile):
       f = ifile
    else:
+      print('TRY File not found! ' + ifile)
       f = ifile + '/Base/Base_month.nc'  # Default
    print('=>  ', f)
    if  not os.path.isfile(f):
@@ -164,14 +167,25 @@ for var in args.varkeys:
          print('NO VALUES FOUND', ifile )
          continue
            
-       plt.title(key + '   (Domain %s)'%args.domain)
+       if  args.title is None :
+         plt.title(key + '   (Domain %s)'%args.domain)
+       else: # KEY is special
+         title= args.title.replace('KEY',key)
+         plt.title(title)
        plt.ylim(ymin=0.0)
+       # We add a bit of vertical space for better legend placement
+       y=plt.yticks()[0]
+       plt.ylim(ymax=y[-1]+2*(y[-1]-y[-2]))
        plt.xlim(xmin=xmin) 
        plt.xlim(xmax=xmax) 
        if( len(monthly) ==1 ): # Just have one value, e.g. annual
          plt.xticks(visible=False)
-       plt.legend()
-       plt.savefig('%s/PlotCdfComp_%s_%s_%s.png' % ( odir, key, cases[0], '_'.join(labels) ))
+       plt.legend(loc='upper left',bbox_to_anchor=(0.05,1.0))
+       if args.ofile:
+          ofile=args.ofile
+       else:
+          ofile='PlotCdfComp_%s_%s_%s.png' % ( key, cases[0], '_'.join(labels) )
+       plt.savefig('%s/%s' % ( odir, ofile ))
        if args.plot: 
          plt.show()
        #plt.clf()
