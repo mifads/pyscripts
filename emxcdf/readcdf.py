@@ -451,7 +451,8 @@ def get_vals(xPtin,yPtin,EmepCdf,minmax=False,dbg=False):
     xPt, yPt = coords.lonlat2emepXy(xPt,yPt)  # XPt, yPt are lon,lat
     if dbg: 
       print('PS lon,lat => model xPt, yPt ', xPtin, yPtin, ' => ',  xPt, yPt)
-  elif EmepCdf.xcoords[-1] > 180:  # QUERY 180
+
+  elif EmepCdf.xcoords[-1] > 189:  #  USES 189 to avoid some grids with eg 180.25
   # if long xcoords are from 0 to 360, we shift Xpt
     if xPtin < 0.0:
        xPt = xPtin + 360
@@ -461,34 +462,38 @@ def get_vals(xPtin,yPtin,EmepCdf,minmax=False,dbg=False):
   #  xemep, yemep = RelXy(xPt,yPt,EmepCdf.x0,EmepCdf.y0,EmepCdf.dx,EmepCdf.dy)
   
   # New more consistent check is point is inside grid. John 2018-01-16
-  if xPt < EmepCdf.x0 or yPt < EmepCdf.y0 or xPt > EmepCdf.xmax or yPt > EmepCdf.ymax:
-      print("OUTSIDE GRID ", xPt, yPt, EmepCdf.x0, EmepCdf.y0, EmepCdf.xmax, EmepCdf.ymax)
-      return None, None, None
+  if (  xPt < EmepCdf.x0   or yPt < EmepCdf.y0  
+    or  xPt > EmepCdf.xmax or yPt > EmepCdf.ymax ):
+       print("OUTSIDE GRIDA ", xPt, yPt, EmepCdf.x0, EmepCdf.y0,
+                                EmepCdf.xmax, EmepCdf.ymax)
+       return None, None, None
   
-  err = np.array( [ np.NaN ] )
-  if xPt > EmepCdf.xmax or yPt > EmepCdf.ymax:
-    print("OUTSIDE GRID ", xPt, yPt, EmepCdf.xmax, EmepCdf.ymax )
-    return  err, err, err
+#  err = np.array( [ np.NaN ] )
+#  if xPt > EmepCdf.xmax or yPt > EmepCdf.ymax:
+#    print("OUTSIDE GRID ", xPt, yPt, EmepCdf.xmax, EmepCdf.ymax )
+#    return  err, err, err
 
   #M17 Emep coords relative to grid LL point
   #M17 x, y = RelXy(xPt, yPt, EmepCdf.x0,EmepCdf.y0,EmepCdf.dx,EmepCdf.dy) 
   # Emep coords relative to grid LL centre
 
   if EmepCdf.xRegular and EmepCdf.yRegular :
-    x, y = RelXy(xPt, yPt, EmepCdf.xcoords[0],EmepCdf.ycoords[0],EmepCdf.dx,EmepCdf.dy) 
+    x, y = RelXy(xPt, yPt, EmepCdf.xcoords[0],EmepCdf.ycoords[0],
+                  EmepCdf.dx,EmepCdf.dy) 
   else:
     x, y = IrregRelXy(xPt, yPt, EmepCdf.xcoords,EmepCdf.ycoords) 
   if x < 0 or y < 0:
     print(dtxt+"OUTSIDE GRID ", xPt, yPt, x, y)
+    err = np.array( [ np.NaN ] )   # just to get array, not scalar
     return  err, err, err
 
   if dbg:
-     print(dtxt+"INSIDE GRID ", xPt, yPt, x, y)
-     print(dtxt+"MIN x0, y0    ", EmepCdf.x0, EmepCdf.y0)
-     print(dtxt+"max XCRD YCRD ", EmepCdf.xcoords.max(), EmepCdf.ycoords.max())
-     print(dtxt+"xPt, yPt    ", xPt, yPt)   #, " DLON ", xcoords[1]-xcoords[0]
-     print(dtxt+"xxx XCRD YCRD ", x, y)   #, " DLON ", xcoords[1]-xcoords[0]
-     EmepCdf.printme()
+    print(dtxt+"INSIDE GRID ", xPt, yPt, x, y)
+    print(dtxt+"MIN x0, y0    ", EmepCdf.x0, EmepCdf.y0)
+    print(dtxt+"max XCRD YCRD ", EmepCdf.xcoords.max(), EmepCdf.ycoords.max())
+    print(dtxt+"xPt, yPt    ", xPt, yPt)   #, " DLON ", xcoords[1]-xcoords[0]
+    print(dtxt+"xxx XCRD YCRD ", x, y)   #, " DLON ", xcoords[1]-xcoords[0]
+    EmepCdf.printme()
 
   iL=int(x) # left
   iR=iL+1

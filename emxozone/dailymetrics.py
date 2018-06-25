@@ -26,7 +26,7 @@
 """
 import numpy as np
 import sys
-from StringFunctions import multiwrite  # my code to format lots of elements
+from emxmisc.stringfunctions import multiwrite  # my code to format lots of elements
 
 def mean_of_ValidHrs(x):
   x  = np.array(x)             # avoids confusions with list behaviour
@@ -153,10 +153,14 @@ def SOMOY(o3,dbg=False,Y=35.0):
     if np.isfinite(avg8):
       #print('AVG8 ', hh1, hh1+8, len(o3) )
       nValid = np.sum(np.isfinite( o3[hh1:hh1+8]))  # count number of non-NaNs
-      avg8 = avg8/nValid
-      D8max = max( D8max,avg8)
-      n += 1
-      if dbg: print('SOMO-Y', hh1, hh2, nValid, n, avg8, D8max) 
+#      np.seterr(all='raise')
+      if nValid > 0:
+        avg8 = avg8/nValid
+        D8max = max( D8max,avg8)
+      #else:
+      #  print('DDDDD ', nValid, avg8) #  flush=True )
+      #  sys.exit()
+      if dbg: print('SOMO-Y', hh1, hh2, nValid, avg8, D8max) 
     if D8max < -900 or nValid < 6 :
       D8max = np.nan
     else:
