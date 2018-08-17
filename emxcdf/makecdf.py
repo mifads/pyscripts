@@ -9,7 +9,8 @@ import numpy as np
 import time             # Just for creation date
 import sys
 
-def create_cdf(variables,ofile,typ,lons,lats,lonlatfmt='full',txt='',dbg=False):
+# Older code, without time possibilty. Kept just while testing
+def xcreate_cdf(variables,ofile,typ,lons,lats,lonlatfmt='full',txt='',dbg=False):
   """
     Creates a netcdf file for a simple 2 or 3-D data sets and lonlat projection
     together with a variables dictionary containing names, units, etc.
@@ -59,6 +60,86 @@ def create_cdf(variables,ofile,typ,lons,lats,lonlatfmt='full',txt='',dbg=False):
    if dbg: print('VAR:', var) #, variables[var])
    datvar = cdf.createVariable(var,typ ,('lat', 'lon',),zlib=True)
    datvar[:,:] = variables[var]['data'][:,:] # fill data
+
+   for key in variables[var].keys():
+     #print('KEY', key)
+     if key is 'data':
+       pass
+     else:
+       if dbg: print('ATTR', key, variables[var][key])
+       datvar.setncattr(key,variables[var][key])
+
+  print( 'NX NY VAR ', nx, ny, np.max(cdf.variables[lonv][:]),
+     np.max(cdf.variables[latv][:]))
+
+  cdf.close()
+####################
+
+def create_cdf(variables,ofile,typ,lons,lats,times=None,lonlatfmt='full',txt='',dbg=False):
+  """
+    Creates a netcdf file for a simple 2 or 3-D data sets and lonlat projection
+    together with a variables dictionary containing names, units, etc.
+    Variables lon,lat can be output in full format "float longitude(lon)"
+    or short - set with lonlatfmt. (Not sure why this was needed!)
+    Update: if full, don't see lon, lat with ncdump -c ! 
+   ADDING TIME
+  """
+  print('OFILE ',ofile)
+  cdf=nc.Dataset(ofile,'w',format='NETCDF4_CLASSIC')
+  cdf.Conventions = 'CF-1.6'
+  cdf.projection = 'lon lat'
+  cdf.history = 'Created ' + time.ctime(time.time())
+  cdf.description = 'From emxcdf.makecdf module '+ txt
+  nx=len(lons)
+  ny=len(lats)
+
+
+  lon= cdf.createDimension('lon',nx)
+  lat= cdf.createDimension('lat',ny)
+
+  print ('TEST TIMING ')
+  timdim=False
+  if times is not None:
+    tim= cdf.createDimension('time',len(times))
+    print ('DO TIMING ', times)
+    timdim=True
+#  sys.exit()
+
+# typ can be e.g. u2, u8, f4
+# where u2 = 16 bit unsigned int, i2 = 16 bit signed int, 
+# f = f4, d = f8 
+# CAREFUL. If file exists, or some problem, can get error
+# "Can't add HDF5 file metadata"
+# May 12th . changed longitude to lon in 1st. 2018-02-26 - added back full:
+  lonv, latv = 'lon', 'lat' 
+  #if lonlatfmt == 'full':
+  if lonlatfmt is 'full':
+     lonv, latv = 'longitude', 'latitude'
+  lonvar = cdf.createVariable(lonv,'f4' ,('lon',))
+  latvar = cdf.createVariable(latv,'f4' ,('lat',))
+  lonvar.units = 'degrees_east'
+  latvar.units = 'degrees_north'
+  lonvar.long_name = 'longitude'
+  latvar.long_name = 'latitude'
+
+  if dbg :
+    print('NX NY ', nx, ny, lons.max(), lats.max())
+    #print('SHAPE data ', data.shape)
+    print('LATS', latvar )
+
+  # Fill coord  data
+  lonvar[:] = lons[:]
+  latvar[:] = lats[:]
+
+  for var in variables.keys():
+
+   if dbg: print('VAR:', var) #, variables[var])
+   if timdim:
+     datvar = cdf.createVariable(var,typ ,('time','lat', 'lon',),zlib=True)
+     datvar[:,:,:] = variables[var]['data'][:,:,:] # fill data
+   else:
+     datvar = cdf.createVariable(var,typ ,('lat', 'lon',),zlib=True)
+     datvar[:,:] = variables[var]['data'][:,:] # fill data
 
    for key in variables[var].keys():
      #print('KEY', key)
@@ -166,7 +247,9 @@ if __name__ == '__main__':
 
   TestVar=odict()
   TestVar['TEST2D'] = dict(units='uuu', data=data )
-  create_cdf(TestVar,'tmp_create_cdf.nc','f4',lons,lats,data,dbg=True)
+  #create_cdf(TestVar,'tmp_create_cdf.nc','f4',lons,lats,data,dbg=True)
+#  create_cdf2(TestVar,'tmp_create_cdf.nc','f4',lons,lats,times=[1., 2., 3.],dbg=True)
+
 
   # 2. Example of multiple scalar fields
   # nb order of variable names has to match data order
@@ -187,6 +270,14 @@ if __name__ == '__main__':
   variables['Var1']= dict(units='ppb',long_name='test_variable with CF-illegal units',data=data3[0,:,:])
   variables['Var2']= dict(units='ug/m3',data=data3[1,:,:])
   variables['Var3']= dict(units='m s-1',data=data3[2,:,:])
-  create_cdf(variables,'tmp_create_cdf3.nc','f4',lons,lats,
+  # older code for comp
+  xcreate_cdf(variables,'tmp_create_cdf3.nc','f4',lons,lats,
              txt='Demo of 3 variables',dbg=False)
+  # newer code with optional times
+  create_cdf(variables,'tmp_create_cdfNOTIM.nc','f4',lons,lats,dbg=True)
+
+  # testing with time variable
+  variables= odict()
+  variables['VarT']= dict(units='ppb',long_name='test_variable with time',data=data3[:,:,:])
+  create_cdf(variables,'tmp_create_cdfTIMES.nc','f4',lons,lats,times=[4.,5.,6.],dbg=True)
   
