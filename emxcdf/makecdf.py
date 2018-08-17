@@ -133,9 +133,11 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,lonlatfmt='full',txt='',
 
   for var in variables.keys():
 
-   if dbg: print('VAR:', var) #, variables[var])
+   if dbg: print('TTTVAR:', var) #, variables[var])
    if timdim:
+     print('DATATTT ', np.shape( times  )
      datvar = cdf.createVariable(var,typ ,('time','lat', 'lon',),zlib=True)
+     print('DATAVAR ', np.shape( variables[var]['data'][:,:,:] ) )
      datvar[:,:,:] = variables[var]['data'][:,:,:] # fill data
    else:
      datvar = cdf.createVariable(var,typ ,('lat', 'lon',),zlib=True)
