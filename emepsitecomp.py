@@ -62,7 +62,7 @@ if args.coords:
 else:
   i, j = [ -999, -999 ] # will average over full domain
   args.coords='Default'
-print(dtxt+' coords', i, j )
+if dbg: print(dtxt+' coords', i, j )
 
 case=dict()
 cases=[]
@@ -74,28 +74,28 @@ for n, ifile in enumerate(args.ifiles):
    else:
       print('TRY File not found! ' + ifile)
       f = ifile + '/Base/Base_month.nc'  # Default
-   print('=>  ', f)
+   if dbg: print('=>  ', f)
    if  not os.path.isfile(f):
      sys.exit('File not found! ' + f)
 
    tmpc= f.split('/')
-   print(f, '=>fTERMS ', n, tmpc)
+   if dbg: print(f, '=>fTERMS ', n, tmpc)
    if len(tmpc)>2:
       case[f]= tmpc[-3].replace('.%s'%args.year,'')  # rv4.2012 from rv4.2012/Base/Base_month.nc
    else:
      case[f]= tmpc[0]  #  CAMS_IPOA fro CAMS_IPOA/CAMS_IPOA_month.nc
-     print('CASE', case[f])
+     if dbg: print('CASE', case[f])
 
    cases.append(case[f])
    ifiles.append(f)  # with full path name to .nc
-   print(dtxt+'CASE', n, case[f] )
+   if dbg: print(dtxt+'CASE', n, case[f] )
 
 labels = cases.copy() # default
 
 if args.labels:
    labels = args.labels.split()
    for c, b, f in zip( cases, labels, args.ifiles ):
-     print("LABEL CASE FILE ", b, c, f )
+     if dbg: print("LABEL CASE FILE ", b, c, f )
 
 first=True
 file0=ifiles[0] #  Need file to get keys at start
@@ -140,10 +140,14 @@ for var in args.varkeys:
 
            tmpx    = np.linspace(0.5,nfiles+0.5,nfiles+1)
            if key in ecdf.variables.keys():
-             tmpv=ecdf.variables[key][:,:,:]
-             if dbg: print('KEY VALUES? ', ifile, key, np.max(tmpv) )
+             #Aug tmpv=ecdf.variables[key][:,:,:]
+             tmpv=ecdf.variables[key]
+             if dbg: print('KEY VALUES? ', ifile, key, np.max(tmpv), tmpv.ndim )
              if i> -1:
-               vals=ecdf.variables[key][:,j,i]
+               if tmpv.ndim>2:
+                  vals=ecdf.variables[key][:,j,i]
+               else:
+                  vals=[ ecdf.variables[key][j,i], ] # make list
              else:
                vals=np.mean(ecdf.variables[key][:,:,:],axis=(1,2))
              #print('VALS ', nf, vals)
