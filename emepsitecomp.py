@@ -152,12 +152,12 @@ for var in args.varkeys:
                vals=np.mean(ecdf.variables[key][:,:,:],axis=(1,2))
              #print('VALS ', nf, vals)
              if np.max(vals) < 1.0e-3:
-                print('ZERO VALUES? ', ifile, key )
+                if dbg: print('ZERO VALUES? ', ifile, key )
                 continue
              #print('TMPV var ', key, tmpv.shape, i, j, np.max(vals) )
              #print('VALS var ', key, vals.shape, i, j, np.max(vals), vals )
              for n in range(len(vals)):
-               print('VAL ', key, n+1, vals[n] )
+               print('VAL %30s %3d %.4g ' % ( key, n+1, vals[n] ))
            else:
              print(' KEY NOT FOUND ', key, case[ifile])
              continue
