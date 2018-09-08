@@ -143,14 +143,28 @@ def readcdf( ifile, var, getVals=True, tStep=None,
     lldim=len(tst.shape)
   except:
     lldim=2 # HARD CODE CDO x y
- # Test
-  t=ecdf.variables['time']
-  times=ecdf.variables['time'][:]
-  ntime=len(times)  #  TESTING . was =1 
-  if dbg: print(" SIZE OF TIME ", len(times))
-  if dbg: print(" Time UNITS   ", t.units)
-  print(netCDF4.num2date( times[0],units=t.units))
-  print(netCDF4.num2date( times[1],units=t.units))
+ # Test Sep 2018
+  if 'time' in  ecdf.variables.keys():
+    print('DBG TIME ', ecdf.variables.keys())
+    t=ecdf.variables['time']
+    times=ecdf.variables['time'][:]
+    ntime=len(times)  #  TESTING . was =1 
+    tvar = True
+  elif 'time' in ecdf.dimensions:
+    print('TIME', ecdf.dimensions)
+    ntime=len(ecdf.dimensions['time'])
+    times    =range(ntime)
+    tvar = False
+  else:
+    ntime=0
+    tvar = False
+
+  if dbg and ntime>0:
+     print(" SIZE OF TIME ", len(times))
+     print(" Time UNITS   ", t.units)
+  if tvar:
+    print(netCDF4.num2date( times[0],units=t.units))
+    print(netCDF4.num2date( times[1],units=t.units))
   #print(netCDF4.num2date( times[365],units=t.units))
 # ECHAM had 367 records for 2012:
 #   0 2012-01-01 12:00:00
@@ -165,7 +179,10 @@ def readcdf( ifile, var, getVals=True, tStep=None,
   EmepFile.dimy = dimy
   
   for tim in times:
-    EmepFile.times.append(netCDF4.num2date(tim,units=t.units))
+    if tvar:
+      EmepFile.times.append(netCDF4.num2date(tim,units=t.units))
+    else:
+      EmepFile.times.append(tim)
   
   if( lldim == 1):
     EmepFile.xcoords=ecdf.variables[dimx][:]
@@ -243,11 +260,16 @@ def readcdf( ifile, var, getVals=True, tStep=None,
       # for 2012. We flip and chop
        i=5; j=19 # about 53N, 9E, j from top
        nj = len(EmepFile.ycoords) - j - 1
-       print('FLIP PRE  ',  EmepFile.vals[42,j,i], np.max(EmepFile.vals[:,j,i] ) )
-       #EmepFile.vals=EmepFile.vals[:-1,::-1,:]  # Flips on j, chops time by one
-       EmepFile.vals=EmepFile.vals[:,::-1,:]  # Flips on j
-       print('FLIP POST ',  EmepFile.vals[42,nj,i], np.max(EmepFile.vals[:,nj,i] ) )
-       print('SHAPE ECHAM VALS ', EmepFile.vals.shape )
+       ndims = len(EmepFile.vals.shape)
+       print('SHAPE FLIPPING VALS ', EmepFile.vals.shape )
+       if ndims>2:
+         nt2 = ntime//2
+         print('FLIP PRE  ', nt2, EmepFile.vals[nt2,j,i], np.max(EmepFile.vals[:,j,i] ) )
+         #EmepFile.vals=EmepFile.vals[:-1,::-1,:]  # Flips on j, chops time by one
+         EmepFile.vals=EmepFile.vals[:,::-1,:]  # Flips on j
+         print('FLIP POST ', nt2,  EmepFile.vals[nt2,nj,i], np.max(EmepFile.vals[:,nj,i] ) )
+       else:
+         EmepFile.vals=EmepFile.vals[::-1,:]  # Flips on j
 
 
   # O2017 - needs checking
