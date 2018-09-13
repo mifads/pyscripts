@@ -75,7 +75,7 @@ def xcreate_cdf(variables,ofile,typ,lons,lats,lonlatfmt='full',txt='',dbg=False)
   cdf.close()
 ####################
 
-def create_cdf(variables,ofile,typ,lons,lats,times=None,lonlatfmt='full',txt='',dbg=False):
+def create_cdf(variables,ofile,typ,lons,lats,times=None,lonlatfmt='short',txt='',dbg=False):
   """
     Creates a netcdf file for a simple 2 or 3-D data sets and lonlat projection
     together with a variables dictionary containing names, units, etc.
