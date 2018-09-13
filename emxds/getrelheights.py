@@ -6,10 +6,11 @@ import os
 import sys
 from emxmisc.great_circle import great_circle_distance
 
-def lonlat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None):
+def lonlat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None,rad_km=5):
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #  # # # # # # # # # # # # # # # # # # #
 # -Input: latlon-coordinates and altitude for stations
+#   radius default 5km
 #
 # -Get topography
 # -Calculate the relative height for the stations
@@ -59,13 +60,13 @@ def lonlat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None):
             # size of grid in m:
             dxm=great_circle_distance( [lat[ndy],lon[ndx]], [lat[ndy],lon[ndx+1]] )
             dym=great_circle_distance( [lat[ndy],lon[ndx]], [lat[ndy+1],lon[ndx]] )
-            # No grids needed for 5km:
-            nx5km = int( 0.5 + 5000.0/dxm )
-            ny5km = int( 0.5 + 5000.0/dym )
+            # No grids needed for 5km ( or rad_km):
+            nx5km = int( 0.5 + rad_km * 1000.0/dxm )
+            ny5km = int( 0.5 + rad_km * 1000.0/dym )
             #
             print("Found ", label_s[i],  region, lat_s[i], lon_s[i],
                ndx, ndy, dxm, dym, nx5km, ny5km)
-            dxm2=dxm*dxm; dym2=dym*dym; r5km2 = 5000.0*5000
+            dxm2=dxm*dxm; dym2=dym*dym; r5km2 =  rad_km*rad_km *  1.0e6
             h_min  = 9999.0
             h_avg =  0.0
             nGood    =0
@@ -100,8 +101,35 @@ def lonlat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None):
             print("End %s %5i %5i" % ( label_s[i], nGood, nWarnings ))
   
   return he, avg_alt
-
      
+
+if ( __name__ == "__main__" ):
+  """ Testing lonlat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None)
+  """
+  import sys
+
+  site_lat = [ 89.5, 47.690, 46.024, 47.478, 46.815, -89.5 ]
+  site_lon = [ -179.5, 8.5264, 8.8353, 8.3644, 9.8561, -179.5 ]
+  site_alt = [ 50.0, 511.0, 1105.0, 736.0, 1687.0, 100.0 ]
+  sites    = 'FakeNW Neunkirch Novaggio Laegeren  Davis FakeSW'.split()
+  #alt_h5, alt_avg =  heights(site_lat,site_lon,site_alt,sites,mapdims='ETOPO')
+  #for i in range(0,len(sites)):
+  #  print( i, site_lat[i], site_lon[i], site_alt[i], alt_h5[i], alt_avg[i] )
+
+  #xlat=30.67;xlon=76.73;xalt=310.0;xname='Mohali'
+  #alt_h5, alt_avg =  heights( [xlat], [xlon],[xalt],[xname],mapdims='ETOPO')
+  #print(alt_h5)
+
+  #print(sys.args)
+  if len(sys.argv) ==1 :
+     xlat=30.08;xlon=31.28;xalt=35.0;xname='Cairo'
+  elif sys.argv[1] == '--xyz':
+    xlon, xlat, xalt = map( float,  sys.argv[2].split())
+    xname='User'
+  alt_h5, alt_avg =  lonlat2hRel( [xlon], [xlat],[xalt],[xname],mapdims='ETOPO',dbg=True)
+  print( 'hRel(5km) = ', alt_h5[0], ' Avg terrain: ', alt_avg[0])
+
+
 
 #AAA  # Rewrite all the coordinates to only degree and rewrite westerly coordinates with a minus sign
 #AAA  #lat_s=[]
@@ -213,32 +241,4 @@ def lonlat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None):
 #AAAj_coord = [ 40, 37,40, 40 ]
 #AAA
 #AAAheights(site_lat,site_lon,i_coord,j_coord,index,alt_s)
-
-
-if ( __name__ == "__main__" ):
-  """ Testing lonlat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None)
-  """
-  import sys
-
-  site_lat = [ 89.5, 47.690, 46.024, 47.478, 46.815, -89.5 ]
-  site_lon = [ -179.5, 8.5264, 8.8353, 8.3644, 9.8561, -179.5 ]
-  site_alt = [ 50.0, 511.0, 1105.0, 736.0, 1687.0, 100.0 ]
-  sites    = 'FakeNW Neunkirch Novaggio Laegeren  Davis FakeSW'.split()
-  #alt_h5, alt_avg =  heights(site_lat,site_lon,site_alt,sites,mapdims='ETOPO')
-  #for i in range(0,len(sites)):
-  #  print( i, site_lat[i], site_lon[i], site_alt[i], alt_h5[i], alt_avg[i] )
-
-  #xlat=30.67;xlon=76.73;xalt=310.0;xname='Mohali'
-  #alt_h5, alt_avg =  heights( [xlat], [xlon],[xalt],[xname],mapdims='ETOPO')
-  #print(alt_h5)
-
-  #print(sys.args)
-  if len(sys.argv) ==1 :
-     xlat=30.08;xlon=31.28;xalt=35.0;xname='Cairo'
-  elif sys.argv[1] == '--xyz':
-    xlon, xlat, xalt = map( float,  sys.argv[2].split())
-    xname='User'
-  alt_h5, alt_avg =  lonlat2hRel( [xlon], [xlat],[xalt],[xname],mapdims='ETOPO',dbg=True)
-  print( 'hRel(5km) = ', alt_h5[0], ' Avg terrain: ', alt_avg[0])
-
 
