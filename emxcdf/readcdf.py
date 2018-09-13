@@ -165,6 +165,7 @@ def readcdf( ifile, var, getVals=True, tStep=None,
   if tvar:
     print(netCDF4.num2date( times[0],units=t.units))
     print(netCDF4.num2date( times[1],units=t.units))
+
   #print(netCDF4.num2date( times[365],units=t.units))
 # ECHAM had 367 records for 2012:
 #   0 2012-01-01 12:00:00
