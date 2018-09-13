@@ -166,6 +166,7 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   #plt.axis('equal')
 
   if ofile:
+    print(dtxt+'SAVES ', ofile)
     plt.savefig(ofile)
   else:
     print(dtxt+'SHOWS ', plotstyle)
