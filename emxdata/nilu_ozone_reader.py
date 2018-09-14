@@ -84,9 +84,10 @@ if __name__ == '__main__':
 
   import os
   home=os.getenv('HOME')
-  site = 'NO0001R_2012.dat' # Just to May
-  site = 'NO0039R_2012.dat'
-  ifile="%s/Data/NILU/DATA_O3/2012/%s" % ( home, site )
+  year=2016
+  site = 'NO0001R_%d.dat' % year # 2012 has just to May
+  site = 'NO0039R_%d.dat' % year
+  ifile="%s/Data/NILU/DATA_O3/%d/%s" % ( home, year, site )
 
-  o3=read_nilu_ozone(ifile,2012,dbgSite='NO0039R')
+  o3=read_nilu_ozone(ifile,year,dbgSite='NO0039R')
 
