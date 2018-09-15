@@ -14,9 +14,9 @@ import sys
 #
 #2012-01-01T00:00:00    2012-01-01T01:00:00             NaN    699    invalid
 
-def read_nilu_ozone(ifile,year,dbgSite=None):
-  """ Reads a requested NILU ascii file, and returns a 365(6)x24 array with
-      O3 in ppb. (Corrections done for Swiss sites.) """
+def read_nilu_ozone(ifile,year,flat=False,dbgSite=None):
+  """ Reads a requested NILU ascii file, and returns a 365(6)x24 array or 8640 (with flat=True)
+      with O3 in ppb. (Corrections done for Swiss sites.) """
 
   if not os.path.isfile(ifile):
     print('FILE does not exist. Skip')
@@ -36,7 +36,8 @@ def read_nilu_ozone(ifile,year,dbgSite=None):
 
   dbg = dbgSite
 
-  o3j24 = np.full([nydays+1,24],np.nan) # Jan1st=1
+  #o3j24 = np.full([nydays+1,24],np.nan) # Jan1st=1
+  o3j24 = np.full([nydays,24],np.nan)    # Jan1st=0
 
   with open(ifile,'r') as f:
     
@@ -68,7 +69,7 @@ def read_nilu_ozone(ifile,year,dbgSite=None):
 
        if np.isfinite(o3):
 
-          o3j24[jday,hh] = o3
+          o3j24[jday-1,hh] = o3  # python indexing
 
        if dbg and hh==23: print('o3 ', jday, mm,dd,hh, o3 ) # , np.nansum(no3_24h))
 
@@ -76,9 +77,12 @@ def read_nilu_ozone(ifile,year,dbgSite=None):
           sys.exit('24h HOURS . RECODE')
        if hh == 23:
           if ifile.find('AT0002R') > -1:
-            print("o3h ", jday, np.nanmax( o3j24[jday,:]) )
+            print("o3h ", jday, np.nanmax( o3j24[jday-1,:]) )
 
-  return o3j24
+  if flat:
+    return o3j24.flatten()
+  else:
+    return o3j24
 
 if __name__ == '__main__':
 
@@ -90,4 +94,5 @@ if __name__ == '__main__':
   ifile="%s/Data/NILU/DATA_O3/%d/%s" % ( home, year, site )
 
   o3=read_nilu_ozone(ifile,year,dbgSite='NO0039R')
+  fo3=read_nilu_ozone(ifile,year,flat=True,dbgSite='NO0039R')
 
