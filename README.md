@@ -31,6 +31,7 @@ makecdf.py | Creates cdf files from a list of variable names and data. Works for
 emxdata                       | Comment
 :--------------------------   |:---------------------------------------
 ObservationsClass.py | Class with various info on observations. May be overkill in retrospect
+tabulate_nilu_ozone_stations.py | makes Tabulated_nilu_ozone_stations.txt
 
 emxemis                       | Comment
 :--------------------------   |:---------------------------------------
