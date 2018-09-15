@@ -17,10 +17,10 @@ The code is organised in 'emx' directories (emx = emep/esx)
 
 * emxcdf    - read and write cdf files
 * emxdata   - related to observations
-* emxds     - needs some file from Dave's system. Can be adapted though.
 * emxemis   - emissions, mainly MACC processing so far
 * emxmisc   - bits n pieces
 * emxplot   - daily, diurnal and scatter plots
+* emxverify - scripts to compare emep model and obs data.
 
 
 emxcdf                        | Comment
@@ -70,6 +70,12 @@ plotdaily.py | Produces time-series plots of daily data, including optional fill
 plotscatt.py | Produces scatter plots, including optinional detection of outliers and addition of labels
 plotdiurnal.py | Diurnal (1-24h) plots
 
+emxverify code                  | Comment
+:--------------------------   |:---------------------------------------
+comp_ozone_metrics.py | produces daily and diurnal plots and tables for Dmax, AOT, W126,M/ etc. Uses hourly data (so far). Typically run using run_comp_ozone_metrics.py
+
+
+ebas_flags.py
 
 Misc code                     | Comment
 :--------------------------   |:---------------------------------------
