@@ -29,7 +29,7 @@ from emxplots.plotdiurnal import plotdiurnal, makediurnal
 from emxozone.dailymetrics import defmetrics, get_metrics, accumulated #, tzo3
 from emxozone.seasonalmetrics import getSeasonalMetrics, getDayNightIndex
 
-me='ModObsComp:'
+dtxt='comp_ozone_metrics:'
 Dummy=False  # will use fake model values, 
 
 #---------- read filename, variable name and year
@@ -45,8 +45,11 @@ parser.add_argument("--obs_dir", help="obs directory",required=True)
 parser.add_argument("-d","--dbgSite", help="site-code for debug eg MHD",default=None)
 parser.add_argument("-e","--expr", 
      help='expression for sites (eg. "site.startswith(NO)" or alt<300', type=str)
+parser.add_argument("--expr2",  # Two expressions allowed so far
+     help='expression for sites (eg. "alt<300', type=str)
 parser.add_argument("-H","--hourly",help="using hourly file",action='store_true')
 parser.add_argument("-n","--network", help="NILU or GAW", required=True)
+parser.add_argument("--diurnalseason", help="season for diurnal data  (S=summer only so far)")
 parser.add_argument("-t","--table", help="Table with site data ", required=True)
 parser.add_argument("-y","--year", help="give year", type=int,required=True)
 parser.add_argument("--label", help="label text",type=str,required=True)
@@ -64,7 +67,7 @@ if args.odir:
 odir     = args.odir + '/'
 dbgSite  = args.dbgSite
 if( not os.path.isfile(obsTable) ):
-  sys.exit(me+"File %s doesn't exist!"% obsTable )
+  sys.exit(dtxt+"File %s doesn't exist!"% obsTable )
 
 modvar='EUAOT40_Forests'
 if args.hourly: modvar='SURF_ppb_O3'
@@ -121,9 +124,9 @@ for kk in skeys:
 #      fullcode = r.groups()[0]
 #      scode.append( fullcode[0:2] + fullcode[4:6] ) # e.g AT0031R -> AT31
 
-print(me+"Testing  ", emepfile)
+print(dtxt+"Testing  ", emepfile)
 if( not os.path.isfile(emepfile) ):
-   sys.exit(me+"File %s doesn't exist!"% emepfile )
+   sys.exit(dtxt+"File %s doesn't exist!"% emepfile )
 
 # Get EMEP data structure
 if Dummy:
@@ -131,7 +134,7 @@ if Dummy:
 else:
   emep  = readcdf.readcdf( emepfile, modvar, getVals = True )
 if emep=='VarNotFound':
-  sys.exit(':'.join([me,modvar,emep,emepfile]))
+  sys.exit(':'.join([dtxt,modvar,emep,emepfile]))
 
 #emep.printme()
 
@@ -158,24 +161,30 @@ for regcode  in  sorted(sRegCodes):
    code =codes[nsite]
    alt  =sAlt [nsite]
 
+   if args.dbgSite:
+     if scode != dbgSite: continue
+   print ('DBG ', dbgSite, scode )
+
    if args.expr:
-    if eval(args.expr):
-       print("PASSES: EXPR ", args.expr, scode)
+    if eval(args.expr): print("!! MATCH: EXPR ", args.expr, scode)
     else:
-       print("FAILS: EXPR ", args.expr, scode)
+       print("NO MATCH: EXPR ", args.expr, scode)
+       continue
+
+   if args.expr2:
+    if eval(args.expr2): print("PASSES: EXPR2 ", args.expr2, scode)
+    else:
+       print("FAILS: EXPR2 ", args.expr2, scode)
        continue
    print('PROCESSING ', scode)
 
-   print ('DBG ', dbgSite, scode )
-   if args.dbgSite:
-     if scode != dbgSite: continue
 
    if network == 'GAW':
      obs_files=glob.glob('%s/y%s/%s*O3_%s.txt' % ( obs_dir, year, scode, year ))
      obs_file=obs_files[0]
      if( not os.path.isfile(obs_file) ):
-        sys.exit(me+"File %s doesn't exist!"% obs_file )
-     if len(obs_files) > 1 : sys.exit(me+'Too many matching files!')
+        sys.exit(dtxt+"File %s doesn't exist!"% obs_file )
+     if len(obs_files) > 1 : sys.exit(dtxt+'Too many matching files!')
      obs=np.genfromtxt(obs_file,dtype=None,names=True)
      o3obs=obs['ppb']
      print('OBS ',  obs_file)
@@ -186,16 +195,16 @@ for regcode  in  sorted(sRegCodes):
      o3obs=read_nilu_ozone(obs_file,year,flat=True)
 
    if( not os.path.isfile(obs_file) ):
-      sys.exit(me+"NILU File %s doesn't exist!"% obs_file )
+      sys.exit(dtxt+"NILU File %s doesn't exist!"% obs_file )
 
 
-   if sAlt[nsite] > 600: 
-      print('Too high, skip : ', nsite, scode, regcode, 
-             sName[nsite], sAlt[nsite]  )
-      continue
-   print('Proceeding with: ', nsite, scode, regcode, sName[nsite]  )
+   #if sAlt[nsite] > 600: 
+   #   print('Too high, skip : ', nsite, scode, regcode, 
+   #          sName[nsite], sAlt[nsite]  )
+   #   continue
+   #print('Proceeding with: ', nsite, scode, regcode, sName[nsite]  )
 
-#for fake in range(5):
+   #for fake in range(5):
    if Dummy:
      o3mod = 41.0*np.ones(nydays*24)
    else:
@@ -223,18 +232,31 @@ for regcode  in  sorted(sRegCodes):
    assert len(o3obs) == len(o3mod), 'O3 unequal lengths %d %d!!' % (len(o3obs), len(o3mod))
 
    # ---- diurnal plots april-sept --------------
-   dstart= sum(nmdays[:4]) + 1 # doy of 1st April
-   dend  = sum(nmdays[:10])    # doy of 30th Sep
-   obs24, mod24 = makediurnal(o3obs,o3mod,dstart,dend)
+   if args.diurnalseason: # only summer 6 months coded so far
+     dstart= sum(nmdays[:4]) + 1 # doy of 1st April
+     dend  = sum(nmdays[:10])    # doy of 30th Sep
+   else:
+     dstart = 1
+     dend   = nydays
+   obs24, mod24, dc24 = makediurnal(o3obs,o3mod,dstart,dend)
+   dcMean = np.nansum(dc24)/24.0 
+   #if args.dbgSite:
+   for h in range(24):
+     print(dtxt+' diurn O,M:',scode, h, obs24[h], mod24[h], dc24[h] )
+     print(dtxt+'mean diurn O,M, dc:',scode, np.nanmean(obs24), np.mean(mod24), dcMean )
 
    # plotlabel is e.g. EUR_MHD_2012_rv4_16feb7
    plotlabel='%s_%s_%s' % ( sRegCodes[nsite], args.label, year )
 
-   note = '%s %s (%dm)\n days %d - %d' % ( 
-           scode, sName[nsite], int(sAlt[nsite]), dstart, dend)
+   note = '%s %s (%dm)\n days %d - %d\n DC %d(%%)' % ( 
+           scode, sName[nsite], int(sAlt[nsite]), dstart, dend, int(0.5+dcMean) )
    ofile = odir+'Diurn_O3_%s.png' % plotlabel
-   plotdiurnal(odict(mod=mod24,obs=obs24), yaxisMin=0.0,
-     notetxt=note, ynote=0.75,notefont=18,
+  # plotdiurnal(odict(mod=mod24,obs=obs24), yaxisMin=0.0,
+  # Sadly, the ordering of odict needs step-by-step. Give obs first
+   plotinputs=odict()
+   plotinputs['obs'] = obs24
+   plotinputs['mod'] = mod24
+   plotdiurnal(plotinputs, yaxisMin=0.0, notetxt=note, ynote=0.75,notefont=18,
      title=args.label,ofile=ofile)
    # ---- end diurnal ----------------------------
 
@@ -344,18 +366,19 @@ for kk in skeys:
   x=obsout[kk][:]
   y=modout[kk][:]
   c=codeout[kk][:]
+  print(dtxt+'PLOTTING LENS ',kk,len(x), len(y), len(c), type(x), type(y) )
+  if len(x) < 2:
+    print(dtxt+'SKIPPING ', kk)
+    continue
   
   label=kk
   label = '%s:%s'% ( kk, args.label)
   olabel = '%s_%s'% ( kk, args.label)
   ofile=odir+'ScatPlot%s_%s.png' % ( olabel, year )
-  print('PLOTTING LENS ',len(x), len(y), len(c), type(x), type(y) )
   print('PLOTTING ',ofile, kk,  x[:3], y[:3], c[:3], type(x), type(y) )
   print('PLOTTING ',kk,  x[:3], y[:3], c[:3], np.max(x), np.max(y) )
   #sys.exit()
-  if len(x) != len(y):
-      print('XY ERROR ',c, kk, len(x), len(y) )
-      sys.exit()
+  assert len(x) == len(y), 'XY ERROR %d %d!!' % (len(x), len(y))
 
   slope, const, rcoeff = emepscatplot(x,y,xlabel='Obs.', ylabel='Mod.',
   label=label,labelx=0.01,labely=0.93,
