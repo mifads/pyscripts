@@ -210,7 +210,7 @@ for regcode  in  sorted(sRegCodes):
    timezone = int( slon[nsite]/15.0 )
    if args.dbgSite: 
      for h in range(32):
-       print('HHMHD', h, o3obs[h], o3mod[h], timezone )
+       print('HHDBG', h, o3obs[h], o3mod[h], timezone )
    if timezone>0:
      #print('TZ corr0', scode, timezone, o3obs[:12] )
      o3obs = np.roll(o3obs, timezone )
@@ -344,10 +344,12 @@ for kk in skeys:
   x=obsout[kk][:]
   y=modout[kk][:]
   c=codeout[kk][:]
+  
   label=kk
   label = '%s:%s'% ( kk, args.label)
   olabel = '%s_%s'% ( kk, args.label)
   ofile=odir+'ScatPlot%s_%s.png' % ( olabel, year )
+  print('PLOTTING LENS ',len(x), len(y), len(c), type(x), type(y) )
   print('PLOTTING ',ofile, kk,  x[:3], y[:3], c[:3], type(x), type(y) )
   print('PLOTTING ',kk,  x[:3], y[:3], c[:3], np.max(x), np.max(y) )
   #sys.exit()
