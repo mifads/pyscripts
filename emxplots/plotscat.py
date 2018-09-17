@@ -26,6 +26,7 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
     plotstyle='classic',
     labelx=0.1,labely=0.9,labelsize=16,
     addxy=0.0,  # Increases maxv to e.g. cope with label  overwrites
+    minv=0.0,  # lower  value limit for plots
     addStats=False,skipOutliers=False,dbg=False,ofile=None):
 
   """
@@ -51,6 +52,7 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   plt.ylabel(ylabel, fontsize=16)
   v=plt.axis()
   maxv=max(v)
+
   if addxy>0.0:
       maxv += addxy
   if title: # Hard-coded position so far, top-left
@@ -156,7 +158,8 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
      plt.text(0.6*maxv,vpos,'y= %4.2f x + %6.1f'%( mn, cn),color='k',fontsize=12)
      vpos -= dvpos
      plt.text(0.6*maxv,vpos,'Corr.= %6.2f'%rn[0,1],color='k',fontsize=12)
-  plt.axis([0,maxv,0,maxv])
+  #SEP 2018 plt.axis([0,maxv,0,maxv])
+  plt.axis([minv,maxv,minv,maxv])
 
   if txt:  # place in upper left
     vpos=0.95*maxv   #  vertical position  for text below, was 0.22
@@ -205,6 +208,7 @@ if __name__ == '__main__':
   for style in 'bmh ggplot seaborn-colorblind seaborn-deep'.split():
     print('TESTING STYLE', style)
     p=emepscatplot(x,y,'Testx','Testy',label=style,plotstyle=style,addStats=True,dbg=True)
+    p=emepscatplot(x,y,'Testx','Testy',label=style,plotstyle=style,addStats=True,dbg=True,minv=3.0)
 #    p.show()
 
   #p=emepscatplot(x,y,'Testx','Testy',addStats=True,pcodes=c,ofile='TestPlots.png')

@@ -50,6 +50,7 @@ parser.add_argument("--expr2",  # Two expressions allowed so far
 parser.add_argument("-H","--hourly",help="using hourly file",action='store_true')
 parser.add_argument("-n","--network", help="NILU or GAW", required=True)
 parser.add_argument("--diurnalseason", help="season for diurnal data  (S=summer only so far)")
+parser.add_argument("--plotDailyMetrics",nargs='+',help="metrics wanted for daily plots, e.g. Mmean M7 (Dmax = default)",default='Dmax')
 parser.add_argument("-t","--table", help="Table with site data ", required=True)
 parser.add_argument("-y","--year", help="give year", type=int,required=True)
 parser.add_argument("--label", help="label text",type=str,required=True)
@@ -57,6 +58,7 @@ parser.add_argument("--label", help="label text",type=str,required=True)
 parser.add_argument("-o","--odir", help="output dir",default='.')
 args = parser.parse_args()
 print(args)
+#sys.exit()
 year     = args.year
 emepfile = args.mod
 network  = args.network
@@ -166,17 +168,19 @@ for regcode  in  sorted(sRegCodes):
    print ('DBG ', dbgSite, scode )
 
    if args.expr:
-    if eval(args.expr): print("!! MATCH: EXPR ", args.expr, scode)
+    if eval(args.expr):
+       print("!! MATCH: EXPR ", args.expr, scode)
     else:
        print("NO MATCH: EXPR ", args.expr, scode)
        continue
 
    if args.expr2:
-    if eval(args.expr2): print("PASSES: EXPR2 ", args.expr2, scode)
+    if eval(args.expr2):
+       print("PASSES: EXPR2 ", args.expr2, scode)
     else:
        print("FAILS: EXPR2 ", args.expr2, scode)
        continue
-   print('PROCESSING ', scode)
+   print('PROCESSING ', scode, alt)
 
 
    if network == 'GAW':
@@ -304,20 +308,21 @@ for regcode  in  sorted(sRegCodes):
    # ---- daily   plots -------------------------
    jdays=list(range(1,nydays+1))
 
-   ofile=odir+'Daily_ppb_DmaxO3_%s.png' % plotlabel
 #   note = '%s %s (%dm)' % ( scode, sName[nsite], int(sAlt[nsite]) )
    note='%s %s %s\n%5.1fN %5.1fE %5dm' % ( sReg[nsite], scode, 
          sName[nsite], slat[nsite], slon[nsite], sAlt[nsite])
    if scode == dbgSite:
       for tmpn, tmpobs in enumerate(obs_daily['Dmax']):
          print('MHD', tmpn, tmpobs, mod_daily['Dmax'][tmpn])
-   plotdaily(jdays,obs_daily['Dmax'],mod_daily['Dmax'],
+
+   for m in args.plotDailyMetrics:
+      ofile=odir+'Daily_ppb_%s_%s.png' % ( m, plotlabel )
+      plotdaily(jdays,obs_daily[m],mod_daily[m],
              yaxisMin=0.0,
              notetxt=note, ynote=0.85,notefont=18,
              addStats=True,dcLimit=50, 
              title=args.label,ofile=ofile)
 
-#   sys.exit()
    # ---- end daily plots -------------------------
   # Now, annual stats
 
@@ -380,9 +385,15 @@ for kk in skeys:
   #sys.exit()
   assert len(x) == len(y), 'XY ERROR %d %d!!' % (len(x), len(y))
 
+  #minv =  0.9*np.nanmin(x,y) # scatter plots start here
+  #minv = np.floor(minv)  
+  minv=20.0   # TMP TMP ARGH!
+  print('MINV ', minv, type(minv))
   slope, const, rcoeff = emepscatplot(x,y,xlabel='Obs.', ylabel='Mod.',
   label=label,labelx=0.01,labely=0.93,
+  minv=minv,plotstyle='ggplot',
   addStats=True,pcodes=c,ofile=ofile)
+#bmh ggplot seaborn-colorblind seaborn-deep'
 
   ofile=odir+'Stats%s_%s.txt' % ( olabel, year )
   f=open(ofile,'w')
