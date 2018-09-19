@@ -15,9 +15,9 @@ def daily2meanValue(sday,eday,vals,dbg=False,overrunFrac=0.5):
    d2 =int(eday)  #  allows
    ddays = eday - sday
 
-   print(dtxt+'CHECK DAY', sday, eday, vals[d1] )
+   if dbg: print(dtxt+'CHECK DAY', sday, eday, vals[d1] )
    if d1==d2:  # all on same day
-     print(dtxt+'SAME DAY', sday, eday, vals[d1] )
+     if dbg: print(dtxt+'SAME DAY', sday, eday, vals[d1] )
      return vals[d1] 
    
    concSum = 0.0
@@ -27,7 +27,8 @@ def daily2meanValue(sday,eday,vals,dbg=False,overrunFrac=0.5):
    if eday < sday:  txt=' ERRROR! eday < sday'
    overrun = eday - len(vals)
    if overrun > 0:
-    if overrunFrac*ddays: txt= 'FAILED: Overrun %7.1f Days' % overrun
+    if overrunFrac*ddays>overrunFrac :
+        txt= 'FAILED: Overrun %7.1f Days' % overrun
     else: print('ALLOWED: overrun %7.1f Days' % overrun )
 
    # ie we have more than one day
