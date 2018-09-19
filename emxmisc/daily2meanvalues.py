@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import numpy as np
 
-def Daily2MeanValue(sday,eday,vals,dbg=False,overrunFrac=0.5):
+def daily2meanValue(sday,eday,vals,dbg=False,overrunFrac=0.5):
    """ calculates mean for the given period from daily values. Copes with
       non-integer start and end day. 
       NOTE: As in Ebas, day numbers assumed to start from day 0 = 1/Jan
@@ -9,10 +9,16 @@ def Daily2MeanValue(sday,eday,vals,dbg=False,overrunFrac=0.5):
       default we provide a model value if 50% of the period is covered.
       (user changeable.)
    """
+   dtxt='daily2meanV:'
 
    d1 =int(sday)
    d2 =int(eday)  #  allows
    ddays = eday - sday
+
+   print(dtxt+'CHECK DAY', sday, eday, vals[d1] )
+   if d1==d2:  # all on same day
+     print(dtxt+'SAME DAY', sday, eday, vals[d1] )
+     return vals[d1] 
    
    concSum = 0.0
    timeSum =0.0
