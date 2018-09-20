@@ -26,6 +26,7 @@ from emxplots.plotscat import emepscatplot
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--mod", help="model filename",required=True)
+parser.add_argument("--obs_dir", help="obs dir (RB_OC_...)",required=True)
 parser.add_argument("--label", help="label text",type=str,required=True)
 parser.add_argument("-d","--dbg", help="extra debug  info",default=None)
 parser.add_argument("--period", help="period (Summer, Winter, Annual)",type=str,required=True)
@@ -36,6 +37,7 @@ emepfile=args.mod
 period  =args.period
 label   =args.label
 dbg     =args.dbg
+obs_dir =args.obs_dir
 print(args)
 
 # outputs:_
@@ -62,7 +64,7 @@ else:
 # AT0002R  AT02   47.766666666666666        16.766666666666666              117
 # python 3.6 unicode to get rid of b'..' 
 
-obs_dir = '/home/mifads/Data/RB_OC_stallo/SimpleTimeSeriesData_OC/'
+#obs_dir = '/home/mifads/Data/RB_OC_stallo/SimpleTimeSeriesData_OC/'
 obstable=np.genfromtxt(obs_dir+'ResGetNILU_LL_2009x.LL',dtype='unicode')
 
 sites=dict()
