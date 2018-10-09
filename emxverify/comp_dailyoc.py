@@ -43,6 +43,9 @@ dbg     =args.dbg
 obs_dir =args.obs_dir
 print(args)
 
+ydays = 365
+if calendar.isleap(year): ydays = 366
+
 # outputs:_
 if args.odir:
   os.makedirs(args.odir,exist_ok=True)
@@ -83,7 +86,7 @@ print(obsfiles)
 mod=[]
 obs=[]
 c4=[]  # short code
-jday=range(1,367)
+jday=range(1,ydays+1)
 
 n = 0
 #srun=run
@@ -143,7 +146,7 @@ for ff in obsfiles:
       else:
          mday = dd1  # use start day for 24h samples
 
-      if  mday > 366:   #NO0002 has sample from 365-372!
+      if  mday > ydays:   #NO0002 has sample from 365-372!
         print('WARNING (ignored) LONG ', code, sday, eday, mday )
         continue
 
@@ -154,8 +157,8 @@ for ff in obsfiles:
 
     # Accumulate crude summer/winter averages:
       if period == 'Annual' or \
-          (period == 'Summer' and (sday >= 0.25*366 and sday < 0.75*366)) or \
-          (period == 'Winter' and (sday <  0.25*366 or  sday >= 0.75*366)) :
+          (period == 'Summer' and (sday >= 0.25*ydays and sday < 0.75*ydays)) or \
+          (period == 'Winter' and (sday <  0.25*ydays or  sday >= 0.75*ydays)) :
          nVals += 1
          sumObs += oc
          sumMod += vv[mday]
@@ -184,7 +187,7 @@ for ff in obsfiles:
     meanmod = np.mean( vv[f] )
     print('MEABS ',code, meanobs, meanmod )
     if code == 'NO0002R':
-      for jd in range(366):
+      for jd in range(ydays):
         print ('NO2:', jd, oo[jd], vv[jd] )
     bias = int( 0.5+(100*(meanmod - meanobs)/meanobs ))
     r=np.corrcoef(oo[f],vv[f])[0,1]
