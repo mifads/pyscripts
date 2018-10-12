@@ -29,16 +29,22 @@ parser.add_argument("--mod", help="model filename",required=True)
 parser.add_argument("--obs_dir", help="obs dir (RB_OC_...)",required=True)
 parser.add_argument("--label", help="label text",type=str,required=True)
 parser.add_argument("-d","--dbg", help="extra debug  info",default=None)
+parser.add_argument("--hmax", help="altitude limit (m)",type=int,default=500)
 parser.add_argument("--period", help="period (Summer, Winter, Annual)",type=str,required=True)
 parser.add_argument("--case", help="OC or OM)",type=str,required=True)
 parser.add_argument("-o","--odir", help="output dir",default='.')
+parser.add_argument("-y","--year", help="year",type=int,required=True)
 args = parser.parse_args()
 emepfile=args.mod
+year    =args.year
 period  =args.period
 label   =args.label
 dbg     =args.dbg
 obs_dir =args.obs_dir
 print(args)
+
+ydays = 365
+if calendar.isleap(year): ydays = 366
 
 # outputs:_
 if args.odir:
@@ -65,25 +71,24 @@ else:
 # python 3.6 unicode to get rid of b'..' 
 
 #obs_dir = '/home/mifads/Data/RB_OC_stallo/SimpleTimeSeriesData_OC/'
-obstable=np.genfromtxt(obs_dir+'ResGetNILU_LL_2009x.LL',dtype='unicode')
+obstable=np.genfromtxt(obs_dir+'/ResGetNILU_LL_2009x.LL',dtype='unicode')
 
 sites=dict()
 for code, cc, lat, lon, alt in obstable:
-  print(code, lat, cc)
+  print('CODETAB',code, lat, cc, alt)
   sites[code,'lat'] = float(lat)
   sites[code,'lon'] = float(lon)
   sites[code,'alt'] = float(alt)
   sites[code,'code'] = cc
 
-obsfiles = glob(obs_dir+"Data2012/*2012*OC25.txt")
-#print(obsfiles)
+obsfiles = glob(obs_dir+"/Data%d/*%d*OC25.txt" % ( year, year) )
+print(obsfiles)
 mod=[]
 obs=[]
 c4=[]  # short code
-jday=range(1,367)
+jday=range(1,ydays+1)
 
 n = 0
-hmax=500  # m
 #srun=run
 #if scen != 'Base': srun=scen
 #ptab=open('DayTableEbas_vs_%s_%s_%s_h%d.txt' % ( srun, var, period, hmax ),'w')
@@ -96,9 +101,12 @@ for ff in obsfiles:
   f=os.path.basename(ff)
   if 'uncorrected' in f: continue
   code, yrtxt, txt = f.split('.')
-  print ( 'START ', code)
-  if sites[code,'alt'] > hmax:
-    print ( 'Exclude, >%d m:  '%hmax, code, sites[code,'alt'], f)
+  print ( 'START ', f, code, sites[code,'alt'])
+  alt = sites[code,'alt']
+  if alt > args.hmax:
+    print ( 'Exclude, >%d m:  '% args.hmax, code, alt, f)
+    continue
+  print ( 'RUNS  ', f, code, alt )
     
   try:
     print ( 'HAVE LatLon ', code, sites[code,'lat'], sites[code,'lon'], f)
@@ -138,8 +146,8 @@ for ff in obsfiles:
       else:
          mday = dd1  # use start day for 24h samples
 
-      if  mday > 366:   #NO0002 has sample from 365-372!
-        print('WARNING (ignoreed) LONG ', code, sday, eday, mday )
+      if  mday > ydays:   #NO0002 has sample from 365-372!
+        print('WARNING (ignored) LONG ', code, sday, eday, mday )
         continue
 
       oo[mday] = oc
@@ -149,12 +157,12 @@ for ff in obsfiles:
 
     # Accumulate crude summer/winter averages:
       if period == 'Annual' or \
-          (period == 'Summer' and (sday >= 0.25*366 and sday < 0.75*366)) or \
-          (period == 'Winter' and (sday <  0.25*366 or  sday >= 0.75*366)) :
+          (period == 'Summer' and (sday >= 0.25*ydays and sday < 0.75*ydays)) or \
+          (period == 'Winter' and (sday <  0.25*ydays or  sday >= 0.75*ydays)) :
          nVals += 1
          sumObs += oc
          sumMod += vv[mday]
-         print('CALL DM ', code, oc,  sday, eday, vv[mday] )
+         #print('CALL DM ', code, oc,  sday, eday, vv[mday] )
 
   print('Test ',  period, code, sday, oc, nVals)
 
@@ -172,21 +180,21 @@ for ff in obsfiles:
     plt.plot(vv,label='Mod.')
     plt.fill_between(jday,minv,maxv,color='b',alpha=0.1)
     plt.plot(oo,'rx',label='Obs.')
-    plt.title(code)
+    plt.title('%s    Alt.=%dm' % ( code, alt) )
 
     f= oo > 0.0
     meanobs = np.mean( oo[f] )   # Will fail for Norway so far
     meanmod = np.mean( vv[f] )
     print('MEABS ',code, meanobs, meanmod )
     if code == 'NO0002R':
-      for jd in range(366):
+      for jd in range(ydays):
         print ('NO2:', jd, oo[jd], vv[jd] )
     bias = int( 0.5+(100*(meanmod - meanobs)/meanobs ))
     r=np.corrcoef(oo[f],vv[f])[0,1]
     plt.figtext(0.15,0.85,'Run %s' % label )
     plt.figtext(0.15,0.80,'Bias %3d%%   R=%4.2f' % ( bias, r) )
     plt.legend()
-    plt.savefig('%s/PlotDaily%s_%s.png' % ( odir, code, label) )
+    plt.savefig('%s/PlotDaily%s_%s.png' % ( odir, code, label ) )
     plt.clf()
 
     #ptab.write(' %-20s %8.3f  %8.3f  %5d\n' % ( code, obs[n], mod[n], nVals ))
@@ -197,7 +205,7 @@ for ff in obsfiles:
 print('NOW, SCATTER ', len(mod), len(obs))
 xlabel='Observed %s, %s' % ( case, unit )
 ylabel='Modelled %s, %s' % ( modvar, unit )
-ofile=odir+'ScatEbas_vs_%s_%s_%s_h%d.png' % ( label, modvar, period, hmax )
+ofile=odir+'ScatEbas_vs_%s_%s_%s_hmax%d.png' % ( label, modvar, period,  args.hmax )
 
 slope, const, rcoeff = emepscatplot(obs,mod,xlabel='Obs.', ylabel='Mod.',
   label=label+':'+period,labelx=0.01,labely=0.93, minv=0.0,plotstyle='ggplot',
