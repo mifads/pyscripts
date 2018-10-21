@@ -12,6 +12,7 @@ import numpy as np
 import os
 import sys
 # Dave's scripts
+import emxmisc.array_filters as arrf
 import emxcdf.readcdf as readcdf
 from emxmisc.daily2meanvalues import daily2meanValue
 from emxplots.plotscat import emepscatplot
@@ -32,6 +33,7 @@ parser.add_argument("-d","--dbg", help="extra debug  info",default=None)
 parser.add_argument("--hmax", help="altitude limit (m)",type=int,default=500)
 parser.add_argument("--period", help="period (Summer, Winter, Annual)",type=str,required=True)
 parser.add_argument("--case", help="OC or OM)",type=str,required=True)
+parser.add_argument("--skipOutliers", help="skipOutliers",default=False)
 parser.add_argument("-o","--odir", help="output dir",default='.')
 parser.add_argument("-y","--year", help="year",type=int,required=True)
 args = parser.parse_args()
@@ -71,7 +73,7 @@ else:
 # python 3.6 unicode to get rid of b'..' 
 
 #obs_dir = '/home/mifads/Data/RB_OC_stallo/SimpleTimeSeriesData_OC/'
-obstable=np.genfromtxt(obs_dir+'/ResGetNILU_LL_2009x.LL',dtype='unicode')
+obstable=np.genfromtxt(obs_dir+'/ResGetNILU_LL_2009x2.LL',dtype='unicode')
 
 sites=dict()
 for code, cc, lat, lon, alt in obstable:
@@ -182,7 +184,12 @@ for ff in obsfiles:
     plt.plot(oo,'rx',label='Obs.')
     plt.title('%s    Alt.=%dm' % ( code, alt) )
 
-    f= oo > 0.0
+    #print('Ooo  ',code, len(oo), np.min(oo), np.max(oo), np.nanmin(oo), np.nanmax(oo))
+    # Want to make means over same period, with oo>0 and not NaN
+    # Had problems with NaNs and array comparison
+    # eg np.logical_and(np.isfinite(x), x > 0.0) gave RuntimeWarning 
+    # 
+    f=arrf.compare_nan_array(np.greater,oo,0.0) #  np.isfinite(oo) #  > 0.0
     meanobs = np.mean( oo[f] )   # Will fail for Norway so far
     meanmod = np.mean( vv[f] )
     print('MEABS ',code, meanobs, meanmod )
@@ -210,5 +217,6 @@ ofile=odir+'ScatEbas_vs_%s_%s_%s_hmax%d.png' % ( label, modvar, period,  args.hm
 slope, const, rcoeff = emepscatplot(obs,mod,xlabel='Obs.', ylabel='Mod.',
   label=label+':'+period,labelx=0.01,labely=0.93, minv=0.0,plotstyle='ggplot',
   pcodes=c4,
+  skipOutliers=args.skipOutliers,
   addStats=True,ofile=ofile)
 
