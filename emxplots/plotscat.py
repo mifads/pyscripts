@@ -30,7 +30,8 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
     addStats=False,skipOutliers=False,dbg=False,ofile=None):
 
   """
-   Scatter plot, emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,addxy=0.0,addStats=False,ofile=None)
+   Scatter plot, emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,addxy=0.0,
+      addStats=False,ofile=None)
   """
   dtxt = 'emepscatplot'
   plt.style.use(plotstyle)
@@ -47,7 +48,7 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
 #f=alt<vlimit
   plt.subplot(111)
   plt.clf()
-  fig=plt.scatter(x,y)
+  fig=plt.scatter(x,y,color='b')
   plt.xlabel(xlabel, fontsize=16)
   plt.ylabel(ylabel, fontsize=16)
   v=plt.axis()
@@ -77,6 +78,7 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
          if t < 0.5:
            skipi[i] = 1
            skip.append(i)
+       print(dtxt+'SKIPi,n=', len(skip) )
      except: # where stats not implemented Test own outliers
        g = []
        for i in range(0,len(x)):
@@ -120,7 +122,11 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   #[m,c]=np.polyfit(x,y,1) #r=np.corrcoef(x,y)
 
   fit=( c, c+m*lin[1] )
-  plt.plot(lin,fit,'r--')
+  if skipOutliers:
+    plt.plot(lin,fit,'r--')
+  else:
+    plt.plot(lin,fit,'k--')
+  #plt.plot(lin,fit,'c--')
 
 ###########################################################################
   # Data without outliers
@@ -138,7 +144,7 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
     [mn,cn]=np.polyfit(xn,yn,1)
     rn=np.corrcoef(xn,yn)
     fitn=( cn, cn+mn*lin[1] )
-    plt.plot(lin,fitn,'k--')
+    plt.plot(lin,fitn,'k--') # non outliers in black
 
   vpos=0.17*maxv   #  vertical position  for text below, was 0.22
   dvpos=0.05*maxv  # for text below
@@ -153,7 +159,7 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
      vpos -= dvpos
      plt.text(0.6*maxv,vpos,'Corr.= %6.2f'%r[0,1],color=col,fontsize=12)
 
-  if skipOutliers:
+  if skipOutliers: # Now text for non-outliers in black
      vpos -= dvpos
      plt.text(0.6*maxv,vpos,'y= %4.2f x + %6.1f'%( mn, cn),color='k',fontsize=12)
      vpos -= dvpos
