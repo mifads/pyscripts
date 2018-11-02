@@ -16,7 +16,6 @@ homedir=os.getenv('HOME')
 import emxmisc.arealonlatcell as A
 import emxmisc.world_box_regions as box
 
-
 #------------------ arguments  ----------------------------------------------
 
 parser=argparse.ArgumentParser()
@@ -24,6 +23,7 @@ parser.add_argument('-i','--ifile',help='Input model day.nc file',required=True)
 parser.add_argument('-u','--units',help='units, ngNm2s or kgNha', required=True)
 parser.add_argument('-v','--var',help='variable',required=True)
 args=parser.parse_args()
+dbg=False
 
 print('ARGS', args)
 emepFile=args.ifile
@@ -44,6 +44,10 @@ if args.units == 'ngNm2s': # e.g  emissions soil N are in ngN/m2/s
 elif args.units == 'kgNha':  # Annual
   # e * 1.0e2  (km2->ha)  * 1.0e9 -> Tg
   unitfac=1.0e2 * 1.0e-9
+
+#elif args.units == 'tonne':  # Annual
+#  # e * 1.0e2  (km2->ha)  * 1.0e9 -> Tg
+#  unitfac=1.0e2 * 1.0e-9
 
 else:
   sys.exit('Units not coded yet: '+ args.units)
@@ -90,7 +94,7 @@ for j, ylat in enumerate(lats):
       for key in regions.keys():
          y0, y1, x0, x1 = regions[key][:]
          if j == jdbg and i == idbg:
-           print('DBG ', key, y0, y1, x0, x1,  ylat, xlon)
+           if dbg: print('DBG ', key, y0, y1, x0, x1,  ylat, xlon)
   
          if ( y0 <= ylat <= y1 ) and ( x0 <= xlon <= x1 ):
             regmask[n,j,i] = 1.0
@@ -100,9 +104,12 @@ for j, ylat in enumerate(lats):
          n += 1
   
 iVar=0  
-if season == 'fullrun':
+xvals=ecdf.variables[var]
+#if season == 'fullrun':
+if xvals.ndim ==  3:
       vals=ecdf.variables[var][0,:,:]   # 1980-2010, 372 monthly, kg/m2/s
-elif season == 'annual':
+#elif season == 'annual':
+elif xvals.ndim==2:
       vals=ecdf.variables[var][:,:]   # 1980-2010, 372 monthly, kg/m2/s
 else:
       vals = np.mean(tvals[3:9,:,:],axis=0) # summer
