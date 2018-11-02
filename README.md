@@ -82,6 +82,7 @@ Misc code                     | Comment
 auto_dicts  | Allows multi-dimensional dicts to be created (autovivified) on the fly
 emepmonthlycomp.py | Compares 2 or more annual or monthly files, for key patterns and given domain. Produces line plots for monthly files, and bar plots for annual. Still in development, but useful.
 emepsitecomp.py | Compares 2 or more annual or monthly files, for key patterns and given coords (or full domain). Still in development (hacked from emepmonthlycomp), but useful.
+sum_regional_emissions.py | sums values from input netcdf over regions and globally. Used for emissions so far
 scanVerification.py | scans multiple Verification(scatterstations) results files and produces summary for annual statistics.
 LICENSE.txt         |             GPL
 README.md | This file.
