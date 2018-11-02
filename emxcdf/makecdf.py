@@ -18,7 +18,7 @@ def xcreate_cdf(variables,ofile,typ,lons,lats,lonlatfmt='full',txt='',dbg=False)
     or short - set with lonlatfmt. (Not sure why this was needed!)
     Update: if full, don't see lon, lat with ncdump -c ! 
   """
-  print('OFILE ',ofile)
+  if dbg: print('OFILE ',ofile)
   cdf=nc.Dataset(ofile,'w',format='NETCDF4_CLASSIC')
   cdf.Conventions = 'CF-1.6'
   cdf.projection = 'lon lat'
@@ -69,7 +69,7 @@ def xcreate_cdf(variables,ofile,typ,lons,lats,lonlatfmt='full',txt='',dbg=False)
        if dbg: print('ATTR', key, variables[var][key])
        datvar.setncattr(key,variables[var][key])
 
-  print( 'NX NY VAR ', nx, ny, np.max(cdf.variables[lonv][:]),
+  if dbg: print( 'NX NY VAR ', nx, ny, np.max(cdf.variables[lonv][:]),
      np.max(cdf.variables[latv][:]))
 
   cdf.close()
@@ -84,7 +84,7 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,lonlatfmt='short',txt=''
     Update: if full, don't see lon, lat with ncdump -c ! 
    ADDING TIME
   """
-  print('OFILE ',ofile)
+  if dbg: print('OFILE ',ofile)
   cdf=nc.Dataset(ofile,'w',format='NETCDF4_CLASSIC')
   cdf.Conventions = 'CF-1.6'
   cdf.projection = 'lon lat'
@@ -97,11 +97,11 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,lonlatfmt='short',txt=''
   lon= cdf.createDimension('lon',nx)
   lat= cdf.createDimension('lat',ny)
 
-  print ('TEST TIMING ')
+  #print ('TEST TIMING ')
   timdim=False
   if times is not None:
     tim= cdf.createDimension('time',len(times))
-    print ('DO TIMING ', times)
+    #print ('DO TIMING ', times)
     timdim=True
 #  sys.exit()
 
@@ -135,9 +135,9 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,lonlatfmt='short',txt=''
 
    if dbg: print('VAR:', var) #, variables[var])
    if timdim:
-     print('Shape times= ', np.shape( times)  )
+     #print('Shape times= ', np.shape( times)  )
      datvar = cdf.createVariable(var,typ ,('time','lat', 'lon',),zlib=True)
-     print('Shape data = ', np.shape( variables[var]['data'][:,:,:] ) )
+     #print('Shape data = ', np.shape( variables[var]['data'][:,:,:] ) )
      datvar[:,:,:] = variables[var]['data'][:,:,:] # fill data
    else:
      datvar = cdf.createVariable(var,typ ,('lat', 'lon',),zlib=True)
@@ -151,7 +151,7 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,lonlatfmt='short',txt=''
        if dbg: print('ATTR', key, variables[var][key])
        datvar.setncattr(key,variables[var][key])
 
-  print( 'NX NY VAR ', nx, ny, np.max(cdf.variables[lonv][:]),
+  if dbg: print( 'NX NY VAR ', nx, ny, np.max(cdf.variables[lonv][:]),
      np.max(cdf.variables[latv][:]))
 
   cdf.close()
@@ -165,7 +165,7 @@ def createCDF(variables,ofile,typ,lons,lats,data,lonlatfmt='full',txt='',dbg=Fal
     Variables lon,lat can be output in full format "float longitude(lon)"
     or short - set with lonlatfmt. (Not sure why this was needed!)
   """
-  print('OFILE ',ofile)
+  if dbg: print('OFILE ',ofile)
   cdf=nc.Dataset(ofile,'w',format='NETCDF4_CLASSIC')
   cdf.Conventions = 'CF-1.6'
   cdf.projection = 'lon lat'
@@ -222,7 +222,7 @@ def createCDF(variables,ofile,typ,lons,lats,data,lonlatfmt='full',txt='',dbg=Fal
        if key == 'name' : continue # alrady done
        datvar.setncattr(key,var[key])
 
-  print( 'NX NY VAR ', nx, ny, np.max(cdf.variables[lonv][:]),
+  if dbg: print( 'NX NY VAR ', nx, ny, np.max(cdf.variables[lonv][:]),
      np.max(cdf.variables[latv][:]))
 
   cdf.close()
