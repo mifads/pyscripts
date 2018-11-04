@@ -4,10 +4,13 @@
   create_cdf - new and neater
   createCDF  - deprecated
 """
+#N18 from datetime import datetime
+#N18 import dateutil.parser
 import netCDF4 as nc
 import numpy as np
 import time             # Just for creation date
 import sys
+import emxcdf.cdftimes as cdft
 
 # Older code, without time possibilty. Kept just while testing
 def xcreate_cdf(variables,ofile,typ,lons,lats,lonlatfmt='full',txt='',dbg=False):
@@ -75,7 +78,8 @@ def xcreate_cdf(variables,ofile,typ,lons,lats,lonlatfmt='full',txt='',dbg=False)
   cdf.close()
 ####################
 
-def create_cdf(variables,ofile,typ,lons,lats,times=None,lonlatfmt='short',txt='',dbg=False):
+def create_cdf(variables,ofile,typ,lons,lats,times=None,nctimes=None,
+                 lonlatfmt='short',txt='',dbg=False):
   """
     Creates a netcdf file for a simple 2 or 3-D data sets and lonlat projection
     together with a variables dictionary containing names, units, etc.
@@ -83,6 +87,7 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,lonlatfmt='short',txt=''
     or short - set with lonlatfmt. (Not sure why this was needed!)
     Update: if full, don't see lon, lat with ncdump -c ! 
    ADDING TIME
+   Nov 2018. Adding optional nctime, whic is from 1900-01-01
   """
   if dbg: print('OFILE ',ofile)
   cdf=nc.Dataset(ofile,'w',format='NETCDF4_CLASSIC')
@@ -104,6 +109,14 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,lonlatfmt='short',txt=''
     #print ('DO TIMING ', times)
     timdim=True
 #  sys.exit()
+  if nctimes is not None:
+    tim= cdf.createDimension('time',len(nctimes))
+    timvar = cdf.createVariable('time','f4' ,('time',))
+    timvar.long_name = 'time at middle of period'
+    timvar.units = 'days since 1900-1-1 0:0:0'
+    timdim=True
+    timvar[:] = nctimes[:]
+#    sys.exit()
 
 # typ can be e.g. u2, u8, f4
 # where u2 = 16 bit unsigned int, i2 = 16 bit signed int, 
@@ -281,5 +294,10 @@ if __name__ == '__main__':
   # testing with time variable
   variables= odict()
   variables['VarT']= dict(units='ppb',long_name='test_variable with time',data=data3[:,:,:])
-  create_cdf(variables,'tmp_create_cdfTIMES.nc','f4',lons,lats,times=[4.,5.,6.],dbg=True)
+  create_cdf(variables,'tmp_create_simpleTIMES.nc','f4',lons,lats,times=[4.,5.,6.],dbg=True)
+  nctimes = []
+  for mm in range(4,7):
+    nctimes.append( cdft.days_since_1900(2012,mm,15,dbg=True))
+
+  create_cdf(variables,'tmp_create_cdfTIMES.nc','f4',lons,lats,nctimes=nctimes,dbg=True)
   
