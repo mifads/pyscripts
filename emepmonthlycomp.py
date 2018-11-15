@@ -7,7 +7,7 @@ produced for variables matching a pattern, e.g. SURF_ppb_NO2 or SURF_ppb -
 the latter will produce plots for all variables containing SURF_ppb.
 
 If labels are given (-L option) these are used in the legend, otherwise
-mkCdfComp will attempt to 'guess' these by looking for the pattern. We
+emepmonthlycomp will attempt to 'guess' these by looking for the pattern. We
 would get rv4_15a from e.g.:
 
 \n
@@ -22,7 +22,7 @@ so is not guaranteed to work for all cases ;-)
 A typical pattern (for EECCA grids) to look at NO, NO2  and NO3 over
 north-western Europe might be:
 
-mkCdfComp.py -y 2010 -d "40 70 20 50" -i TRENDS/rv4_15a.2010/Base/Base_month.nc TRENDS/rv4_15anosoil.2010/Base/Base_month.nc -p -v SURF_ppb_NO
+emepmonthlycomp.py -y 2010 -d "40 70 20 50" -i TRENDS/rv4_15a.2010/Base/Base_month.nc TRENDS/rv4_15anosoil.2010/Base/Base_month.nc -p -v SURF_ppb_NO
 
 (Use -p to get plots to screen; png files are produced anyway.)
 """
@@ -152,12 +152,12 @@ for var in args.varkeys:
              tmpvals[nf] =  monthly[0]
              #plt.bar(tmpx,tmpvals,label=labels[nf],color='C0')
              plt.bar(tmpx,tmpvals,label=labels[nf],color=colours[nf])
-             xmin=0.0   # Start in Jan.
-             xmax=nfiles+2  #
+             left=0.0   # Start in Jan.
+             right=nfiles+2  #
            else:
              plt.plot(months,monthly,label=labels[nf])
-             xmin=1.0   # Start in Jan.
-             xmax=12.0  #  QUERY??
+             left=1.0   # Start in Jan.
+             right=12.0  #  QUERY??
            nf += 1
            if nf ==1: tab.write('%-30s' % key)
            tab.write('%18.3f' % np.mean(monthly) )
@@ -172,12 +172,12 @@ for var in args.varkeys:
        else: # KEY is special
          title= args.title.replace('KEY',key)
          plt.title(title)
-       plt.ylim(ymin=0.0)
+       plt.ylim(bottom=0.0)
        # We add a bit of vertical space for better legend placement
        y=plt.yticks()[0]
-       plt.ylim(ymax=y[-1]+2*(y[-1]-y[-2]))
-       plt.xlim(xmin=xmin) 
-       plt.xlim(xmax=xmax) 
+       plt.ylim(top=y[-1]+2*(y[-1]-y[-2]))
+       plt.xlim(left=left) 
+       plt.xlim(right=right) 
        if( len(monthly) ==1 ): # Just have one value, e.g. annual
          plt.xticks(visible=False)
        plt.legend(loc='upper left',bbox_to_anchor=(0.05,1.0))
