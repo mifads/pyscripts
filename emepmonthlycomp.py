@@ -127,6 +127,7 @@ for var in args.varkeys:
        print('Processing ', var, key )
 
        nfiles = len(ifiles)
+       data_found=False
        for nf, ifile in enumerate(ifiles): 
 
            ecdf=cdf.Dataset(ifile,'r',format='NETCDF4')
@@ -139,8 +140,10 @@ for var in args.varkeys:
              if dbg: print('KEY VALUES? ', ifile, key, np.max(tmpv) )
              vals=ecdf.variables[key][:,j0:j1+1,i0:i1+1]
              if np.max(vals) < 1.0e-3:
-                print('ZERO VALUES? ', ifile, key )
-                continue
+               print('ZERO VALUES? ', ifile, key, nf )
+               continue
+             else:
+               data_found=True # something to plot
              print('TMPV var ', key, tmpv.shape, i0, i1, j0, j1, np.max(vals) )
              monthly = np.mean(vals,axis=(1,2))
              if dbg: print('TMPV monthly ', monthly, len(monthly))
@@ -158,12 +161,12 @@ for var in args.varkeys:
              plt.plot(months,monthly,label=labels[nf])
              left=1.0   # Start in Jan.
              right=12.0  #  QUERY??
-           nf += 1
+
            if nf ==1: tab.write('%-30s' % key)
            tab.write('%18.3f' % np.mean(monthly) )
            if dbg: print('M:', monthly)
 
-       if nf == 0:
+       if not data_found:
          print('NO VALUES FOUND', ifile )
          continue
            
