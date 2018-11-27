@@ -55,6 +55,7 @@ stringfunctions.py | *stringClean* - Function to get rid of funny chars in names
 "                  | *blankRemove* - obvious ...
 "                  | *multiwrite*  - combines elements from an array with given format string
 string2num.py      | not used? Returns string of formatted number
+unitsconc.py       | converts ppb to ug/m3 and vice-versa
 
 
 emxozone code                  | Comment
