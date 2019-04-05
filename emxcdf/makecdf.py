@@ -106,7 +106,7 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,nctimes=None,
   timdim=False
   if times is not None:
     tim= cdf.createDimension('time',len(times))
-    #print ('DO TIMING ', times)
+    print ('DO TIMING ', times)
     timdim=True
 #  sys.exit()
   if nctimes is not None:
@@ -116,6 +116,7 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,nctimes=None,
     timvar.units = 'days since 1900-1-1 0:0:0'
     timdim=True
     timvar[:] = nctimes[:]
+    print ('NC TIMING ', len(nctimes) )
 #    sys.exit()
 
 # typ can be e.g. u2, u8, f4
@@ -146,11 +147,14 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,nctimes=None,
 
   for var in variables.keys():
 
-   if dbg: print('VAR:', var) #, variables[var])
+   if dbg: print('VAR:', var, 'timdim:', timdim) #, variables[var])
+   print('TMPVAR:', var, 'timdim:', timdim) #, variables[var])
    if timdim:
      #print('Shape times= ', np.shape( times)  )
      datvar = cdf.createVariable(var,typ ,('time','lat', 'lon',),zlib=True)
-     #print('Shape data = ', np.shape( variables[var]['data'][:,:,:] ) )
+     print('Shape data = ', np.shape( variables[var]['data'][:,:,:] ) )
+     x=variables[var]['data']
+     print('SHAPEx', x.shape)
      datvar[:,:,:] = variables[var]['data'][:,:,:] # fill data
    else:
      datvar = cdf.createVariable(var,typ ,('lat', 'lon',),zlib=True)
@@ -218,6 +222,7 @@ def createCDF(variables,ofile,typ,lons,lats,data,lonlatfmt='full',txt='',dbg=Fal
   # We need a list of dictionaries. If variables is just a single
   # dict, we make it into a list
 
+  print('TMPAPR5 ', variables)
   if isinstance(variables, dict):
 
     variables = [ variables, ]
