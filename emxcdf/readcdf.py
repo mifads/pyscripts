@@ -145,13 +145,13 @@ def readcdf( ifile, var, getVals=True, tStep=None,
     lldim=2 # HARD CODE CDO x y
  # Test Sep 2018
   if 'time' in  ecdf.variables.keys():
-    print('DBG TIME ', ecdf.variables.keys())
+    if dbg: print('DBG TIME ', ecdf.variables.keys())
     t=ecdf.variables['time']
     times=ecdf.variables['time'][:]
     ntime=len(times)  #  TESTING . was =1 
     tvar = True
   elif 'time' in ecdf.dimensions:
-    print('TIME', ecdf.dimensions)
+    if dbg: print('TIME', ecdf.dimensions)
     ntime=len(ecdf.dimensions['time'])
     times    =range(ntime)
     tvar = False
@@ -571,7 +571,7 @@ def get_vals(xPtin,yPtin,EmepCdf,minmax=False,dbg=False):
      print(dtxt+"x,y -> ijcoords ", xPtin, yPtin, iL, iR, jS, jN )
      print(dtxt+"x, y, dx dy    ", x, y, dx, dy)
      print(dtxt+"x, y, dx dy    ", x, y, dx, dy)
-     print(dtxt, jS, iL, EmepCdf.vals[1,jS,iL], EmepCdf.vals.min(), EmepCdf.vals.max())
+     print(dtxt, jS, iL, EmepCdf.vals[0,jS,iL], EmepCdf.vals.min(), EmepCdf.vals.max())
      print(dtxt,x,y, dx, dy, iL,iR, jS, jN , EmepCdf.varname, EmepCdf.vals.max())
      #print('Fs ', f00, f10, f01, f11)
      #print('F00', f00, (1-dx)*(1-dy))
