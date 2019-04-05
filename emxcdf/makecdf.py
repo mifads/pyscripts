@@ -152,10 +152,12 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,nctimes=None,
    if timdim:
      #print('Shape times= ', np.shape( times)  )
      datvar = cdf.createVariable(var,typ ,('time','lat', 'lon',),zlib=True)
-     print('Shape data = ', np.shape( variables[var]['data'][:,:,:] ) )
      x=variables[var]['data']
      print('SHAPEx', x.shape)
-     datvar[:,:,:] = variables[var]['data'][:,:,:] # fill data
+     if ( len(x.shape) == 3 ):
+        datvar[:,:,:] = variables[var]['data'][:,:,:] # fill data
+     else:
+        datvar[0,:,:] = variables[var]['data'][:,:] # fill data
    else:
      datvar = cdf.createVariable(var,typ ,('lat', 'lon',),zlib=True)
      datvar[:,:] = variables[var]['data'][:,:] # fill data
@@ -295,6 +297,8 @@ if __name__ == '__main__':
              txt='Demo of 3 variables',dbg=False)
   # newer code with optional times
   create_cdf(variables,'tmp_create_cdfNOTIM.nc','f4',lons,lats,dbg=True)
+  nctimes= [ cdft.days_since_1900(1887,12,15,dbg=True) ]
+  create_cdf(variables,'tmp_create_cdf1NCTIM.nc','f4',lons,lats,nctimes=nctimes,dbg=True)
 
   # testing with time variable
   variables= odict()
