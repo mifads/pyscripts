@@ -48,10 +48,12 @@ Precipitation mm
 '''.strip().split('\n')
 
 npolls='Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';')
+fmt='%-40.36s %4s' + '%8s'*5
+line = '-' * (40+5+8*5)
 
 for p in polls:  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';'):
-  print("%-32s %4s %10s %10s %10s %10s %10s" % ( p, 'Ns', 'bias', 'r-Y', 'r-YD', 'ioa-Y', 'ioa-YD' ) )
-  print( '-'*92 )
+  print(fmt % ( p, 'Ns', 'bias', 'r-Y', 'r-YD', 'ioa-Y', 'ioa-YD' ) )
+  print( line )
 
   for run in runs:
     #QQ  if ( 'BM_' in tst0 ): tst = '%s-EmChem09soa' % tst0
@@ -62,6 +64,7 @@ for p in polls:  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';'):
       r=re.search('Res_(\w+)', run ) # Stops at '-' in e.g h500-outluers_condays
       tst=r.groups()[0]
       #print( "XRUN :", run, tst)
+    tst=run.replace('Res_','').replace('-outliers_comday','')  # A2019 FIX!!
 
     #print("TST ", tst, ":", run)
     Ns = '-' 
@@ -94,9 +97,9 @@ for p in polls:  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';'):
     except:
        pass
 
-    print("%-32s %4s %10s %10s %10s %10s %10s" % ( tst, Ns,  bias, r2, dr2, ioa, dioa ) )
+    print(fmt % ( tst, Ns,  bias, r2, dr2, ioa, dioa ) )
 
-  print( '-'*92 )
+  print( line )
 
 #    la, lo, he = map(float, l.split("\n")[2].split(","))
 #    print la, lo, he
