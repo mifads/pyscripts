@@ -49,7 +49,7 @@ parser.add_argument('-L','--labels',help='labels, e.g. -L"rv4.15 rv4.15a rv4.15b
 parser.add_argument('-t','--title',help='title',required=False)
 parser.add_argument('-T','--tab',help='title',action='store_true')
 parser.add_argument('-V','--verbose',help='extra info',action='store_true')
-parser.add_argument('-y','--year',help='year',required=True)
+parser.add_argument('-y','--year',help='year',required=False)
 args=parser.parse_args()
 dtxt='CdfComp'
 dbg=False
@@ -81,7 +81,8 @@ for n, ifile in enumerate(args.ifiles):
    tmpc= f.split('/')
    if dbg: print(f, '=>fTERMS ', n, tmpc)
    if len(tmpc)>2:
-      case[f]= tmpc[-3].replace('.%s'%args.year,'')  # rv4.2012 from rv4.2012/Base/Base_month.nc
+      if args.year is not None:
+        case[f]= tmpc[-3].replace('.%s'%args.year,'')  # rv4.2012 from rv4.2012/Base/Base_month.nc
    else:
      case[f]= tmpc[0]  #  CAMS_IPOA fro CAMS_IPOA/CAMS_IPOA_month.nc
      if dbg: print('CASE', case[f])
@@ -89,6 +90,7 @@ for n, ifile in enumerate(args.ifiles):
    cases.append(case[f])
    ifiles.append(f)  # with full path name to .nc
    if dbg: print(dtxt+'CASE', n, case[f] )
+   #sys.exit()
 
 labels = cases.copy() # default
 
