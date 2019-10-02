@@ -6,6 +6,7 @@ from  matplotlib.gridspec import GridSpec #see http://worksofscience.net/matplot
 #import matplotlib.ticker as mticker
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+import sys
     # Put a background image on for nice sea rendering.
     #ax.stock_img()
 
@@ -92,6 +93,7 @@ elif ( 'lon' in ecdf.dimensions ) :
   dimx, dimy =( 'lon', 'lat')
   print(('DIMS2 are ', dimx, dimy))
 else:
+  dimx, dimy = ('-', '-')
   print("ERROR")
 
 print(('DIMENSIONS are ', ecdf.dimensions))
@@ -99,10 +101,15 @@ print(('DIMS are ', dimx, dimy))
 try:
   tst=ecdf.variables[dimx]
 except:
-  tst=ecdf.variables['longitude']
-  dimx, dimy =( 'longitude', 'latitude')
-  print(('DIMS3 are ', dimx, dimy))
+  print('DIMS testing variables')
+  try:
+    tst=ecdf.variables['lon']
+    dimx, dimy =( 'lon', 'lat')
+  except:
+    tst=ecdf.variables['longitude']
+    dimx, dimy =( 'longitude', 'latitude')
 ndim=len(tst.shape)
+print(('DIMS3 are ', dimx, dimy, ndim))
 
 var=opts.var    # 'SURF_MAXO3'
 print('VAR ', var)
