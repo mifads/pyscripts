@@ -102,7 +102,7 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,nctimes=None,
   lon= cdf.createDimension('lon',nx)
   lat= cdf.createDimension('lat',ny)
 
-  #print ('TEST TIMING ')
+  #print ('TEST TIMING ', times)
   timdim=False
   if times is not None:
     tim= cdf.createDimension('time',len(times))
@@ -159,7 +159,10 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,nctimes=None,
      else:
         datvar[0,:,:] = variables[var]['data'][:,:] # fill data
    else:
+     #print('dbgVAR0 ', var, typ)
      datvar = cdf.createVariable(var,typ ,('lat', 'lon',),zlib=True)
+     #dbgvar = variables[var]['data']
+     #print('dbgVAR ', var, dbgvar.shape, datvar.shape)
      datvar[:,:] = variables[var]['data'][:,:] # fill data
 
    for key in variables[var].keys():
