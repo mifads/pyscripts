@@ -10,6 +10,8 @@ netcdf outputs, but will also accept other formats sometimes
 -  Mapping uses cartopy (which is not always in Ububtu repos, but
    available from github, or via conda, etc.)
 
+2019-01-12 - added to readthedocs for testing
+
 Some comments
 =============
 
