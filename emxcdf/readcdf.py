@@ -96,7 +96,7 @@ class EmepFileClass(object):
 #-----------------------------------------------------
 
 def readcdf( ifile, var, getVals=True, tStep=None, 
-        getijPts = [], getijPt=[ False, 0, 0 ], dbg=False ):
+        getijPts = [], getijPt=[ False, 0, 0 ], dbg=False, maxdays=0 ):
   """
     Reads emep-produced (or other?) netcdf files and returns values of 
     variable 'var' as EmepCdf.vals array, along with projection, ycoords, xcoords
@@ -108,6 +108,7 @@ def readcdf( ifile, var, getVals=True, tStep=None,
 
     This routine can return one time-slice of gridded data, or 
     time-series for one point --- OR FULL ...
+    maxdays is A CRUDE FIX FOR MG AMAP files. Set to 365/366
   """
 
   dtxt='readcdf: '
@@ -158,6 +159,12 @@ def readcdf( ifile, var, getVals=True, tStep=None,
   else:
     ntime=0
     tvar = False
+# AMAP FIX:
+  if maxdays>0:
+    tst = tst[:maxdays]
+    times  =times[:maxdays]
+    ntime=maxdays
+    if dbg: print('DBG AMAP TIME ', ntime)
 
   if dbg and ntime>0:
      print(" SIZE OF TIME ", len(times))
@@ -246,12 +253,20 @@ def readcdf( ifile, var, getVals=True, tStep=None,
     if tStep == None:
        print(dtxt+"getVals all time-steps " )
        EmepFile.vals=np.array( ecdf.variables[var] )  # 2 or 3d
+       if maxdays>0:
+         EmepFile.vals=np.array( ecdf.variables[var][0:maxdays,:,:] )  # 2 or 3d
+         print('AMAP FIX ', EmepFile.vals.shape)
+       else:
+         EmepFile.vals=np.array( ecdf.variables[var] )  # 2 or 3d
     else:
        tmpv= np.array( ecdf.variables[var][:,:,:] ) 
        maxtstep = tmpv.shape[0]  -1   # -1 for python index
        if maxtstep < tStep: 
           print ( dtxt+'TSTEP WARNING!! Requested ', tStep, ' but len=', maxtstep )
           tStep = maxtstep
+       if maxdays>0:
+         print('AMAP FIXB ')
+         sys.exit()
        #print ( dtxt+'SHAPE TMPV ', tStep, tmpv.shape, tmpv.shape[0]  )
        
        EmepFile.vals=np.array( ecdf.variables[var][tStep,:,:] ) 
