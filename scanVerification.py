@@ -49,6 +49,7 @@ Precipitation mm
 
 npolls='Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';')
 fmt='%-40.36s %4s' + '%8s'*5
+fmt='%-50.46s %4s' + '%8s'*5
 line = '-' * (40+5+8*5)
 
 for p in polls:  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';'):
