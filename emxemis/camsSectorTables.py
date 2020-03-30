@@ -37,7 +37,7 @@ def getCams2emep(table=cams3p1_table,dbg=False):
     if dbg: print( '\t'.join( [ b,  a, c ] ) )
   return cams2emepcode, cams2name
 
-mapping, names =  getCams2emep(cams3p1_table,dbg=True)
+#mapping, names =  getCams2emep(cams3p1_table,dbg=True)
 if __name__ == '__main__':
 
   mapping, names =  getCams2emep(cams3p1_table,dbg=True)
