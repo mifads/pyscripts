@@ -235,13 +235,18 @@ if opts.skipcbar is None:
 
 if opts.title:
   print("TITLE", opts.title)
+  print("EXTENT", opts.extent)
   #ax1.title(opts.title)
   #cf ax1 = fig1.add_subplot(gs[:,0:85],projection=proj,extent=img_bounds)
   #cf#img_extent= (-30.0, 55.0, 30.0, 65.0 )
   # in lat/long:
   #D7_5: ax1.text(12.5,70.0,opts.title,horizontalalignment='center')
   #TTT ax1.text(-14,74.0,opts.title,horizontalalignment='left',fontsize=18)
-  ax1.text(-14,85.0,opts.title,horizontalalignment='left',fontsize=18)
+  #Oct2019 ax1.text(-14,85.0,opts.title,horizontalalignment='left',fontsize=18)
+  xtitle= np.mean(img_bounds[0:2]) - 10
+  ytitle= img_bounds[3]+5
+  #ytitle= img_bounds[3]+12
+  ax1.text(xtitle,ytitle,opts.title,horizontalalignment='left',fontsize=18)
 
 #ERR? fig1.tight_layout(pad=0)
 
