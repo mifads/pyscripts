@@ -181,6 +181,10 @@ ebas_flags.py
 |                            | files and produces summary for annual   |
 |                            | statistics.                             |
 +----------------------------+-----------------------------------------+
+| pyRef.py                   | Reads bibtex file and allows search and |
+|                            | pdf viewing. Hard-coded for Dave's      |
+|                            | Refs.bib so far, since just started.    |
++----------------------------+-----------------------------------------+
 | LICENSE.txt                | GPL                                     |
 +----------------------------+-----------------------------------------+
 | README.md                  | This file.                              |
