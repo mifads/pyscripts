@@ -10,14 +10,15 @@ from bibtexparser.bparser import BibTexParser
 from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
 
+# Failed
+#import bibtexparser.bibtexexpression.BibtexExpression as be
+#be.set_string_name_parse_action(None)
+
 parser = BibTexParser()
 parser.ignore_nonstandard_types= False # ?
-parser.common_strings = False
+parser.common_strings = True
 parser.interpolate_strings = None
 
-search_terms = input('Give search terms:') # eg QQDEP, 2014
-search_terms = search_terms.split()
-print(search_terms)
 
 homedir='/home/davids/'
 texdir =  homedir + 'Documents/D_Articles/'
@@ -30,6 +31,12 @@ with open(testr,encoding='utf-8') as bfile:
 #with open(testr,encoding='latin-1') as bfile:
    bb=bibtexparser.load(bfile, parser)
 
+   a= bb.entries_dict['Yttri:Urban']
+
+   sys.exit()
+   search_terms = input('Give search terms:') # eg QQDEP, 2014
+   search_terms = search_terms.split()
+   print(search_terms)
    print(len(bb.entries_dict)) # 6297
    #print(bb.entries_dict ) -> prints lots! keys
 
