@@ -31,7 +31,7 @@ camsInfo = odict()
 #-29.950000000;60.025000000;ATL;2016;G;A;0.000000000;5.658706000;0.000000000;0.810892000;107.728119000;8.422509000;8.422509000;65.927017000
 #    idbg=316; jdbg=416 # DK
 
-polls = 'CO NH3 NMVOC NOX PM10 PM2_5 SO2'.split()  # TNO  style, skip CH4
+polls = 'CO NH3 NMVOC NOX PM10 PM2_5 PMc SO2'.split()  # TNO  style, skip CH4
 #polls = 'PM10 PM2_5'.split()  # TNO  style, skip CH4
 
 def nicefloat(x):
@@ -67,11 +67,20 @@ def readCams(ifile,wanted_poll=None,get_vals=False,dbgcc=None):
     print('Reading %s;\n *** can take a while!' % ifile )
     df = pd.read_csv(ifile,sep=';')
     
-    print('KEYS', wanted_poll, df.keys() )
-    if wanted_poll is 'PMc': 
-       print('PMc is wanted: special handling')
+    used_polls = polls
+    if wanted_poll == 'PMc' or wanted_poll == 'PM':
+      used_polls = 'PM2_5 PM10 PMc'.split()
+    elif wanted_poll is not None:
+      used_polls = [ wanted_poll, ]
+    if wanted_poll == 'PM': wanted_poll = None # no longer needed
+
+    if 'PMc' in used_polls and 'PMc' not in df.keys():
+       print('PM is wanted: special handling for PMc' )
+       df['PMc'] =  df['PM10'] - df['PM2_5']
     elif wanted_poll is not None: 
        assert wanted_poll in df.keys(), '!! POLL not found: ' + wanted_poll
+
+    print('KEYS', wanted_poll, df.keys() )
 
     # 1-d fields:
     lonList    = df.iloc[:,0].values
@@ -119,20 +128,15 @@ def readCams(ifile,wanted_poll=None,get_vals=False,dbgcc=None):
     check_ranges(lons,'Lon')    #  checking linearity of longitude:
     check_ranges(lats,'Lat')
     
+
     srcEmis =  dict()
+    srcEmis['polls']=used_polls.copy()
     srcEmis['lons']=lons.copy()
     srcEmis['lats']=lats.copy()
     srcEmis['dx']=dx
     srcEmis['dy']=dy
      
      
-    used_polls = polls
-    if wanted_poll is not None:
-      used_polls = [ wanted_poll, ]
-      if wanted_poll =='PMc': used_polls = 'PM2_5 PM10'.split()
-    srcEmis['polls']=used_polls.copy()
-    pmf = 'PM2_5'; pm10='PM10'; pmc = 'PMc'
-    srcEmis[pmc]  = dict()
 
     for poll in used_polls: #  'NOX',: 
 
@@ -178,26 +182,6 @@ def readCams(ifile,wanted_poll=None,get_vals=False,dbgcc=None):
 #          if ix == idbg and iy==jdbg: 
 #            print('DBG ', poll, lon, lat, src, x, srcEmis[src][iso3][iy,ix] )
 
-    #KILLED:
-
-    if wanted_poll is 'PMc':
-      pmf = 'PM2_5'; pm10='PM10'; pmc = 'PMc'
-      print('DEEP COPY START')
-      srcEmis[pmc] = copy.deepcopy(srcEmis[pm10]) # Fills dict, deepcopy needed
-      print('DEEP COPY DONE')
-      for iso3 in srcEmis[pm10]:
-        print('PMc ISOLOOP ', iso3 )
-        for src in srcEmis[pm10][iso3]:
-          if iso3 in srcEmis[pmf]: 
-            srcEmis[pmc][iso3][src]['sum'] =  \
-            srcEmis[pm10][iso3][src]['sum']  \
-              - srcEmis[pmf][iso3][src]['sum']  
-            #srcEmis[pmc][iso3][src]['sum'] =  '888.88'
-            #print('ISO3pmC :', iso3, src, srcEmis[pmc][iso3][src]['sum']  )
-            #print('ISO3pmX :', iso3, src, srcEmis[pm10][iso3][src]['sum']  )
-
-        print('PMcISOEND ', iso3, src, srcEmis[pmf][iso3][src]['sum'], 
-           srcEmis[pmc][iso3][src]['sum'],srcEmis[pm10][iso3][src]['sum'] )
 
     if dbgcc is not None:
        if wanted_poll is 'PMc': used_polls.append('PMc')
@@ -236,8 +220,10 @@ if __name__ == '__main__':
 
   print('IFILE', ifile)
 
-  #m=readCams(ifile,wanted_poll='PMc',get_vals=True,dbgcc='Total')  #PMc is special
-  m=readCams(ifile,wanted_poll='NOX',get_vals=True,dbgcc='Total')  #PMc is special
+  m=readCams(ifile,wanted_poll='PM',get_vals=False,dbgcc='Total')  #PMc is special
+  v=readCams(ifile,wanted_poll='PM',get_vals=True,dbgcc='Total')  #PMc is special
+
+  #m=readCams(ifile,wanted_poll='NOX',get_vals=True,dbgcc='Total')  #PMc is special
   #poll='NOX'; iso3='FRA'; src= 'F1:A'
   #m=readCams(ifile,dbgcc='Total')
   #print(np.mean( m[poll][iso3][src]['vals'][:,:] ))
