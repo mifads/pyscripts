@@ -7,6 +7,7 @@
 """
 from collections import OrderedDict as odict
 import copy
+import gc
 import os
 import pandas as pd
 import sys
@@ -32,7 +33,6 @@ camsInfo = odict()
 #    idbg=316; jdbg=416 # DK
 
 polls = 'CO NH3 NMVOC NOX PM10 PM2_5 PMc SO2'.split()  # TNO  style, skip CH4
-#polls = 'PM10 PM2_5'.split()  # TNO  style, skip CH4
 
 def nicefloat(x):
   """ converts eg 0.09999999999787 to 0.1 """
@@ -66,6 +66,7 @@ def readCams(ifile,wanted_poll=None,get_vals=False,dbgcc=None):
 
     print('Reading %s;\n *** can take a while!' % ifile )
     df = pd.read_csv(ifile,sep=';')
+    df.info(memory_usage='deep')
     
     used_polls = polls
     if wanted_poll == 'PMc' or wanted_poll == 'PM':
@@ -81,6 +82,9 @@ def readCams(ifile,wanted_poll=None,get_vals=False,dbgcc=None):
        assert wanted_poll in df.keys(), '!! POLL not found: ' + wanted_poll
 
     print('KEYS', wanted_poll, df.keys() )
+    #df.info(memory_usage='deep')
+    #df.to_sparse().info(memory_usage='deep')
+    #sys.exit()
 
     # 1-d fields:
     lonList    = df.iloc[:,0].values
@@ -96,11 +100,13 @@ def readCams(ifile,wanted_poll=None,get_vals=False,dbgcc=None):
     
     sectors = sorted( df[sec_key].unique() )
     types   = sorted( df[typ_key].unique() )
+    ccTot = 'Sum'
     srcs = []
     for sec, typ in zip( secList, typList ):
        srcs.append( src_name( sec_key, sec, typ) )
 
     srcs = np.unique(srcs)  #  np unique also sorts
+    srcs = np.append(srcs,ccTot) # at end
     print('Zipped list from sec_key, typ_key', srcs, len(srcs) )
 
    # Find lon/lat ranges and dimensions
@@ -135,8 +141,6 @@ def readCams(ifile,wanted_poll=None,get_vals=False,dbgcc=None):
     srcEmis['lats']=lats.copy()
     srcEmis['dx']=dx
     srcEmis['dy']=dy
-     
-     
 
     for poll in used_polls: #  'NOX',: 
 
@@ -144,6 +148,7 @@ def readCams(ifile,wanted_poll=None,get_vals=False,dbgcc=None):
        vals = df[poll].values
        print('Process vals ', poll )
 
+       # Initialise dict()
        srcEmis[poll]  = dict()
        for iso3 in iso3s:
          srcEmis[poll][iso3] = dict()
@@ -153,6 +158,7 @@ def readCams(ifile,wanted_poll=None,get_vals=False,dbgcc=None):
            #if get_vals is not None:
            if get_vals:
              srcEmis[poll][iso3][src]['vals'] =  np.zeros([nlats,nlons])
+     #      print('Init src ', src)
       
        for n in range(len(df)): # with open(ifile) as f:
     
@@ -164,15 +170,16 @@ def readCams(ifile,wanted_poll=None,get_vals=False,dbgcc=None):
    
           ix  = int( (lon-xmin)/dx )
           iy  = int( (lat-ymin)/dy )
-          assert ix < nlons , 'OOPSXX %6.3f %6.3f %6.3f %7.4f %6.3f %s %d %d'% ( lon, xmin, xmax, dx, (lon-xmin)/dx, iso3, ix, nlons  )
-          assert ix < nlons and  iy < nlats, 'OOPSXY %6.3f %6.3f %s %d %d %d %d'% ( lon, lat, iso3, ix, iy, nlons, nlats  )
+          assert ix < nlons and  iy < nlats, \
+            'OOPSXY %6.3f %6.3f %s %d %d %d %d'% ( 
+                    lon, lat, iso3, ix, iy, nlons, nlats  )
     
           src  = src_name(sec_key, sec, typ)  # e.g. H:P or A2:A or 07:A
 
           x =  vals[n]
 
           srcEmis[poll][iso3][src]['sum']    += x
-          srcEmis[poll]['Total'][src]['sum'] += x
+          srcEmis[poll][iso3][ccTot]['sum']  += x
           #print('GET VALS?', get_vals)
           #MAR2020 if get_vals is not None:
           if get_vals:
@@ -182,6 +189,10 @@ def readCams(ifile,wanted_poll=None,get_vals=False,dbgcc=None):
 #          if ix == idbg and iy==jdbg: 
 #            print('DBG ', poll, lon, lat, src, x, srcEmis[src][iso3][iy,ix] )
 
+    # Try to release memory
+    del df
+    gc.collect()
+    df = pd.DataFrame()
 
     if dbgcc is not None:
        if wanted_poll is 'PMc': used_polls.append('PMc')
@@ -210,7 +221,7 @@ if __name__ == '__main__':
   print('MAIN ', sys.argv)
   if 'ipython' in sys.argv[0]:
     ifile = 'TestCamsInfo.txt'
-    ifile = '/home/davids/Work/EU_Projects/CAMS/CAMS50/CAMS50_stallo/TNO_MACC_III_emissions_v1_1_2011.txt'
+    #ifile = '/home/davids/Work/EU_Projects/CAMS/CAMS50/CAMS50_stallo/TNO_MACC_III_emissions_v1_1_2011.txt'
   else:
     if len(sys.argv) < 2:   sys.exit('\nError! Usage:\n' + Usage)
     if sys.argv[1] == '-h': sys.exit('\nUsage: \n' + Usage)
@@ -220,10 +231,17 @@ if __name__ == '__main__':
 
   print('IFILE', ifile)
 
-  m=readCams(ifile,wanted_poll='PM',get_vals=False,dbgcc='Total')  #PMc is special
-  v=readCams(ifile,wanted_poll='PM',get_vals=True,dbgcc='Total')  #PMc is special
+  m=readCams(ifile,wanted_poll='PM',get_vals=False,dbgcc='NOR')  #PMc is special
+  gc.collect() # recover some memory?
+
+  print('EXAMPLE gnfr:', m['PMc']['NOR']['C:A']['sum'])
+
+  # here we get spatial values. Seems to work, but can be memory problems
+  #v=readCams(ifile,wanted_poll='PM',get_vals=True,dbgcc='Total')  #PMc is special
+  #v=readCams(ifile,get_vals=True,dbgcc='Total')  #PMc is special
 
   #m=readCams(ifile,wanted_poll='NOX',get_vals=True,dbgcc='Total')  #PMc is special
+    #df.info(memory_usage='deep')
   #poll='NOX'; iso3='FRA'; src= 'F1:A'
   #m=readCams(ifile,dbgcc='Total')
   #print(np.mean( m[poll][iso3][src]['vals'][:,:] ))
