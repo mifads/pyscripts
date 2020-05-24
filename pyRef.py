@@ -14,10 +14,10 @@ from bibtexparser.bibdatabase import BibDatabase
 #import bibtexparser.bibtexexpression.BibtexExpression as be
 #be.set_string_name_parse_action(None)
 
-parser = BibTexParser()
+parser = BibTexParser(interpolate_strings=False)
 parser.ignore_nonstandard_types= False # ?
 parser.common_strings = True
-parser.interpolate_strings = None
+#parser.interpolate_strings = False # None
 
 
 homedir='/home/davids/'
@@ -27,13 +27,21 @@ testr='Documents/TeX/testr.bib'
 testr='Documents/TeX/fixed.testr.bib'  # fixtext2
 testr=homedir+'Documents/TeX/Refs.bib'
 
+test_export = True
 with open(testr,encoding='utf-8') as bfile:
 #with open(testr,encoding='latin-1') as bfile:
    bb=bibtexparser.load(bfile, parser)
 
-   a= bb.entries_dict['Yttri:Urban']
+   if test_export: # Keeps acp now:
+     a= bb.entries_dict['Yttri:Urban']
+     db=BibDatabase()
+     db.entries = [a]
+     writer=BibTexWriter()
+     with open('testoutbib.bib','w') as bibfile:
+       bibfile.write(writer.write(db))
+     sys.exit()
 
-   sys.exit()
+   #sys.exit()
    search_terms = input('Give search terms:') # eg QQDEP, 2014
    search_terms = search_terms.split()
    print(search_terms)
