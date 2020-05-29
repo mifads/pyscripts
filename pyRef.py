@@ -101,6 +101,10 @@ with open(testr,encoding='utf-8') as bfile:
 
      pdfs = scan_for_pdfs(search_terms)
 
+     if len(pdfs) == 0:
+        print('Nothing found. Try again!')
+        continue # New search
+
      p = process_pdfs(pdfs)
      if p == 'N':
         continue # New search
