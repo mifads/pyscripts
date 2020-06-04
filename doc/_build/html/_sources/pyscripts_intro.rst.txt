@@ -65,6 +65,12 @@ The code is organised in ‘emx’ directories (emx = emep/esx)
 | macc2emep.py               | Converts TNO/MACC format files to EMEP  |
 |                            | emission netcdf files                   |
 +----------------------------+-----------------------------------------+
+|cams_emep_codes.py          | maps iso3,iso3, emep cc                 |
++----------------------------+-----------------------------------------+
+|cams2emep.py                | converts TNO ascii to netcdf            |
++----------------------------+-----------------------------------------+
+|camsInfo.py                 | reads cams file and stores sums in dict |
++----------------------------+-----------------------------------------+
 |normaliseEmisSplits.py      | normalises eg F1, F2 to F emissplits    |
 +----------------------------+-----------------------------------------+
 
