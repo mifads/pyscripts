@@ -12,9 +12,10 @@ import numpy as np
 
 emepcodes=collections.OrderedDict() # stores iso2, iso3 etc.
 iso2toIso3=collections.OrderedDict() # stores iso2, iso3 etc.
+emepcc2isos = dict()  # from '1' to 'ALB' or 'AL' or ..
 
 #tnonum =dict()
-CountryList="""##################################################
+country_list="""##################################################
 # This file sets EMEP codes, Iso3 and Iso2 (except where the EMEP
 # model uses 3-letter Iso2 - e.g. ATL!)
 #EMEP   ISO3   ISO2  Name
@@ -94,9 +95,10 @@ CountryList="""##################################################
 505   IRC    IRC   Irish_Sea
 506   KAR    KAR   Kara_Sea 
 507   PSG    PSG   Persian_Gulf
+999   EUR    EUR   European_sum_used_in_scripts
 """ #############################################################
 
-CountryListOld="""##################################################
+country_list_old="""##################################################
 # This file sets EMEP codes, Iso3 and Iso2 (except where the EMEP
 # model uses 3-letter Iso2 - e.g. ATL!)
 #EMEP   ISO3   ISO2  Name
@@ -180,14 +182,16 @@ CountryListOld="""##################################################
 601   GRL   GRL  Greenland
 """ #############################################################
 
-def getMaccEmepCodes():
+def get_emepcodes():
 
-   for ncc, line in list(enumerate(CountryList.splitlines())):
+   for ncc, line in list(enumerate(country_list.splitlines())):
       if line == '': continue    # header
       if line.startswith('#'): continue    # header
       cc, iso3, iso2, name = line.split()
-      emepcodes[iso3] = dict( cc = cc, iso2=iso2, iso3=iso3, name=name )
+      emepcodes[iso3] = dict( cc = int(cc), iso2=iso2, iso3=iso3, name=name )
+
       iso2toIso3[iso2] = iso3
+      emepcc2isos[cc] = dict( iso2=iso2, iso3=iso3, name=name )
 #      tnonum[iso3] = ncc   # eg GBR -> 27
    return emepcodes  # , iso2toIso3
 
@@ -197,4 +201,11 @@ def getIso3(iso2):
 
 if __name__ == '__main__':
 
-    c=getMaccEmepCodes()
+    c=get_emepcodes()
+    maxnum = 0
+    for iso3 in c.keys():
+       cnum = c[iso3]['cc']
+       if cnum>maxnum: maxnum = cnum
+       print( iso3, cnum, maxnum)
+#        print( land['cc'] )
+        #print( land['cc'] )
