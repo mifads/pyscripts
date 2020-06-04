@@ -65,6 +65,8 @@ The code is organised in ‘emx’ directories (emx = emep/esx)
 | macc2emep.py               | Converts TNO/MACC format files to EMEP  |
 |                            | emission netcdf files                   |
 +----------------------------+-----------------------------------------+
+|normaliseEmisSplits.py      | normalises eg F1, F2 to F emissplits    |
++----------------------------+-----------------------------------------+
 
 +----------------------------+-----------------------------------------+
 | emxmisc code               | Comment                                 |
