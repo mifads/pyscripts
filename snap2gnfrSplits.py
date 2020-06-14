@@ -22,6 +22,7 @@
   18      F3          7  F3_RoadTransportExhaustLPGgas
   19      F4          7  F4_RoadTransportNonExhaust
  """
+from collections import OrderedDict as odict
 import os
 import sys
 
@@ -41,6 +42,8 @@ snap2g = { 1:[1,14,15], 2:[3], 3:[2], 4:[999], 5:[4], 6:[5],
 
 #lines= open(ifile,'r').readlines()
 
+oldcc=-1
+newrow = odict()
 with open(ifile,'r') as f:
   start = True
   for row in f:
@@ -50,10 +53,20 @@ with open(ifile,'r') as f:
       if row.startswith('#DATA'): start=False
       continue
     fields= row.split(',')
+    cc=int(fields[0])
+    if cc != oldcc:
+      newrow[cc] = dict()
+      oldcc = cc
     snap=int(fields[1])
     if snap == 4: continue
     for gnfr in snap2g[snap]:
       fields[1] = str(gnfr)
-      newrow = ','.join(fields)
-      print(newrow.strip())
-      out.write(newrow)
+      newrow[cc][gnfr] = ','.join(fields)
+
+# The emep model expects consecutive order for the defaults file
+for cc in newrow.keys():
+  keys=list(newrow[cc].keys()) # to get in numerical order
+  keys.sort()
+  for k in keys:
+    print(newrow[cc][k].strip())
+    out.write(newrow[cc][k])
