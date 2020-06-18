@@ -1,10 +1,8 @@
-#!/usr/bin/env python
-# ONLY WORKS WITH PYTHON2 - something failed with python3 json with urlopen 
+#!/usr/bin/env python3
 
-from urllib2 import urlopen    # for getplace
-#DSfrom urllib3 import urlopen    # for getplace
-import json                    # for getplace
-import urllib, codecs          # for geonames
+from urllib.request import urlopen    # for getplace
+import json                           # for getplace
+import urllib.request, urllib.parse, urllib.error, codecs # for geonames
 
 def getplace(lon, lat):
     """
@@ -40,7 +38,7 @@ DS adapted from: from https://www.djangosnippets.org/snippets/1049/
 Example entry:
 
  {u'Area(in sq km)': u'33843',
-  u'Capital': u'Chi\u015fin\u0103u',
+  u'Capital': u'Chi\\u015fin\\u0103u',
   u'Continent': u'EU',
   u'Country': u'Moldova',
   u'CurrencyCode': u'MDL',
@@ -65,7 +63,7 @@ COUNTRY_INFO_URL = "http://download.geonames.org/export/dump/countryInfo.txt"
 
 def get_geonames_country_data():
     "Returns a list of dictionaries, each representing a country"
-    udata = urllib.urlopen(COUNTRY_INFO_URL).read().decode('utf8')
+    udata = urllib.request.urlopen(COUNTRY_INFO_URL).read().decode('utf8')
     # Strip the BOM
     if udata[0] == codecs.BOM_UTF8.decode('utf8'):
         udata = udata[1:]
@@ -78,7 +76,7 @@ def get_geonames_country_data():
     country_lines = [l for l in lines if not l.startswith('#')]
     countries = []
     for line in country_lines:
-        countries.append(dict(zip(headers, line.split('\t'))))
+        countries.append(dict(list(zip(headers, line.split('\t')))))
         lastDS = countries[-1]
         wanted = 'Country ISO ISO3 Continent tld'.split()
         #if 'Germany' in line:
@@ -121,7 +119,7 @@ if __name__ == '__main__':
   if len(sys.argv) > 1:
      if  sys.argv[1] == '--xy':
          try:
-           x, y = map(float, sys.argv[2].split())
+           x, y = list(map(float, sys.argv[2].split()))
            country = getplace(x, y)
            iso2, iso3, continent = getCountryInfo(country)
            print('step-by-step', x, y,  ' => ', iso2, iso3, country, continent )
@@ -149,5 +147,5 @@ if __name__ == '__main__':
     testers.append('New Zealand')
     for ccs in testers:
       iso2, iso3, continent = getCountryInfo(ccs)
-      print ccs, 'ISO2:', iso2, 'ISO3:', iso3, 'Cont:', continent
+      print(ccs, 'ISO2:', iso2, 'ISO3:', iso3, 'Cont:', continent)
   
