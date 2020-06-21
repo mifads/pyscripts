@@ -9,6 +9,7 @@ def plotdaily(jdays,obs,mod=[],modmin=[],modmax=[],
     xlabel='Days',ylabel='Conc',
     ymin=0,ymax=None,             #  lower and upper y curves
     yaxisMin=None, yaxisMax=None, # y-axis limits
+    nlegcol=1,                    # ncols in legend
     useMarkers=None,
     addStats=False,               # Adds bias, R to note
     dcLimit=75,                   # Data capture limit if addStats
@@ -57,7 +58,7 @@ def plotdaily(jdays,obs,mod=[],modmin=[],modmax=[],
   #if not modmin == None:
      plt.fill_between(jdays,modmin,modmax,color='b',alpha=0.1)
 
-  plt.legend()
+  plt.legend(ncol=nlegcol)
   plt.title('TITLE')
   plt.xlabel(xlabel, fontsize=16)
   plt.ylabel(ylabel, fontsize=16)
@@ -73,6 +74,7 @@ def plotdaily(jdays,obs,mod=[],modmin=[],modmax=[],
   if title:
     plt.title(title)
   if addStats:
+    if notetxt is None: notetxt = ''
     stats=emepstats.obsmodstats(obs,mod,dcLimit=dcLimit)
     ynote -= 0.05 # need more room. Works only for O3 so far
     print('STATS', stats)
