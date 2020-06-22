@@ -11,6 +11,7 @@ def obsmodstats (x,y,ymin=0.0,dcLimit=75,dbg=False):
 
   stats=odict()
   stats['dc'] = 0.0
+  stats['Nvalid']  = 0
   stats['meanx'] = np.nan
   stats['meany'] = np.nan
   stats['bias']  = np.nan
@@ -24,6 +25,7 @@ def obsmodstats (x,y,ymin=0.0,dcLimit=75,dbg=False):
       x[n] = np.nan
 
   f=np.isfinite(x)
+  stats['Nvalid'] = sum(f)
   stats['dc'] = int( 0.5 +  sum(f)/(0.01*len(x)) ) # Data capture in %
   if stats['dc'] < dcLimit:
     print('Data capture fail: ', stats['dc'], ' vs ', dcLimit)
