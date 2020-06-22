@@ -18,7 +18,7 @@ def read_nilu_sites():
    code=line[:3] + line[5:6]
    station = line[8:49]
    station=station.replace(' ','')
-   alt     = line[73:78]
+   alt     = line[72:78]
    if 'Non' in alt: alt = 0.0
    #print(code, station,alt)
   
