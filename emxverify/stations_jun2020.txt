@@ -1,0 +1,353 @@
+Code    StationName                              latitude   longitude   alt
+AM0001R Amberd                                   40°23'04"N 044°15'38"E 2080.0m
+AT0002R Illmitz                                  47°46'00"N 016°46'00"E  117.0m
+AT0003R Achenkirch                               47°33'00"N 011°43'00"E  960.0m
+AT0004R St. Koloman                              47°39'00"N 013°12'00"E  851.0m
+AT0005R Vorhegg                                  46°40'40"N 012°58'20"E 1020.0m
+AT0030R Pillersdorf bei Retz                     48°43'16"N 015°56'32"E  315.0m
+AT0032R Sulzberg                                 47°31'45"N 009°55'36"E 1020.0m
+AT0033R Stolzalpe bei Murau                      47°07'45"N 014°12'14"E 1302.0m
+AT0034G Sonnblick                                47°03'15"N 012°57'29"E 3106.0m
+AT0037R Zillertaler Alpen                        47°08'13"N 011°52'12"E 1970.0m
+AT0038R Gerlitzen                                46°41'37"N 013°54'54"E 1895.0m
+AT0040R Masenberg                                47°20'53"N 015°52'56"E 1170.0m
+AT0041R Haunsberg                                47°58'23"N 013°00'58"E  730.0m
+AT0042R Heidenreichstein                         48°52'43"N 015°02'48"E  570.0m
+AT0043R Forsthof                                 48°06'22"N 015°55'10"E  581.0m
+AT0044R Graz Platte                              47°06'47"N 015°28'14"E  651.0m
+AT0045R Dunkelsteinerwald                        48°22'16"N 015°32'48"E  320.0m
+AT0046R Gänserndorf                              48°20'05"N 016°43'50"E  161.0m
+AT0047R Stixneusiedl                             48°03'03"N 016°40'36"E  240.0m
+AT0048R Zoebelboden                              47°50'19"N 014°26'29"E  899.0m
+AT0049R Grebenzen bei St. Lamprecht              47°02'25"N 014°19'48"E 1648.0m
+AT0050R Graz Lustbuehel                          47°04'01"N 015°29'37"E  481.0m
+BA0006R Ivan Sedlo                               43°46'00"N 018°02'00"E  970.0m
+BE0001R Offagne                                  49°52'40"N 005°12'13"E  430.0m
+BE0005R University of Gent                       51°03'00"N 003°43'00"E    0.0m
+BE0011R Moerkerke                                51°01'00"N 002°35'00"E    0.0m
+BE0013R Houtem                                   51°15'00"N 003°21'00"E   10.0m
+BE0014R Koksijde                                 51°07'17"N 002°39'26"E    4.0m
+BE0032R Eupen                                    50°37'46"N 006°00'04"E  295.0m
+BE0035R Vezin                                    50°30'12"N 004°59'22"E  160.0m
+BG0001R BEO Moussala                             42°10'00"N 023°35'00"E 2971.0m
+BG0053R Rojen peak                               41°41'45"N 024°44'19"E 1750.0m
+BY0004R Vysokoe                                  52°20'00"N 023°26'00"E  163.0m
+CH0001G Jungfraujoch                             46°32'51"N 007°59'06"E 3578.0m
+CH0002R Payerne                                  46°48'47"N 006°56'41"E  489.0m
+CH0003R Tänikon                                  47°28'47"N 008°54'17"E  539.0m
+CH0004R Chaumont                                 47°02'59"N 006°58'46"E 1137.0m
+CH0005R Rigi                                     47°04'03"N 008°27'50"E 1031.0m
+CH0031R Sion                                     46°13'13"N 007°20'31"E  483.0m
+CV0001G Cape Verde Atmospheric Observatory       16°51'51"N 024°52'03"W   10.0m
+CY0002R Agia Marina Xyliatou / Cyprus Atmosph... 35°02'17"N 033°03'28"E  520.0m
+CZ0001R Svratouch                                49°44'00"N 016°03'00"E  737.0m
+CZ0003R Kosetice (NOAK)                          49°34'24"N 015°04'49"E  535.0m
+CZ0004B Prague-Suchdol                           50°07'35"N 014°23'05"E  270.0m
+CZ0005R Churanov                                 49°04'00"N 013°36'00"E 1118.0m
+CZ0099R Libus                                    50°09'00"N 015°04'00"E    None
+DE0001R Westerland                               54°55'32"N 008°18'35"E   12.0m
+DE0002R Waldhof                                  52°48'08"N 010°45'34"E   74.0m
+DE0003R Schauinsland                             47°54'53"N 007°54'31"E 1205.0m
+DE0004R Deuselbach                               49°45'53"N 007°03'07"E  480.0m
+DE0005R Brotjacklriegel                          48°49'10"N 013°13'09"E 1016.0m
+DE0006R Arkona                                   54°41'00"N 013°26'00"E   42.0m
+DE0007R Neuglobsow                               53°10'00"N 013°02'00"E   62.0m
+DE0008R Schmücke                                 50°39'00"N 010°46'00"E  937.0m
+DE0009R Zingst                                   54°26'12"N 012°43'30"E    1.0m
+DE0011R Hohenwestedt                             54°06'00"N 009°40'00"E   75.0m
+DE0012R Bassum                                   52°51'00"N 008°42'00"E   52.0m
+DE0013R Rodenberg                                52°19'00"N 009°22'00"E  148.0m
+DE0014R Meinerzhagen                             51°07'00"N 007°38'00"E  510.0m
+DE0015R Usingen                                  50°20'00"N 008°32'00"E  485.0m
+DE0016R Bad Kreuznach                            49°50'00"N 007°52'00"E  230.0m
+DE0017R Ansbach                                  49°15'00"N 010°35'00"E  481.0m
+DE0018R Rottenburg                               48°28'60"N 008°56'00"E  427.0m
+DE0019R Starnberg                                48°01'00"N 011°21'00"E  729.0m
+DE0020R Hof                                      50°19'00"N 011°53'00"E  568.0m
+DE0026R Ueckermünde                              53°45'00"N 014°04'00"E    1.0m
+DE0031R Wiesenburg                               52°07'00"N 012°28'00"E  107.0m
+DE0035R Lückendorf                               50°50'00"N 014°46'00"E  490.0m
+DE0038R Murnauer Moos                            47°39'05"N 011°12'12"E  622.0m
+DE0039R Aukrug                                   54°04'29"N 009°47'34"E   15.0m
+DE0042R Öhringen                                 49°14'36"N 009°26'50"E  283.0m
+DE0043G Hohenpeissenberg                         47°48'05"N 011°00'35"E  985.0m
+DE0044R Melpitz                                  51°31'49"N 012°56'02"E   86.0m
+DE0045R Schorfheide                              52°58'00"N 013°39'00"E   70.0m
+DE0046R Raisting                                 47°54'00"N 011°06'00"E  552.0m
+DE0047R Falkenberg                               52°10'00"N 014°07'00"E   73.0m
+DE0054R Zugspitze-Schneefernerhaus               47°24'59"N 010°58'47"E 2671.0m
+DE0056R Bösel                                    52°59'53"N 007°56'33"E   40.0m
+DE0060G Neumayer                                 70°39'58"S 008°15'58"W   42.0m
+DE0066K Leipzig-Eisenbahnstrasse                 51°20'45"N 012°24'23"E  120.0m
+DE0067K Leipzig-Mitte                            51°20'39"N 012°22'38"E  111.0m
+DE0068B Leipzig-West                             51°19'05"N 012°17'51"E  122.0m
+DK0001R Færøerne                                 62°01'48"N 007°04'00"W  210.0m
+DK0003R Tange                                    56°21'00"N 009°36'00"E   13.0m
+DK0005R Keldsnor                                 54°44'47"N 010°44'10"E   10.0m
+DK0007R Færøerne-Akraberg                        61°24'00"N 006°40'00"W   90.0m
+DK0008R Anholt                                   56°43'00"N 011°31'00"E   40.0m
+DK0009R Storebaelt                               55°20'32"N 011°02'08"E  250.0m
+DK0010G Villum Research Station, Station Nord    81°36'00"N 016°40'12"W   20.0m
+DK0011G Nuuk                                     64°10'48"N 051°39'00"W  320.0m
+DK0012R Risoe                                    55°41'37"N 012°05'09"E    3.0m
+DK0020R Pedersker                                55°01'01"N 014°56'45"E    5.0m
+DK0022R Sepstrup Sande                           56°04'59"N 009°25'15"E   60.0m
+DK0025G Summit                                   72°34'48"N 038°28'48"W 3238.0m
+DK0031R Ulborg                                   56°17'26"N 008°25'39"E   10.0m
+DK0032R Frederiksborg                            55°58'00"N 012°20'00"E   10.0m
+DK0041R Lille Valby                              55°41'13"N 012°07'34"E   10.0m
+DK0042R Norduri a Fossum                         62°11'00"N 007°12'00"W    None
+EE0002R Syrve                                    57°57'00"N 022°06'00"E    2.0m
+EE0009R Lahemaa                                  59°30'00"N 025°54'00"E   32.0m
+EE0011R Vilsandi                                 58°23'00"N 021°49'00"E    6.0m
+ES0001R San Pablo de los Montes                  39°32'52"N 004°20'55"W  917.0m
+ES0002R La Cartuja                               37°12'00"N 003°36'00"W  720.0m
+ES0003R Roquetas                                 40°49'14"N 000°29'29"E   44.0m
+ES0004R Logroño                                  42°27'28"N 002°30'11"W  445.0m
+ES0005R Noia                                     42°43'41"N 008°55'25"W  683.0m
+ES0006R Mahón                                    39°52'00"N 004°19'00"E   78.0m
+ES0007R Víznar                                   37°14'00"N 003°32'00"W 1265.0m
+ES0008R Niembro                                  43°26'32"N 004°51'01"W  134.0m
+ES0009R Campisabalos                             41°16'52"N 003°08'34"W 1360.0m
+ES0010R Cabo de Creus                            42°19'10"N 003°19'01"E   23.0m
+ES0011R Barcarrota                               38°28'33"N 006°55'22"W  393.0m
+ES0012R Zarra                                    39°05'10"N 001°06'07"W  885.0m
+ES0013R Penausende                               41°17'00"N 005°52'00"W  985.0m
+ES0014R Els Torms                                41°24'00"N 000°43'00"E  470.0m
+ES0015R Risco Llamo                              39°31'00"N 004°21'00"W 1241.0m
+ES0016R O Saviñao                                43°13'52"N 007°41'59"W  506.0m
+ES0017R Doñana                                   37°01'50"N 006°19'55"W    5.0m
+ES0022R Montsec                                  42°03'05"N 000°43'46"E 1571.0m
+ES0023R Can Llompart                             39°50'16"N 003°01'25"E   45.0m
+ES1778R Montseny                                 41°46'00"N 002°21'00"E  700.0m
+FI0004R Ähtäri                                   62°32'00"N 024°13'18"E  162.0m
+FI0006R Kökar                                    59°55'00"N 020°55'00"E   10.0m
+FI0007R Virolahti                                60°31'00"N 027°41'00"E    8.0m
+FI0008R Kevo                                     69°45'00"N 027°00'00"E   80.0m
+FI0009R Utö                                      59°46'45"N 021°22'38"E    7.0m
+FI0017R Virolahti II                             60°31'36"N 027°41'10"E    4.0m
+FI0018R Virolahti III                            60°31'48"N 027°40'03"E    4.0m
+FI0022R Oulanka                                  66°19'13"N 029°24'06"E  310.0m
+FI0036R Pallas (Matorova)                        68°00'00"N 024°14'14"E  340.0m
+FI0037R Ähtäri II                                62°35'00"N 024°11'00"E  180.0m
+FI0050R Hyytiälä                                 61°51'00"N 024°17'00"E  181.0m
+FI0053R Hailuoto II                              65°00'00"N 024°41'39"E    4.0m
+FI0090R Haapasaari                               60°17'00"N 027°12'00"E   15.0m
+FI0091R Hailuoto                                 65°00'00"N 024°41'00"E    4.0m
+FI0092R Hietajärvi                               63°10'00"N 030°43'00"E  173.0m
+FI0093R Kotinen                                  61°14'00"N 025°04'00"E  158.0m
+FI0094R Pesosjärvi                               66°18'00"N 029°30'00"E  257.0m
+FI0095R Vuoskojärvi                              69°44'00"N 026°57'00"E  147.0m
+FI0096G Pallas (Sammaltunturi)                   67°58'24"N 024°06'58"E  565.0m
+FR0001R Vert-le-Petit                            48°32'00"N 002°22'00"E   64.0m
+FR0003R La Crouzille                             46°08'00"N 001°23'00"E  497.0m
+FR0005R La Hague                                 49°37'00"N 001°50'00"W  133.0m
+FR0006R Valduc                                   47°35'00"N 004°52'00"E  470.0m
+FR0007R Lodeve                                   43°42'00"N 003°20'00"E  252.0m
+FR0008R Donon                                    48°30'00"N 007°08'00"E  775.0m
+FR0009R Revin                                    49°54'00"N 004°38'00"E  390.0m
+FR0010R Morvan                                   47°16'00"N 004°05'00"E  620.0m
+FR0011R Bonnevaux                                46°49'00"N 006°11'00"E  836.0m
+FR0012R Iraty                                    43°02'00"N 001°05'00"W 1300.0m
+FR0013R Peyrusse Vieille                         43°37'00"N 000°11'00"E  200.0m
+FR0014R Montandon                                47°18'00"N 006°50'00"E  836.0m
+FR0015R La Tardière                              46°39'00"N 000°45'00"W  133.0m
+FR0016R Le Casset                                45°00'00"N 006°28'00"E 1750.0m
+FR0017R Montfranc                                45°48'00"N 002°04'00"E  810.0m
+FR0018R La Coulonche                             48°38'00"N 000°27'00"W  309.0m
+FR0019R Pic du Midi                              42°56'12"N 000°08'31"E 2877.0m
+FR0020R SIRTA Atmospheric Research Observatory   48°42'31"N 002°09'32"E  162.0m
+FR0022R Observatoire Perenne de l'Environnement  48°33'44"N 005°30'20"E  392.0m
+FR0023R Saint-Nazaire-le-Désert                  44°34'10"N 005°16'44"E  605.0m
+FR0024R Guipry                                   47°49'55"N 001°50'11"W   29.4m
+FR0025R Verneuil                                 46°48'53"N 002°36'36"E  182.0m
+FR0030R Puy de Dôme                              45°46'20"N 002°57'54"E 1465.0m
+FR0031R Aubur                                    48°13'00"N 007°11'00"E 1135.0m
+FR0032R Brennilis                                48°21'00"N 003°52'00"W  220.0m
+FR0033R Ersa (Cape Corsica)                      42°58'10"N 009°22'49"E  533.0m
+FR0090R Porspoder                                48°31'00"N 004°45'00"W   50.0m
+GB0002R Eskdalemuir                              55°18'47"N 003°12'15"W  243.0m
+GB0003R Goonhilly                                50°03'00"N 005°11'00"W  108.0m
+GB0004R Stoke Ferry                              52°34'00"N 000°30'00"E   15.0m
+GB0005R Ludlow                                   52°22'00"N 002°38'00"W  190.0m
+GB0006R Lough Navar                              54°26'35"N 007°52'12"W  126.0m
+GB0007R Barcombe Mills                           50°52'00"N 000°01'59"W    8.0m
+GB0013R Yarner Wood                              50°35'47"N 003°42'47"W  119.0m
+GB0014R High Muffles                             54°20'04"N 000°48'27"W  267.0m
+GB0015R Strath Vaich Dam                         57°44'04"N 004°46'28"W  270.0m
+GB0016R Glen Dye                                 56°58'03"N 002°35'20"W   85.0m
+GB0017R Heigham Holmes                           52°43'00"N 001°37'00"E    None
+GB0031R Aston Hill                               52°30'14"N 003°01'59"W  370.0m
+GB0033R Bush                                     55°51'31"N 003°12'18"W  180.0m
+GB0035R Great Dun Fell                           54°41'00"N 002°27'00"W  847.0m
+GB0036R Harwell                                  51°34'23"N 001°19'00"W  137.0m
+GB0037R Ladybower Res.                           53°23'56"N 001°45'12"W  420.0m
+GB0038R Lullington Heath                         50°47'34"N 000°10'46"E  120.0m
+GB0039R Sibton                                   52°17'38"N 001°27'47"E   46.0m
+GB0041R Wharley Croft                            54°37'00"N 002°28'00"W   26.0m
+GB0043R Narberth                                 51°46'54"N 004°41'29"W  160.0m
+GB0044R Somerton                                 51°13'52"N 003°02'53"W   55.0m
+GB0045R Wicken Fen                               52°17'54"N 000°17'34"W    5.0m
+GB0046R CEH Edingburgh                           55°51'42"N 003°12'23"W  180.0m
+GB0048R Auchencorth Moss                         55°47'32"N 003°14'34"W  260.0m
+GB0049R Weybourne                                52°57'02"N 001°07'19"E   16.0m
+GB0050R St. Osyth                                51°46'41"N 001°04'56"E    8.0m
+GB0051R Market Harborough                        52°33'16"N 000°46'20"W  145.0m
+GB0052R Lerwick                                  60°08'21"N 001°11'07"W   85.0m
+GB0053R Charlton Mackrell                        51°03'23"N 002°41'00"W   54.0m
+GB0054R Glen Saugh                               56°54'26"N 002°33'33"W   85.0m
+GB0090R East Ruston                              52°48'00"N 001°28'00"E    5.0m
+GB0091R Banchory                                 57°04'36"N 002°32'04"W  120.0m
+GB0092R Chillerton                               50°42'00"N 001°18'00"W   35.0m
+GB0093R Staxton Wold                             54°11'00"N 000°26'00"W   35.0m
+GB0094R Lough Erne                               54°24'00"N 008°03'00"W   35.0m
+GB0095R Driby                                    53°14'00"N 000°04'00"E   47.0m
+GB0096R Chilton                                  51°34'00"N 001°19'00"W  109.0m
+GB1055R Chilbolton Observatory                   51°08'59"N 001°26'18"W   78.0m
+GE0001R Abastumani                               41°45'18"N 042°49'31"E 1650.0m
+GR0001R Aliartos                                 38°22'00"N 023°05'00"E  110.0m
+GR0002R Finokalia                                35°19'00"N 025°40'00"E  250.0m
+GR0003R Livadi                                   40°32'00"N 023°15'00"E  850.0m
+HR0002R Puntijarka                               45°54'00"N 015°58'00"E  988.0m
+HR0004R Zavizan                                  44°49'00"N 014°59'00"E 1594.0m
+HU0001R Kecskemét                                46°58'00"N 019°35'00"E  125.0m
+HU0002R K-puszta                                 46°58'00"N 019°35'00"E  125.0m
+HU0003R Farkasfa                                 46°54'36"N 016°19'12"E  312.0m
+IE0001R Valentia Observatory                     51°56'23"N 010°14'40"W   11.0m
+IE0002R Turlough Hill                            53°02'12"N 006°24'00"W  420.0m
+IE0003R The Burren                               53°00'00"N 009°06'00"W   90.0m
+IE0004R Ridge of Capard                          53°07'00"N 007°27'00"W  340.0m
+IE0005R Oak Park                                 52°52'07"N 006°55'29"W   59.0m
+IE0006R Malin Head                               55°22'30"N 007°20'34"W   20.0m
+IE0007R Glenveagh                                55°03'07"N 007°56'24"W   44.0m
+IE0008R Carnsore Point                           52°10'41"N 006°21'52"W    9.0m
+IE0009R Johnstown Castle                         52°17'56"N 006°30'39"W   62.0m
+IE0031R Mace Head                                53°19'33"N 009°53'58"W    5.0m
+IS0001R Rjupnahed                                64°05'00"N 021°51'00"W  120.0m
+IS0002R Irafoss                                  64°05'00"N 021°01'00"W   66.0m
+IS0090R Reykjavik                                64°08'00"N 021°54'00"W   52.0m
+IS0091R Storhofdi                                63°24'00"N 020°17'00"W  118.0m
+IT0001R Montelibretti                            42°06'00"N 012°38'00"E   48.0m
+IT0002R Stelvio                                  46°21'00"N 010°23'00"E 1415.0m
+IT0003R Vallombrosa                              43°44'00"N 011°33'00"E 1000.0m
+IT0004R Ispra                                    45°48'00"N 008°38'00"E  209.0m
+IT0005R Arabba                                   46°31'00"N 011°53'00"E 2030.0m
+IT0008R ISAC Bologna                             44°29'00"N 011°20'00"E    0.0m
+IT0009R Mt Cimone                                44°11'00"N 010°42'00"E 2165.0m
+IT0011R Longobucco                               39°39'00"N 017°01'00"E    None
+IT0012R San Lucido                               39°19'00"N 016°02'00"E    None
+IT0015U Lecce (ECO)                              40°20'09"N 018°07'28"E   36.0m
+IT0018R Lampedusa                                35°31'06"N 012°37'50"E   45.0m
+IT0019R Monte Martano                            42°48'20"N 012°33'56"E 1090.0m
+KZ0001R Borovoe                                  53°00'09"N 070°36'38"E  334.0m
+LT0003R Nida                                     55°21'00"N 021°04'00"E   17.0m
+LT0015R Preila                                   55°22'34"N 021°01'50"E    5.0m
+LT0016R Rugsteliskis                             55°26'00"N 026°04'00"E    None
+LV0010R Rucava                                   56°09'43"N 021°10'23"E   18.0m
+LV0016R Zoseni                                   57°08'07"N 025°54'20"E  188.0m
+LV0025R Kemeri                                   56°55'00"N 023°28'00"E    0.0m
+MD0012R Leova                                    46°30'00"N 028°16'00"E  156.0m
+MD0013R Leova II                                 46°29'18"N 028°17'01"E  166.0m
+ME0008R Zabljak                                  43°09'00"N 019°08'00"E 1450.0m
+MK0007R Lazaropole                               41°32'10"N 020°41'38"E 1332.0m
+MT0001R Giordan Lighthouse                       36°04'20"N 014°13'06"E  167.0m
+NL0002R Witteveen                                52°49'00"N 006°40'00"E   18.0m
+NL0005R Rekken                                   52°06'00"N 006°43'00"E   25.0m
+NL0006R Appelscha                                52°57'00"N 006°18'00"E   10.0m
+NL0007R Eibergen                                 52°05'00"N 006°34'00"E   20.0m
+NL0008R Bilthoven                                52°07'00"N 005°12'00"E    5.0m
+NL0009R Kollumerwaard                            53°20'02"N 006°16'38"E    1.0m
+NL0010R Vredepeel                                51°32'28"N 005°51'13"E   28.0m
+NL0011R Cabauw Zijdeweg                          51°58'13"N 004°55'35"E    1.0m
+NL0091R De Zilk                                  52°18'00"N 004°30'00"E    4.0m
+NL0644R Cabauw Wielsekade                        51°58'28"N 004°55'25"E    1.0m
+NO0001R Birkenes                                 58°23'00"N 008°15'00"E  190.0m
+NO0002R Birkenes II                              58°23'19"N 008°15'07"E  219.0m
+NO0008R Skreådalen                               58°49'00"N 006°43'00"E  475.0m
+NO0015R Tustervatn                               65°50'00"N 013°55'00"E  439.0m
+NO0030R Jergul                                   69°27'00"N 024°36'00"E  255.0m
+NO0035R Narbuvoll                                62°21'00"N 011°40'00"E  768.0m
+NO0036R Hummelfjell                              62°27'00"N 011°16'00"E 1539.0m
+NO0037R Bjørnøya                                 74°31'00"N 019°01'00"E   20.0m
+NO0039R Kårvatn                                  62°47'00"N 008°53'00"E  210.0m
+NO0041R Osen                                     61°15'00"N 011°47'00"E  440.0m
+NO0042G Zeppelin mountain (Ny-Ålesund)           78°54'26"N 011°53'12"E  474.0m
+NO0043R Prestebakke                              59°00'00"N 011°32'00"E  160.0m
+NO0044R Nordmoen                                 60°16'00"N 011°06'00"E  200.0m
+NO0045R Jeløya                                   59°26'00"N 010°36'00"E    5.0m
+NO0047R Svanvik                                  69°27'00"N 030°02'00"E   30.0m
+NO0048R Voss                                     60°36'00"N 006°32'00"E  500.0m
+NO0052R Sandve                                   59°12'00"N 005°12'00"E   15.0m
+NO0055R Karasjok                                 69°28'00"N 025°13'00"E  333.0m
+NO0056R Hurdal                                   60°22'21"N 011°04'41"E  300.0m
+NO0059G Trollhaugen                              72°00'42"S 002°32'06"E 1553.0m
+NO0090R Andøya                                   69°16'42"N 016°00'42"E  380.0m
+NO0092R Øverbygd                                 69°03'00"N 019°22'00"E   90.0m
+NO0093R Valdalen                                 62°05'00"N 012°10'00"E  800.0m
+NO0094R Møsvatn                                  59°50'00"N 008°20'00"E  940.0m
+NO0095R Ualand                                   58°31'00"N 006°23'00"E  220.0m
+NO0097R Solhomfjell                              58°56'00"N 008°48'00"E  260.0m
+NO0098R Karpdalen                                69°39'00"N 030°26'00"E   70.0m
+NO0099R Lista                                    58°06'00"N 006°34'00"E   13.0m
+PL0001R Suwalki                                  54°08'00"N 022°57'00"E  184.0m
+PL0002R Jarczew                                  51°48'52"N 021°58'21"E  180.0m
+PL0003R Sniezka                                  50°44'11"N 015°44'24"E 1603.0m
+PL0004R Leba                                     54°45'14"N 017°32'03"E    2.0m
+PL0005R Diabla Gora                              54°09'00"N 022°04'00"E  157.0m
+PL0009R Zielonka                                 53°39'44"N 017°56'02"E  121.0m
+PT0001R Braganca                                 41°49'00"N 006°46'00"W  690.0m
+PT0002R Faro                                     37°01'00"N 007°58'00"W    8.0m
+PT0003R Viana do Castelo                         41°42'00"N 008°48'00"W   16.0m
+PT0004R Monte Velho                              38°05'00"N 008°48'00"W   43.0m
+PT0005R Foia                                     37°19'00"N 008°54'00"W  902.0m
+RO0001R Rarau                                    47°27'00"N 025°27'00"E 1536.0m
+RO0002R Stina de Vale                            46°41'00"N 023°32'00"E 1111.0m
+RO0003R Semenic                                  45°07'00"N 025°58'00"E 1432.0m
+RO0004R Paring                                   45°23'00"N 023°28'00"E 1585.0m
+RO0005R Fundata                                  45°28'00"N 025°18'00"E 1371.0m
+RO0006R Turia                                    46°07'00"N 025°59'00"E 1008.0m
+RO0008R Poiana Stampei                           47°19'29"N 025°08'05"E  908.0m
+RS0005R Kamenicki vis                            43°24'00"N 021°57'00"E  813.0m
+RU0001R Janiskoski                               68°56'00"N 028°51'00"E  118.0m
+RU0008R Lesogorsky                               61°00'00"N 028°58'00"E   39.0m
+RU0013R Pinega                                   64°42'00"N 043°24'00"E   28.0m
+RU0014R Pushkinskie Gory                         57°00'00"N 028°54'00"E  103.0m
+RU0016R Shepeljovo                               59°58'00"N 029°07'00"E    4.0m
+RU0018R Danki                                    54°54'00"N 037°48'00"E  150.0m
+RU0020R Lesnoy                                   56°31'48"N 032°56'24"E  340.0m
+SE0001R Ekeröd                                   55°54'00"N 013°43'00"E  140.0m
+SE0002R Rörvik                                   57°25'00"N 011°56'00"E   10.0m
+SE0003R Velen                                    58°47'00"N 014°18'00"E  127.0m
+SE0005R Bredkälen                                63°51'00"N 015°20'00"E  404.0m
+SE0008R Hoburgen                                 56°55'00"N 018°09'00"E   58.0m
+SE0011R Vavihill                                 56°01'00"N 013°09'00"E  175.0m
+SE0012R Aspvreten                                58°48'00"N 017°23'00"E   20.0m
+SE0013R Esrange                                  67°53'00"N 021°04'00"E  475.0m
+SE0014R Råö                                      57°23'38"N 011°54'50"E    5.0m
+SE0018R Asa                                      57°09'52"N 014°46'57"E  180.0m
+SE0019R Östad                                    57°57'09"N 012°24'11"E   65.0m
+SE0020R Hallahus                                 56°02'34"N 013°08'53"E  190.0m
+SE0032R Norra-Kvill                              57°49'00"N 015°34'00"E  261.0m
+SE0033R Sännen                                   56°20'00"N 015°20'00"E   90.0m
+SE0034R Storulvsjöen                             62°16'00"N 016°18'00"E  420.0m
+SE0035R Vindeln                                  64°15'00"N 019°46'00"E  225.0m
+SE0039R Grimsö                                   59°43'41"N 015°28'19"E  132.0m
+SE0051R Arup                                     55°45'00"N 013°40'00"E  157.0m
+SE0093R Abisko                                   68°21'00"N 018°49'00"E    0.0m
+SE0094R Ammarnäs                                 65°58'00"N 016°12'00"E  140.0m
+SE0097R Gårdsjön                                 58°03'00"N 012°01'00"E  126.0m
+SI0001R Masun                                    45°39'00"N 014°22'00"E 1026.0m
+SI0008R Iskrba                                   45°34'00"N 014°52'00"E  520.0m
+SI0031R Zarodnje                                 46°25'43"N 015°00'12"E  770.0m
+SI0032R Krvavec                                  46°17'58"N 014°32'19"E 1740.0m
+SI0033R Kovk                                     46°07'43"N 015°06'50"E  600.0m
+SK0002R Chopok                                   48°56'00"N 019°35'00"E 2008.0m
+SK0004R Stará Lesná                              49°09'00"N 020°17'00"E  808.0m
+SK0005R Liesek                                   49°22'00"N 019°41'00"E  892.0m
+SK0006R Starina                                  49°03'00"N 022°16'00"E  345.0m
+SK0007R Topolniky                                47°57'36"N 017°51'38"E  113.0m
+TR0001R Cubuk II                                 40°30'00"N 033°00'00"E 1169.0m
+UA0005R Svityaz                                  51°31'00"N 023°53'00"E  164.0m
+UA0006R Rava-Russkaya                            50°15'00"N 023°38'00"E  249.0m
+UA0007R Beregovo                                 48°15'00"N 022°41'00"E  112.0m
+UA0008R Zmeiny Island                            45°15'00"N 030°12'00"E    None
