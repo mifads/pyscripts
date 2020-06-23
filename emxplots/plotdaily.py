@@ -10,6 +10,7 @@ def plotdaily(jdays,obs,mod=[],modmin=[],modmax=[],
     ymin=0,ymax=None,             #  lower and upper y curves
     yaxisMin=None, yaxisMax=None, # y-axis limits
     nlegcol=1,                    # ncols in legend
+    legloc='best',                #
     useMarkers=None,
     addStats=False,               # Adds bias, R to note
     dcLimit=75,                   # Data capture limit if addStats
@@ -41,24 +42,40 @@ def plotdaily(jdays,obs,mod=[],modmin=[],modmax=[],
 
 #  fig=plt.scatter(x,y)
 
+  if addStats:
+    stats=emepstats.obsmodstats(obs,mod,dcLimit=dcLimit)
+    if stats['dc'] < dcLimit:  useMarkers = True
+
   plt.clf()
 
   if useMarkers: # Add markers, usually when gappy data
-    plt.plot(jdays,obs,lw=1.5,label='Obs',marker='o')
+    plt.plot(jdays,obs,lw=1.5,color='k',label='Obs',marker='x')
   else:
-    plt.plot(jdays,obs,lw=1.5,color='g',label='Obs')
+    plt.plot(jdays,obs,lw=1.5,color='k',label='Obs')
 
   if len(mod)>1:
-     plt.plot(jdays,mod,'--',lw=1.5,color='b',label='Mod')
+     plt.plot(jdays,mod,'--',lw=1.5,color='r',label='Mod')
 
   if len(mod2)>1:
-     plt.plot(jdays,mod2,'--',lw=1.5,color='r',label='Mod2')
+     plt.plot(jdays,mod2,'--',lw=1.5,color='g',label='Mod2')
 
   if len(modmin)>1:
   #if not modmin == None:
      plt.fill_between(jdays,modmin,modmax,color='b',alpha=0.1)
 
-  plt.legend(ncol=nlegcol)
+  h_leg=plt.legend(loc=legloc,ncol=nlegcol,frameon=True,framealpha=0.3)
+
+  #h_leg=plt.legend(ncol=nlegcol,frameon=False)
+  #h_leg=plt.legend(ncol=nlegcol,frameon=False,mode='expand')
+  #if statstxtm != '':
+  #  y_shift=-15
+  #  h_leg.texts[1].set_position((0,y_shift))
+  # Failed: Annotate ended at -1, 2  bottom left
+  #plt.draw() # ot get legend loc
+  #p=h_leg.get_window_extent()
+  #print('ANNTEST ', p.p0[0], p.p1[1], p.p0, p.p1, p )
+  #plt.annotate('Annotation Text', (p.p0[0], p.p1[1]), (p.p0[0], p.p1[1]), 
+  #          xycoords='figure pixels', zorder=9)
   plt.title('TITLE')
   plt.xlabel(xlabel, fontsize=16)
   plt.ylabel(ylabel, fontsize=16)
@@ -75,15 +92,15 @@ def plotdaily(jdays,obs,mod=[],modmin=[],modmax=[],
     plt.title(title)
   if addStats:
     if notetxt is None: notetxt = ''
-    stats=emepstats.obsmodstats(obs,mod,dcLimit=dcLimit)
-    ynote -= 0.05 # need more room. Works only for O3 so far
+    #ynote -= 0.05 # need more room. Works only for O3 so far
     print('STATS', stats)
     if np.isfinite( stats['bias']  ):
-      notetxt += '\nBias:%2d%%  R=%4.2f' % (stats['bias'], stats['R'])
+      notetxt += '\nBias:%2d%%  R=%4.2f N=%d' % (stats['bias'], stats['R'], stats['Nvalid'] )
     else:
-      notetxt += '\n(Invalid stats, DC< %d)'% dcLimit
+      notetxt += '\n(Invalid stats, DC (%d) < %d)'% (stats['dc'], dcLimit)
   if notetxt: # Hard-coded position so far, top-left
     plt.figtext(xnote,ynote,notetxt)
+
 
   if dbg: print(dtxt, len(jdays), len(obs), len(mod) )
   if ofile:
@@ -93,6 +110,8 @@ def plotdaily(jdays,obs,mod=[],modmin=[],modmax=[],
     plt.show()
     if dbg: print(dtxt, ' NO PLOT ' )
 
+  return stats
+
 if __name__ == '__main__':
 
   jdays = list(range(1,366))
@@ -101,8 +120,14 @@ if __name__ == '__main__':
   y = 40.0 +50* np.sin(jdays)
 
   y[40:60] = np.nan
+  y[350] = 199.0  
   ymin = y - 10
   ymax = y + 2
   stats=emepstats.obsmodstats(x,y)
+  print(stats)
   testnote=' Germany\n 20 edgE 60N 200m\n Run rv\n xxx'
-  plotdaily(jdays,x,y,ymin,ymax,yaxisMax=200,notetxt=testnote)
+#  h=plotdaily(jdays,x,y,ymin,ymax,yaxisMax=200,nlegcol=2,addStats=True,
+#      notetxt=testnote)
+  h=plotdaily(jdays,x,y,ymin,ymax,yaxisMax=200,nlegcol=2,legloc=1,addStats=True,
+      notetxt=testnote)
+  
