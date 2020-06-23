@@ -26,7 +26,7 @@ The code is organised in ‘emx’ directories (emx = emep/esx)
 
 -  emxcdf - read and write cdf files
 -  emxdata - related to observations
--  emxemis - emissions, mainly MACC processing so far
+-  emxemis - emissions, mainly MACC/CAMS processing so far
 -  emxmisc - bits n pieces
 -  emxplot - daily, diurnal and scatter plots
 -  emxverify - scripts to compare emep model and obs data.
@@ -42,6 +42,7 @@ The code is organised in ‘emx’ directories (emx = emep/esx)
 |                            | surrounding points - to make the        |
 |                            | shadowing used in Dave’s time series    |
 |                            | scripts. Was EmepCdf.py                 |
+|                            | NEEDS UPDATE TO XARRAY!                 |
 +----------------------------+-----------------------------------------+
 | makecdf.py                 | Creates cdf files from a list of        |
 |                            | variable names and data. Works for      |
@@ -51,6 +52,9 @@ The code is organised in ‘emx’ directories (emx = emep/esx)
 +----------------------------+-----------------------------------------+
 | emxdata                    | Comment                                 |
 +============================+=========================================+
+| readNiluStations.py        | Reads table of NILU sites and makes     |
+|                            | dict with name, altitude                |
++----------------------------+-----------------------------------------+
 | ObservationsClass.py       | Class with various info on              |
 |                            | observations. May be overkill in        |
 |                            | retrospect                              |
