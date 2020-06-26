@@ -36,7 +36,9 @@ parser.add_option( '-o' ,help="Output file name", default="Screen")
 parser.add_option( '-t' ,help="Title",dest='title')
 parser.add_option( '-v' ,help="Variable name",dest='var')
 
-parser.add_option( '-b' ,help="add country boders",dest='borders',default=False,action='store_true')
+parser.add_option( '-b' ,help="add country borders",dest='borders', 
+                      default=False,action='store_true')
+parser.add_option( '--bullets' ,help="add bullets",nargs=1)
 parser.add_option( '--cmap' , help="cmap, eg --cmap hot,jet_r",
                       default='jet', dest='cmap', action='store',nargs=1)
                       #default='Set3', dest='cmap', action='store',nargs=1)
@@ -230,6 +232,16 @@ if opts.skipcbar is None:
   else:
      cbar=fig1.colorbar(hhh,ax=ax1,cax=axC,ticks=v)
 
+if opts.bullets is None:
+  pass
+else:
+  assert opts.levels is not None, 'Needs --levels with bullets'
+  b=np.loadtxt( opts.bullets ,comments="#")
+  bx=b[:,0]
+  by=b[:,1]
+  bz=b[:,2]
+  B=ax1.scatter(bx,by,s=136,c=bz,marker='^',edgecolor='k',
+          cmap=cmap,norm=norm,transform=proj)
 #  else:
 #      print "Skips colorbar"
 
