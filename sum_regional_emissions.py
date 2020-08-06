@@ -22,6 +22,8 @@ parser=argparse.ArgumentParser()
 parser.add_argument('-i','--ifile',help='Input model day.nc file',required=True)
 parser.add_argument('-u','--units',help='units, ngNm2s or kgNha', required=True)
 parser.add_argument('-v','--var',help='variable',required=True)
+parser.add_argument('--lat',help='lat variable',default='lat')
+parser.add_argument('--lon',help='lon variable',default='lon')
 args=parser.parse_args()
 dbg=False
 
@@ -40,6 +42,12 @@ if args.units == 'ngNm2s': # e.g  emissions soil N are in ngN/m2/s
   # e * 1.0e6  (km2->m2)  * 1.0e-21  * 365*24*3600 -> Tg
 
   unitfac=1.0e6 * 1.0e-21 * 365*24*3600  
+
+elif args.units == 'kgNm2': # e.g  Weng soil N 
+  # Tg = 1.0e9 kg
+  # e / 1.0e9  (km2->m2)  * 1.0e-9  -> Tg
+
+  unitfac=1.0e6 * 1.0e-9
 
 elif args.units == 'kgNha':  # Annual
   # e * 1.0e2  (km2->ha)  * 1.0e9 -> Tg
@@ -60,8 +68,11 @@ else:
 
 #------------------ directory setup -----------------------------------------
 ecdf = netCDF4.Dataset(emepFile,'r') # for all variables etc
-lats=ecdf.variables['lat'][:]
-lons=ecdf.variables['lon'][:]
+if args.lat: lat=args.lat
+if args.lon: lon=args.lon
+print('VARS ', ecdf.variables.keys())
+lats=ecdf.variables[lat][:]
+lons=ecdf.variables[lon][:]
 dlat = lats[1]-lats[0]  # Assume equal deltas
 
 regions=box.getMaccRegions()
