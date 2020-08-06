@@ -10,6 +10,7 @@ import netCDF4 as nc
 import numpy as np
 import time             # Just for creation date
 import sys
+import xarray as xr
 import emxcdf.cdftimes as cdft
 
 # Older code, without time possibilty. Kept just while testing
@@ -177,7 +178,8 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,nctimes=None,
      np.max(cdf.variables[latv][:]))
 
   cdf.close()
-####################
+
+##################
 
 #Depreated. create_cdf is neater
 def createCDF(variables,ofile,typ,lons,lats,data,lonlatfmt='full',txt='',dbg=False):
@@ -251,6 +253,35 @@ def createCDF(variables,ofile,typ,lons,lats,data,lonlatfmt='full',txt='',dbg=Fal
   cdf.close()
 ####################
 
+def create_xrcdf(xrarrays,globattrs,outfile):
+
+  xrdatasets = []
+
+  for a in xrarrays:
+    varname = a['varname']
+    print('XR sub ', varname, a['attrs'], type(a['attrs']) )
+    field = xr.DataArray(a['data'],dims=a['dims'],coords=a['coords'],
+                           attrs=a['attrs'])
+    xrdatasets.append( xr.Dataset({varname:field}) )
+
+  outxr = xr.merge(xrdatasets)
+  print('GLOB', globattrs)
+  outxr.attrs['global'] = 'aa' # globattrs
+
+  encoding=dict()
+  for var in outxr.data_vars:
+       encoding[var]={ 'shuffle':True,
+                    'dtype':'float32',
+#                   'chunksizes':[8, ny, 10],
+                   'zlib':True,
+                   'complevel':5}
+# Consider least_significant_digit=4 to get 4 sif figures? See
+# Notes.Notes.netcdfCompression
+  print('XRmake', outfile)
+  outxr.to_netcdf(outfile, format='netCDF4',encoding=encoding)
+  outxr.close()
+
+
 if __name__ == '__main__':
   import matplotlib.pyplot as plt
   from collections import OrderedDict as odict
@@ -275,6 +306,13 @@ if __name__ == '__main__':
   #create_cdf(TestVar,'tmp_create_cdf.nc','f4',lons,lats,data,dbg=True)
 #  create_cdf2(TestVar,'tmp_create_cdf.nc','f4',lons,lats,times=[1., 2., 3.],dbg=True)
 
+  xrarrays = []
+  xrarrays.append( dict(varname='xrxr', dims=['lat','lon'],
+     attrs = {'note':'test xx','NOTE':'test att'},
+     coords={'lat':lats,'lon':lons},data=data ) )
+
+  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='testXR2.nc')
+  sys.exit()
 
   # 2. Example of multiple scalar fields
   # nb order of variable names has to match data order
