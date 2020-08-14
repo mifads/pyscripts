@@ -1,13 +1,27 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # From: http://badc.nerc.ac.uk/help/coordinates/cell-surf-area.html
-from __future__ import print_function
+#See also (for polygon areas)
+#https://stackoverflow.com/questions/4681737/how-to-calculate-the-area-of-a-polygon-on-the-earths-surface-using-python
+# Note, earlier version used simpler R=6371, later uses 
 from numpy import pi,sin
 
-R = 6371.0  #! km
+R         = 6371.0  #! km
+EARTH_RAD = 6378.1370     # earth circumference in meters, WGS-84
 R2 = R*R
 deg2Rad = pi/180.0
 
 ##def AreaLonLatCell(lon1,lon2,lat1,lat2):
+
+
+def areaLonLatCell(clat,dLat,dLon): 
+  """ area matches calculation based on spherical cap, e.g.
+      http://mathforum.org/library/drmath/view/63767.html
+      Also uses WGS-84 R """
+  drLon = dLon*deg2Rad
+  rLat1 = (clat-0.5*dLat)*deg2Rad
+  rLat2 = (clat+0.5*dLat)*deg2Rad
+  S = EARTH_RAD*EARTH_RAD*drLon*(sin(rLat2)-sin(rLat1))
+  return S
 
 def AreaLonLatCell(clat,dll): # centres
 #  #R = 6371.0  ! km
@@ -22,7 +36,9 @@ def AreaLonLatCell(clat,dll): # centres
 if __name__ == '__main__' :
   print("Area XX Oslo, 1deg" , AreaLonLatCell(60.0,1.0))
   print("Area  Oslo, 0.5" , AreaLonLatCell(60.0,0.5))
+  print("area  Oslo, 0.5" , areaLonLatCell(60.0,0.5,0.5))
   print("Area  SPole, 1deg" , AreaLonLatCell(-89.0,1.0))
-  print("Area  Sahara, 15deg" , AreaLonLatCell(20.0,15.0))
+  print("Area  Sahara, 15deg" , AreaLonLatCell(15.0,1.0))
+  print("area  Sahara, 15deg" , areaLonLatCell(15.0,1.0,1.0))
 #fails  lats = [  10.0, 30.0, 85.0 ]
 #  print("Area  SPole, 1deg" , AreaLonLatCell(lats,1.0))
