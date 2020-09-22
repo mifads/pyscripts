@@ -71,6 +71,8 @@ The code is organised in ‘emx’ directories (emx = emep/esx)
 +----------------------------+-----------------------------------------+
 |cams_emep_codes.py          | maps iso3,iso3, emep cc                 |
 +----------------------------+-----------------------------------------+
+|cams_emep_coords.py         | gets lons, lats, info for simple cases  |
++----------------------------+-----------------------------------------+
 |cams2emep.py                | converts TNO ascii to netcdf            |
 +----------------------------+-----------------------------------------+
 |camsInfo.py                 | reads cams file and stores sums in dict |
