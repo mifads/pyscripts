@@ -39,6 +39,7 @@ emxemis                       | Comment
 :--------------------------   |:---------------------------------------
 macc2emep.py  |  Converts TNO/MACC format files to EMEP emission netcdf files
 normaliseEmisSplits.py |  normalises arrays to 1.0, eg F1, F2 to F emissplits
+cams_emep_coords.py | returns lats, lons, grid info for simple cases
 
 emxmisc code                  | Comment
 :--------------------------   |:---------------------------------------
