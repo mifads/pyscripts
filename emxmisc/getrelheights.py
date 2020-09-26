@@ -25,6 +25,16 @@ def lonlat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None,rad_km=5):
   else:
      sys.exit('Need to specify ', mapdims )
 
+  #print('TYPE', type(lon_s), type(lat_s), type(label_s) )
+  scalarInput=False
+  if isinstance(label_s,list) == False: # must have scalars
+    lon_s = [ lon_s ]
+    lat_s = [ lat_s ]
+    alt_s = [ alt_s ]
+    label_s = [ label_s ]
+    scalarInput=True
+  #if  lonlat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None,rad_km=5):
+
   ## Importing the topographic data with each grid space 1x1 km (30sec)
   ## DIMS: lat = 2999 ; lon = 1940 ; alt (m) 
 
@@ -45,13 +55,14 @@ def lonlat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None,rad_km=5):
      jdim=len(alt[:,0])
 
      ##
-     print( "Lat Lon Range ", region, min(lat), max(lat), min(lon), max(lon),
-               idim, jdim, alt[jdim-1,idim-1], alt.dtype )
+     if dbg: print( "Lat Lon Range ", region, min(lat), max(lat), min(lon), 
+                     max(lon), idim, jdim, alt[jdim-1,idim-1], alt.dtype )
 
      dx = lon[10]-lon[9]
      dy = lat[10]-lat[9]
      for i in range(0,len(lat_s)):
-       print('SITE ', lat_s[i], lon_s[i], alt_s[i], min(lat), max(lat), min(lon), max(lon) )
+       if dbg: print('SITE ', lat_s[i], lon_s[i], alt_s[i], min(lat), max(lat),
+                               min(lon), max(lon) )
        if( min(lat) < lat_s[i] < max(lat) ):
          if( min(lon) < lon_s[i] < max(lon) ):
 
@@ -64,8 +75,8 @@ def lonlat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None,rad_km=5):
             nx5km = int( 0.5 + rad_km * 1000.0/dxm )
             ny5km = int( 0.5 + rad_km * 1000.0/dym )
             #
-            print("Found ", label_s[i],  region, lat_s[i], lon_s[i],
-               ndx, ndy, dxm, dym, nx5km, ny5km)
+            if dbg: print("Found ", label_s[i],  region, lat_s[i], lon_s[i],
+                             ndx, ndy, dxm, dym, nx5km, ny5km)
             dxm2=dxm*dxm; dym2=dym*dym; r5km2 =  rad_km*rad_km *  1.0e6
             h_min  = 9999.0
             h_avg =  0.0
@@ -97,10 +108,16 @@ def lonlat2hRel(lon_s,lat_s,alt_s,label_s,mapdims,dbg=None,rad_km=5):
             else:
                he[i]      = alt_s[i]   # Keep original height, since we have no better info.
                avg_alt[i] = np.nan     # but here we can marl what has happened
+            min_alt[i] = h_min
  
-            print("End %s %5i %5i" % ( label_s[i], nGood, nWarnings ))
+            if dbg: print("End %s %5i %5i" % ( label_s[i], nGood, nWarnings ))
+
+  if scalarInput==True:
+    he = he[0]
+    avg_alt = avg_alt[0]
+    min_alt = min_alt[0]
   
-  return he, avg_alt
+  return he, avg_alt, min_alt
      
 
 if ( __name__ == "__main__" ):
