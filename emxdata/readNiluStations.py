@@ -11,7 +11,7 @@ import re
 import pandas as pd
 import sys
 
-def process_nilu_table(ifile='',ofile=None):
+def process_nilu_table(ifile='',ofile=None,decimalDegrees=False):
 
   print('IN', ifile)
   print('EXISTS', os.path.exists(ifile))
@@ -30,19 +30,23 @@ def process_nilu_table(ifile='',ofile=None):
       alt =fields[-1]
       degreesE =fields[-2]
       degreesN =fields[-3]
-      delims='°|\'|"'    #  characters from re.split('\d+')
-      degN, minN, secN, ns = re.split(delims,degreesN)
-      degE, minE, secE, ew = re.split(delims,degreesE)
-      dN = int(degN) + int(minN)/60.0 + int(secN)/3600.0
-      dE = int(degE) + int(minE)/60.0 + int(secE)/3600.0
-      if ns=='S': dN = -dN
-      if ew=='W': dE = -dE
+      if decimalDegrees:
+        dN = float(degreesN)
+        dE = float(degreesE)
+      else:
+        delims='°|\'|"'    #  characters from re.split('\d+')
+        degN, minN, secN, ns = re.split(delims,degreesN)
+        degE, minE, secE, ew = re.split(delims,degreesE)
+        dN = int(degN) + int(minN)/60.0 + int(secN)/3600.0
+        dE = int(degE) + int(minE)/60.0 + int(secE)/3600.0
+        if ns=='S': dN = -dN
+        if ew=='W': dE = -dE
   
       if len(fields)==5:
         name = fields[1]
       else:
         name = '_'.join(fields[1:-3])  # -> e.g. Mace_Head
-      print(code, name, degN, minN, secN, degE, minE, secE) #, east, dE, ht)
+      print(code, name, dN, dE) #, east, dE, ht)
       
       if 'Non' in alt: alt=0.0
       else: alt = alt.replace('m','')
