@@ -28,36 +28,39 @@ ifile=toar+'.xlsx'
 #s=wb['Sheet1']
 
 defwanted = 'station_country station_id station_name station_lat station_lon station_alt station_google_alt station_etopo_relative_alt'.split()
+#idlist=list(pp['station_id'])
+#iloc=idlist.index('NO0015R')
+#site=pp.iloc[iloc]
 #defwanted = 'station_etopo_relative_alt station_lon'.split()
 #pp=pd.read_excel(ifile,sheet_name=0)
+#sites=list(pp['station_id'])
+#iloc=sites.index('NO0015R')
+#site=pp.iloc[iloc]
 #print(pp.keys())
 #print(defwanted)
 #sys.exit()
 
-def read_toar_file(wantedvars=defwanted,wantedland=[],dbg=False):
+def read_toar_file(wantedvars=defwanted,wantedland=[],wantedID=None,dbg=False):
   pp=pd.read_excel(ifile,sheet_name=0)
   sites=pp['station_name']
   country=pp['station_country']
-  #lat=pp['station_lat']
-  #lon=pp['station_lon']
-  #alt=pp['station_alt']
-  #cat=pp['station_toar_category']
-  #alt=pp['station_alt']
-  #alt_google=pp['station_google_alt']
-  #alt_google=pp['station_etopo_relative_alt']
-  #o3mean=pp['mean-NH-Summer']
+  if wantedID is not None:
+    assert len(wantedland)==0,'Cannot have wantedID and wantedland'
+    idlist=list(pp['station_id'])
+    #iloc=idlist.index(wantedID) if wantedID in idlist else 
+    if wantedID in idlist:
+      iloc=idlist.index(wantedID)
+      site=pp.iloc[iloc]
+    else:
+      site='NotFound'
+    return site
 
   for n, site in enumerate(sites):  #  range(len(pp)
     land= country[n]
-  #if land == 'India' or land  == 'China': 
-     #print('%-20s  %8.3f %8.3f %8d %7.2f %s' % ( land, lon[n],  lat[n], alt[n], o3mean[n], site ))
-#     print('%-20s  %8.3f %8.3f %8d %7.2f %s' % ( land, lon[n],  lat[n], alt[n], o3mean[n], site ))
-    #print('CHECK land ', land, wantedland, len(wantedland))
+     #if land == 'India' or land  == 'China': 
     if len(wantedland) > 0:  # 
-      #for wanted in wantedland:
-      #print('IN land ', land, wantedland)
       if land not in wantedland: continue
-      for varname in wantedvars:
+    for varname in wantedvars:
         val=pp[varname][n]
         if dbg: print('WANTED ',n, land, site, varname, type(val))
         if isinstance(val,str):
@@ -73,10 +76,12 @@ def read_toar_file(wantedvars=defwanted,wantedland=[],dbg=False):
           return val
           print('ERROR', varname, val, type(val))
           sys.exit('UNKNOWN TYPE'+varname)
-      print()
+    print()
     
 if __name__ == '__main__':
  v=read_toar_file(wantedvars=defwanted,wantedland=['Norway']) # ,dbg=True)
+ s=read_toar_file(wantedvars=defwanted,wantedID='NO0015R') # ,dbg=True)
+ print('SITE:', s['station_name'], s['station_lat'])
 
 #   cc=  s.cell(row=k,column=1).value 
 #   site =  s.cell(row=k,column=2).value 
