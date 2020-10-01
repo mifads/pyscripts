@@ -62,6 +62,9 @@ The code is organised in ‘emx’ directories (emx = emep/esx)
 | tabulate_nilu_ozone_statio | makes Tabulated_nilu_ozone_stations.txt |
 | ns.py                      |                                         |
 +----------------------------+-----------------------------------------+
+| read_toar_site_data        | extracts site-info from a stations file |
+|                            | (Sorry, works for Dave only so far)     |
++----------------------------+-----------------------------------------+
 
 +----------------------------+-----------------------------------------+
 | emxemis                    | Comment                                 |
