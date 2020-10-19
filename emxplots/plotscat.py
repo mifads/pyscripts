@@ -20,6 +20,25 @@ except:
   print('Stats: NOT FOUND statsmodels')
   ImportStats=False
 
+def emeploglogplot(x,y,xlabel,ylabel,txt=None,pcodes=None): #,label=None,
+  plt.style.use('seaborn')
+  #y[-1] = 10.0
+  logx = np.log10( np.array(x))
+  logy = np.log10( np.array(y))
+  plt.scatter(x,y)
+  for i in range(len(x)):
+     p= pcodes[i] if pcodes else '#%d'%i
+     print( 'INTO emepscatplot p,x,y: ', p, x[i], y[i], logx[i], logy[i] )
+     if pcodes is not None:
+       label = '%4s'%p
+       plt.text(x[i],y[i],p,color='k',fontsize=10)
+  t= plt.xticks()
+  print('TTT', t)
+  plt.xscale('log')
+  plt.yscale('log')
+  plt.axis('equal')
+  plt.show()
+  
 
 def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
     title=None,
@@ -27,7 +46,9 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
     labelx=0.1,labely=0.9,labelsize=16,
     addxy=0.0,  # Increases maxv to e.g. cope with label  overwrites
     minv=0.0,  # lower  value limit for plots
-    addStats=False,skipOutliers=False,dbg=False,ofile=None):
+    loglog=False,
+    addStats=False,addStats4=False,  # 4 gives 4 figs
+    skipOutliers=False,dbg=False,ofile=None):
 
   """
    Scatter plot, emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,addxy=0.0,
@@ -37,6 +58,7 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   plt.style.use(plotstyle)
   x = np.array(x)
   y = np.array(y)
+  if addStats4: addStats = True  # 4 just gives extra prec
   if dbg:
    print( dtxt+' lengths x,y: ', len(x), len(y) )
    print( dtxt+' shape x, y: ', x.shape, y.shape )
@@ -48,7 +70,16 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
 #f=alt<vlimit
   plt.subplot(111)
   plt.clf()
+  #  x = np.log(x)
+  #  y = np.log(y)
   fig=plt.scatter(x,y,color='b')
+  if loglog is True:
+    t= plt.xticks()
+    print('TTT', t)
+    plt.xticks([1.0e-2,5.0e-2,0.1,0.3,0.5,0.7,1.0,3.0,1.0e2])
+    plt.yticks([1.0e-2,5.0e-2,0.1,0.3,0.5,0.7,1.0,3.0,1.0e2])
+    plt.xscale('log')
+    plt.yscale('log')
   plt.xlabel(xlabel, fontsize=16)
   plt.ylabel(ylabel, fontsize=16)
   v=plt.axis()
@@ -61,6 +92,7 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   if label: # Hard-coded position so far, top-left
     plt.text(labelx*maxv,labely*maxv,label, fontsize=labelsize)
   plt.gca().set_aspect('equal')
+    
 
 ###########################################################################
   [m,c]=np.polyfit(x,y,1)
@@ -154,10 +186,18 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
      regline = 'y= %4.2f x + %6.1f'%( m, c)
      col='k'
      if skipOutliers: col='r'  # keep black for non-outliers
-     if c < 0: regline = 'y= %4.2f x %6.1f'%( m, c)
+     #SKIP? if np.abs(c) < 1.0e-4*np.max(y):  #????
+     signtxt = ' + '
+     if c < 0.0: signtxt = ' '   # minus part of number
+     regtxt  = r'$y= %4.2f x %s %6.1f$'%( m, signtxt, c)
+     corrtxt  = r'Corr.= %6.2f'%r[0,1]
+     if addStats4: 
+         regline = r'$y= %6.4f x %s %6.3f$'%( m,signtxt,  c)
+         corrtxt  = r'Corr.= %8.4f'%r[0,1]
+     print('TTTTT', m, c)
      plt.text(0.6*maxv,vpos,regline,color=col,fontsize=12)
      vpos -= dvpos
-     plt.text(0.6*maxv,vpos,'Corr.= %6.2f'%r[0,1],color=col,fontsize=12)
+     plt.text(0.6*maxv,vpos,corrtxt,color=col,fontsize=12)
 
   if skipOutliers: # Now text for non-outliers in black
      vpos -= dvpos
@@ -206,15 +246,19 @@ if __name__ == '__main__':
   #maxalt=300   # Max altitude of stations
   #aot   = r'AOT40$_\mathrm{f}$'
 
-  p=emepscatplot(x,y,'Testx','Testy',addStats=True,dbg=True)
-  p=emepscatplot(x,y,'Testx','Testy',label='LABEL',addStats=True,dbg=True)
+  #p=emepscatplot(x,y,'Testx','Testy',addStats=True,dbg=True)
+  #p=emepscatplot(x,y,'Testx','Testy',label='LABEL',addStats=True,dbg=True)
 
  # Illustrate some styles
 
-  for style in 'bmh ggplot seaborn-colorblind seaborn-deep'.split():
+  #for style in 'bmh ggplot seaborn-colorblind seaborn-deep'.split():
+  for style in 'ggplot'.split():
     print('TESTING STYLE', style)
-    p=emepscatplot(x,y,'Testx','Testy',label=style,plotstyle=style,addStats=True,dbg=True)
-    p=emepscatplot(x,y,'Testx','Testy',label=style,plotstyle=style,addStats=True,dbg=True,minv=3.0)
+    #p=emepscatplot(x,y,'Testx','Testy',label=style,plotstyle=style,addStats=True,dbg=True)
+    #p=emepscatplot(x,y,'Testx','Testy',label=style,plotstyle=style,addStats=True,dbg=True,minv=3.0)
+#    p=emepscatplot(x,y,'Testx','TestLog',label=style,plotstyle=style,addStats=True,loglog=True,dbg=True,minv=3.0)
+    p= emeploglogplot(x,y,'Testx','Testy',txt=None,pcodes=None)
+    p= emeploglogplot(x,y,'Testx','Testy',txt=None,pcodes=c)
 #    p.show()
 
   #p=emepscatplot(x,y,'Testx','Testy',addStats=True,pcodes=c,ofile='TestPlots.png')
