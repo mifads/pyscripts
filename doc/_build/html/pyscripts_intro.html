@@ -69,7 +69,7 @@ understand them at least).</p>
 <ul class="simple">
 <li>emxcdf - read and write cdf files</li>
 <li>emxdata - related to observations</li>
-<li>emxemis - emissions, mainly MACC processing so far</li>
+<li>emxemis - emissions, mainly MACC/CAMS processing so far</li>
 <li>emxmisc - bits n pieces</li>
 <li>emxplot - daily, diurnal and scatter plots</li>
 <li>emxverify - scripts to compare emep model and obs data.</li>
@@ -93,7 +93,8 @@ bi-linear interpolation of nearby
 cells. Can also return the values of
 surrounding points - to make the
 shadowing used in Dave’s time series
-scripts. Was EmepCdf.py</td>
+scripts. Was EmepCdf.py
+NEEDS UPDATE TO XARRAY!</td>
 </tr>
 <tr class="row-odd"><td>makecdf.py</td>
 <td>Creates cdf files from a list of
@@ -113,14 +114,22 @@ lon/lat so far.</td>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>ObservationsClass.py</td>
+<tr class="row-even"><td>readNiluStations.py</td>
+<td>Reads table of NILU sites and makes
+dict with name, altitude</td>
+</tr>
+<tr class="row-odd"><td>ObservationsClass.py</td>
 <td>Class with various info on
 observations. May be overkill in
 retrospect</td>
 </tr>
-<tr class="row-odd"><td>tabulate_nilu_ozone_statio
+<tr class="row-even"><td>tabulate_nilu_ozone_statio
 ns.py</td>
 <td>makes Tabulated_nilu_ozone_stations.txt</td>
+</tr>
+<tr class="row-odd"><td>read_toar_site_data</td>
+<td>extracts site-info from a stations file
+(Sorry, works for Dave only so far)</td>
 </tr>
 </tbody>
 </table>
@@ -142,13 +151,16 @@ emission netcdf files</td>
 <tr class="row-odd"><td>cams_emep_codes.py</td>
 <td>maps iso3,iso3, emep cc</td>
 </tr>
-<tr class="row-even"><td>cams2emep.py</td>
+<tr class="row-even"><td>cams_emep_coords.py</td>
+<td>gets lons, lats, info for simple cases</td>
+</tr>
+<tr class="row-odd"><td>cams2emep.py</td>
 <td>converts TNO ascii to netcdf</td>
 </tr>
-<tr class="row-odd"><td>camsInfo.py</td>
+<tr class="row-even"><td>camsInfo.py</td>
 <td>reads cams file and stores sums in dict</td>
 </tr>
-<tr class="row-even"><td>normaliseEmisSplits.py</td>
+<tr class="row-odd"><td>normaliseEmisSplits.py</td>
 <td>normalises eg F1, F2 to F emissplits</td>
 </tr>
 </tbody>
