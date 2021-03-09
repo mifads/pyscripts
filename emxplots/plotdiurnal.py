@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 #import EmepStats
 dtxt='plotdiurnal:'
 
-def makediurnal(obs,mod,dstart=0,dend=367,debug=False):
+def makediurnal(obs,mod=[],dstart=0,dend=367,debug=False):
   """ Makes 24h arrays from eg 365 days. 
       (or between sd and ed if given)
       Assumes 'obs' maybe has Nan. Use as mask
@@ -13,11 +13,15 @@ def makediurnal(obs,mod,dstart=0,dend=367,debug=False):
   """
 
   dtxt='makediurnal:'
-  assert len(obs) == len(mod), dtxt+'unequal lengths %d %d!!' % (len(mod), len(obs))
   o24=np.zeros(24)
-  m24=np.zeros(24)
   n24=np.zeros(24)
   ndays =len(obs)//24
+  haveModelled = len(mod)>0
+  if haveModelled: # len(mod)>0:
+    assert len(obs) == len(mod), dtxt+'unequal lengths %d %d!!' % (len(mod), len(obs))
+    m24=np.zeros(24)
+  else:
+    m24='NotSet'
  # Need both to be given
   if dstart>0: # assume both given
     assert dstart<367, dtxt+'need dend if dstart, %d,%d !!' % ( dstart, dend )
@@ -28,8 +32,8 @@ def makediurnal(obs,mod,dstart=0,dend=367,debug=False):
      if np.isfinite(o) and o>=0.0:
        if ( dstart <= doy < dend ):
          o24[h] += o
-         m24[h] += mod[n]
          n24[h] += 1
+         if haveModelled: m24[h] += mod[n]
        h += 1
        if h==24:
           h=0
@@ -37,12 +41,15 @@ def makediurnal(obs,mod,dstart=0,dend=367,debug=False):
   for h in range(24):
     if n24[h] >0:
        o24[h] /= n24[h]
-       m24[h] /= n24[h]
+       if haveModelled: m24[h] /= n24[h]
     else:
        o24[h] = np.nan
-       m24[h] = np.nan
+       if haveModelled:  m24[h] = np.nan
     if debug: print(dtxt+'CHECKn', len(obs), ndays, 100*n24[h] / ndays)
-  return o24, m24, 100*n24/ndays
+  if haveModelled:
+    return o24, m24, 100*n24/ndays
+  else:
+    return o24, 100*n24/ndays
 
 def plotdiurnal(concs=odict(),
     xlabel='Hour of Day',ylabel='Conc',

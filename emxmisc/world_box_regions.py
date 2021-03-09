@@ -15,6 +15,7 @@ def getMaccRegions():
    MaccRegions['EUR'] = [  37.0,  75.0,  -15,  50 ]
    MaccRegions['WEUR'] = [  40.0,  60.0,  -10,  20 ] # ds
    MaccRegions['NAF'] = [   0.0,  37.0,  -20,  65 ]
+   MaccRegions['Sahel'] = [  0.0,  30.0,   10,  18 ] # Hudman defs
    MaccRegions['SAF'] = [ -35.0,   0.0,  -20,  55 ]
    MaccRegions['RUS'] = [  35.0,  75.0,   50, 179 ]
    MaccRegions['SEA'] = [ -10.0,  37.0,   65, 170 ]
@@ -36,6 +37,7 @@ def getNamedMaccRegions(): # Added names
    MaccRegions['EUR'] = [  37.0,  75.0,  -15,  50 , 'Europe' ]
    MaccRegions['WEUR'] = [  40.0,  60.0,  -10,  20, 'W.Europe'  ] # ds
    MaccRegions['NAF'] = [   0.0,  37.0,  -20,  65, 'North Africa' ]
+   MaccRegions['Sahel'] = [  0.0,  30.0,   10,  18, 'Sahel' ] # Hudman defs
    MaccRegions['SAF'] = [ -35.0,   0.0,  -20,  55, 'southern Africa' ]
    MaccRegions['RUS'] = [  35.0,  75.0,   50, 179, 'Russia' ]
    MaccRegions['SEA'] = [ -10.0,  37.0,   65, 170, 'South East Asia' ]

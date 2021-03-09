@@ -17,12 +17,13 @@ def days_since_1900(year,mm,dd,dbg=False): # do hours later
     if dbg: print('Inp', inpdate)
     inpdate_dt = dateutil.parser.parse(inpdate)
     dt = inpdate_dt - refdate_dt
-    return dt.days
+    return float(dt.days)
 
 if __name__ == '__main__':
   year=2012
   for mm in range(1,6):
     print( mm, days_since_1900(year,mm,15,dbg=True))
+  t=days_since_1900(year,6,15)
 #    mid_month='%s-%2.2d-15 00:00:00' % ( year, mm )
 #    print(mm, mid_month)
 #    mid_month_dt = dateutil.parser.parse(mid_month)

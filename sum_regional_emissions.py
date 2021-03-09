@@ -74,6 +74,7 @@ print('VARS ', ecdf.variables.keys())
 lats=ecdf.variables[lat][:]
 lons=ecdf.variables[lon][:]
 dlat = lats[1]-lats[0]  # Assume equal deltas
+print('DLAT ', dlat)
 
 regions=box.getMaccRegions()
 print(regions)
@@ -118,7 +119,9 @@ iVar=0
 xvals=ecdf.variables[var]
 #if season == 'fullrun':
 if xvals.ndim ==  3:
-      vals=ecdf.variables[var][0,:,:]   # 1980-2010, 372 monthly, kg/m2/s
+      print('3D? Take sum')
+      tvals=ecdf.variables[var][:,:,:]   # 1980-2010, 372 monthly, kg/m2/s
+      vals = np.sum(tvals,axis=0) # annual sum
 #elif season == 'annual':
 elif xvals.ndim==2:
       vals=ecdf.variables[var][:,:]   # 1980-2010, 372 monthly, kg/m2/s

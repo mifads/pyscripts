@@ -17,7 +17,7 @@ import sys
     48	NOTEST1_Birkenes_0, 01/01/2015,01:00, 5.555E-03, 4.793E-05, 0.000E+00, 4.000E+
 """
 
-def read_sites(ifile,wanted_poll='O3',wanted_sites=[],dbg=False):
+def read_sites(ifile,wanted_poll='O3',wanted_sites=[],varsOnly=False,dbg=False):
 
   ns=0
   sites=[]
@@ -27,12 +27,13 @@ def read_sites(ifile,wanted_poll='O3',wanted_sites=[],dbg=False):
     nsites, txt =f.readline().split(maxsplit=1)
     nhours, txt =f.readline().split(maxsplit=1)
     siteheaders =f.readline().split(sep=',')
-  #  row1=f.readline()
-    #print(p)#row1)
     for row in f:
       if dbg: print(row)
       site, txt =row.split(maxsplit=1)
-      if 'Variables' in row:  break
+      if 'Variables' in row:
+        varheaders =f.readline().split(sep=',')
+        if varsOnly is True: return varheaders
+        break
       sites.append(site)
   f.close()
   n = int(nsites) + 4
@@ -52,10 +53,18 @@ def read_sites(ifile,wanted_poll='O3',wanted_sites=[],dbg=False):
 
 if __name__ == '__main__':
 
-  ifile='sites_1000.csv'
-  poll='POM_f_wood'
-  vals =  read_sites(ifile,wanted_poll=poll,dbg=True) # ,wanted_sites=[ 'NOTEST1_Birkenes_m', ])
+  print('LEN ', sys.argv)
+  if len(sys.argv) > 1:
+    ifile=sys.argv[1]
+    poll=sys.argv[2]
+  else:
+    ifile='sites_1000.csv'
+    poll='POM_f_wood'
+
+#  vars =  read_sites(ifile,wanted_poll=poll,varsOnly=True)
+#  vals =  read_sites(ifile,wanted_poll=poll,dbg=True) # ,wanted_sites=[ 'NOTEST1_Birkenes_m', ])
   site='NOTEST1_Birkenes_0'
   vals =  read_sites(ifile,wanted_poll=poll,wanted_sites=[site],dbg=True) # ,wanted_sites=[ 'NOTEST1_Birkenes_m', ])
-  vals =  read_sites(ifile,wanted_poll=poll,dbg=True) # ,wanted_sites=[ 'NOTEST1_Birkenes_m', ])
+#  vals =  read_sites(ifile,wanted_poll=poll,dbg=True) # ,wanted_sites=[ 'NOTEST1_Birkenes_m', ])
+  print('VALS ', np.min(vals[site]), np.max(vals[site]))
 

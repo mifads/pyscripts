@@ -94,7 +94,7 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,nctimes=None,
   cdf=nc.Dataset(ofile,'w',format='NETCDF4_CLASSIC')
   cdf.Conventions = 'CF-1.6'
   cdf.projection = 'lon lat'
-  cdf.history = 'Created ' + time.ctime(time.time())
+  cdf.history = 'Created by David Simpson (Met Norway) ' + time.ctime(time.time())
   cdf.description = 'From emxcdf.makecdf module '+ txt
   nx=len(lons)
   ny=len(lats)
@@ -253,25 +253,49 @@ def createCDF(variables,ofile,typ,lons,lats,data,lonlatfmt='full',txt='',dbg=Fal
   cdf.close()
 ####################
 
-def create_xrcdf(xrarrays,globattrs,outfile):
+def create_xrcdf(xrarrays,globattrs,outfile,timeVar=''):
 
   xrdatasets = []
 
+  print(len(xrarrays), type(xrarrays))
   for a in xrarrays:
+    print('A  type', type(a))
+    #if 'str' in type(a): print('STRING ', a )
+    print('A  keys', a.keys())
     varname = a['varname']
+    print('XR VAR ', varname)
     print('XR sub ', varname, a['attrs'], type(a['attrs']) )
+    print('XR keys', varname, a.keys())
+    c  = a['coords']
+    #print('XR ckeys', varname, c.keys())
+    #print('XR coord? ', varname, c['lon'], type(c['lon']) )
+    #print('XR coords ', varname, c['lon'], type(c['lon']) )
+    #print('XR digits %s %12.6f '% (varname, c['lon'][0]) )
     field = xr.DataArray(a['data'],dims=a['dims'],coords=a['coords'],
                            attrs=a['attrs'])
     xrdatasets.append( xr.Dataset({varname:field}) )
 
   outxr = xr.merge(xrdatasets)
-  print('GLOB', globattrs)
-  outxr.attrs['global'] = 'aa' # globattrs
+  #print('GLOB', globattrs)
+  #globattr = dict(aa='AA',bb='BB')
+  #outxr.attrs['global'] = globattrs
+  for key, val in globattrs.items():
+    outxr.attrs[key] = val
 
   encoding=dict()
+
+  print('OUTXR keys', outxr.keys())
+  for var in outxr.coords:
+    print('OUTXR:::::', var)
+    #if var=='time' and  timeVar == 'days_since_1990':
+    #  encoding['time'] = dict()
+    #  encoding['time']['units'] = timeVar
+
   for var in outxr.data_vars:
-       encoding[var]={ 'shuffle':True,
+    print('VARxr ', var)
+    encoding[var]={ 'shuffle':True,
                     'dtype':'float32',
+#                    'dtype':'float64',
 #                   'chunksizes':[8, ny, 10],
                    'zlib':True,
                    'complevel':5}
@@ -311,15 +335,31 @@ if __name__ == '__main__':
      attrs = {'note':'test xx','NOTE':'test att'},
      coords={'lat':lats,'lon':lons},data=data ) )
 
-  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='testXR2.nc')
-  sys.exit()
+  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR2.nc')
 
   # 2. Example of multiple scalar fields
   # nb order of variable names has to match data order
 
   data3 = np.zeros([3,180,360],dtype=np.float)
   for n in range(3):
-       data3[n,:,:] = data[:,:]*(n+1)
+       data3[n,:,:] = data[:,:]*(n**2+1)
+  times = [ 0, 1, 2 ]
+
+  xrarrays = []
+  xrarrays.append( dict(varname='xr3d', dims=['time', 'lat','lon'],
+     attrs = {'note':'test xx','NOTE':'test att'},
+     coords={'time':times, 'lat':lats,'lon':lons},data=data3 ) )
+
+  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR3d.nc')
+  nctimes= [ cdft.days_since_1900(1997,mm,15) for mm in range(1,4)  ]
+  # with nctimes
+  xrarrays = []
+  xrarrays.append( dict(varname='xr3d', dims=['time', 'lat','lon'],
+     attrs = {'note':'test xx','NOTE':'test att'},
+     coords={'time':nctimes, 'lat':lats,'lon':lons},data=data3 ) )
+  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR3dnc.nc',timeVar='days_since_1990')
+  sys.exit()
+
 
   #variables= [   
   #   dict(name='Var1',units='ppb',long_name='test_variable with CF-illegal units'), 

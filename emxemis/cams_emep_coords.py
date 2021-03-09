@@ -62,19 +62,24 @@ def getCamsGlobal05grid():
   xlats, xlons = getCamsGlobal05coords(dbg=True)
   return getGridInfo(xlats, xlons)
 
-def rollRight2D(camsstyle,dbg=False):
+def rollRight2D(emepstyle,dbg=False):
    """ converts EMEP-style (-179.25) to CAMS-style (-179.75)"""
-   c=camsstyle.copy()  # emepstyle
+   c=emepstyle.copy()  # emepstyle
    return np.roll(c,+1,axis=1)
 
-def rollRight3D(camsstyle,dbg=False):
+def rollLeft2D(camsstyle,dbg=False):
+   """ converts CAMS-style (-179.75) to EMEP-style (-179.25)"""
+   c=camsstyle.copy()  # camsstyle
+   return np.roll(c,-1,axis=1)
+
+def rollRight3D(emepstyle,dbg=False):
    """ converts EMEP-style (-179.25) to CAMS-style (-179.75)"""
-   c=camsstyle.copy()  # emepstyle
+   c=emepstyle.copy()  # emepstyle
    return np.roll(c,+1,axis=2)
 
-def rollLeft3D(emepstyle,dbg=False):
+def rollLeft3D(camsstyle,dbg=False):
    """ converts CAMS-style (-179.75) to EMEP-style (-179.25)"""
-   c=emepstyle.copy()  # camsstyle
+   c=camsstyle.copy()  # camsstyle
    return np.roll(c,-1,axis=2)
   
 if __name__ == '__main__':

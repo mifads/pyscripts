@@ -121,6 +121,7 @@ def readCams(ifile,wanted_poll=None,get_vals=False,dbgcc=None,dbg=None):
 
     srcs = np.unique(srcs)  #  np unique also sorts
     srcs = np.append(srcs,countryTot) # at end
+    #dbgcc_srcs = dict.fromkeys(srcs,0.0)
     print('Zipped list from sec_key, typ_key', srcs, len(srcs) )
 
    # Find lon/lat ranges and dimensions
@@ -161,9 +162,8 @@ def readCams(ifile,wanted_poll=None,get_vals=False,dbgcc=None,dbg=None):
 
     for poll in used_polls: #  'NOX',: 
 
-       print('Process poll ', poll )
        vals = df[poll].values
-       print('Process vals ', poll )
+       print('Process poll: max vals ', poll, np.max(vals) )
 
        # Initialise dict()
        srcEmis[poll]  = dict()
@@ -198,6 +198,10 @@ def readCams(ifile,wanted_poll=None,get_vals=False,dbgcc=None,dbg=None):
 
           x =  vals[n]
 
+          #if iso3==dbgcc:
+          #  dbgcc_srcs[src] += x
+          #  print('DBGCC ', n, sec, typ, src, x, dbgcc_srcs['K:A'])
+
           srcEmis[poll][iso3][src]['sum']    += x
           srcEmis[poll][iso3][countryTot]['sum']  += x
           srcEmis[poll][EurTot][src]['sum']  += x
@@ -218,18 +222,18 @@ def readCams(ifile,wanted_poll=None,get_vals=False,dbgcc=None,dbg=None):
     df = pd.DataFrame()
 
     if dbgcc is not None:
-       if wanted_poll is 'PMc': used_polls.append('PMc')
-       print('Summary, kt, %s' % ifile) 
-       print('used ', used_polls ) 
-       print('%8s' % 'src', end='')
-       for poll in used_polls: print('%12s' % poll, end='')
-       print()
-       for src in srcs:
-         print('%8s' % src, end='')
-         for poll in used_polls:
-           print('%12.1f' % ( 0.001 * srcEmis[poll][dbgcc][src]['sum']),
-                   end='') # kt
-         print()
+      if wanted_poll is 'PMc': used_polls.append('PMc')
+      print('Summary, kt, %s' % ifile) 
+      print('used (kt)', used_polls ) 
+      print('%8s' % 'src', end='')
+      for poll in used_polls: print('%12s' % poll, end='')
+      print()
+      for src in srcs:
+        print('%8s' % src, end='')
+        for poll in used_polls:
+          print('%12.4e' % ( 0.001*srcEmis[poll][dbgcc][src]['sum']),
+                  end='') # kt
+        print()
 
     return srcEmis
    
@@ -244,7 +248,7 @@ if __name__ == '__main__':
   print('MAIN ', sys.argv)
   if 'ipython' in sys.argv[0]:
     ifile = 'TestCamsInfo.txt'
-    #ifile = '/home/davids/Work/EU_Projects/CAMS/CAMS50/CAMS50_stallo/TNO_MACC_III_emissions_v1_1_2011.txt'
+    #ifile='/home/davids/Work/D_Emis/TNO_Emis/TNO_Inputs/CAMS-REG-AP_v2.2.1_2015_REF2.csv'
   else:
     if len(sys.argv) < 2:   sys.exit('\nError! Usage:\n' + Usage)
     if sys.argv[1] == '-h': sys.exit('\nUsage: \n' + Usage)
@@ -256,11 +260,19 @@ if __name__ == '__main__':
 
   # ==========================================================
 
-  dbgcc='POL'
-  m=readCams(ifile,wanted_poll='PM',get_vals=False,dbgcc=dbgcc)  #PMc is special
+  dbgcc='KWT'
+  dbgPoll='CO'
+  dbgPoll='NOX'
+  dbgPoll='NMVOC'
+  dbgPoll='PM'
+  dbgcc='EurTot'
+  m=readCams(ifile,wanted_poll=dbgPoll,get_vals=False,dbgcc=dbgcc)  #PMc is special
 
-  print('EXAMPLE gnfr:', m['PMc'][dbgcc]['C:A']['sum'])
-  print('EXAMPLE snap2:', m['snap2']['PM2_5'][dbgcc] )
+  if dbgPoll == 'PM':
+    print('EXAMPLE gnfr:', m['PMc'][dbgcc]['C:A']['sum'])
+    print('EXAMPLE snap2:', m['snap2']['PM2_5'][dbgcc] )
+  else:
+    print('EXAMPLE C gnfr:', m[dbgPoll][dbgcc]['C:A']['sum'])
   # ==========================================================
 
   gc.collect() # recover some memory?

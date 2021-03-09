@@ -18,8 +18,8 @@ import sys
 
  NOTE: uses station file from Dave's disc. Sorry!
 """
-toar='/home/davids/Data/TOAR/ReportData/AVG_summer_global_2008-2015_aggregated'
-ifile=toar+'.xlsx'
+ifile='/home/davids/Data/TOAR/ReportData/AVG_summer_global_2008-2015_aggregated.xlxs'
+ifile='/home/davids/Data/TOAR/TOAR_aggregated_statistics_v1_1/TOAR_sfc_ozone_seasonal_global_2008-2015_aggregated_v1_1.csv'
 
 # From http://www.pythonexcel.com/openpyxl.php but just shows cell be cell # access.
 # data_only=True gets evaluated values, not formulii
@@ -41,7 +41,8 @@ defwanted = 'station_country station_id station_name station_lat station_lon sta
 #sys.exit()
 
 def read_toar_file(wantedvars=defwanted,wantedland=[],wantedID=None,dbg=False):
-  pp=pd.read_excel(ifile,sheet_name=0)
+  #pp=pd.read_excel(ifile,sheet_name=0)
+  pp=pd.read_csv(ifile,sep=';',comment='#')
   sites=pp['station_name']
   country=pp['station_country']
   if wantedID is not None:

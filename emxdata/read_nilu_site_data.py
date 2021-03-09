@@ -11,14 +11,13 @@ import re
 import pandas as pd
 import sys
 
-def process_nilu_table(ifile='',ofile=None,decimalDegrees=False):
+def process_nilu_table(ifile='',ofile=None,decimalDegrees=False,dbg=False):
 
-  print('IN', ifile)
-  print('EXISTS', os.path.exists(ifile))
+  if dbg: print('EXISTS', os.path.exists(ifile))
   sites=[]
   assert os.path.exists(ifile),'Missing input file:'+ifile 
   if ofile is not None:
-    print('OPENS ', ofile)
+    if dbg: print('OPENS ', ofile)
     ofile=open(ofile,'w')
   
   with open(ifile,'r') as f:
@@ -46,7 +45,7 @@ def process_nilu_table(ifile='',ofile=None,decimalDegrees=False):
         name = fields[1]
       else:
         name = '_'.join(fields[1:-3])  # -> e.g. Mace_Head
-      print(code, name, dN, dE) #, east, dE, ht)
+      if dbg: print(code, name, dN, dE) #, east, dE, ht)
       
       if 'Non' in alt: alt=0.0
       else: alt = alt.replace('m','')

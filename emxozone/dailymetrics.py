@@ -231,11 +231,13 @@ accumulated= {'Dmean':False,  'Dmax':False, 'M7':False, 'M12':False,
 first_metrics_call = True
 
 #def get_metrics(o3,metrics=defmetrics,dbg=False):
-def get_metrics(o3,keys=defmetrics.keys(),dbg=False):
+def get_metrics(o3,keys=defmetrics.keys(),tz=None,dbg=False):
   #if first_metrics_call:
   results = {}                      # Initialise results
   #TESTING o3valid = o3.copy() was tuple?
   o3valid = np.array(o3)
+  if tz is not None:
+    o3valid = settzo3(o3valid,tz=tz)
   #print('get-met', len(o3), len(o3valid))
   for n in range(len(o3)):
     if o3[n] < 0.0: o3valid[n] = np.nan
@@ -245,7 +247,8 @@ def get_metrics(o3,keys=defmetrics.keys(),dbg=False):
   #NOV20 for m in list(metrics.keys()):
   for m in keys:
       results[m] = defmetrics[m](o3valid,dbg)
-      if dbg: print(('get_metrics: ', defmetrics[m], results[m] ))
+      #if dbg: print(('get_metrics: ', defmetrics[m], results[m] ))
+      if dbg: print(('hhget_metrics: ', m, results[m] ))
   return results.copy()  # COPY needed to avoid other calls resetting contents 
   #  http://python.net/crew/mwh/hacks/objectthink.html (see objectthink.pdf)
 
@@ -257,8 +260,8 @@ def get_metrics(o3,keys=defmetrics.keys(),dbg=False):
 
 if __name__ == '__main__':
 
-  metrics = {'Dmean':dmean,  'Dmax':dmax } #, 'M7':m7, 'M12':m12, 
-  keys  = 'Dmean Dmax'.split()
+  metrics = {'Dmean':dmean,  'Dmax':dmax, 'M7':m7} # , 'M12':m12, 
+  keys  = 'Dmean Dmax M7'.split()
 #   'AOT40':AOT40, 'W126':W126_12h, 'MDA8':SOMO0, 'SOMO35': SOMO35 }
   tz = 0
   dbg=True
@@ -283,7 +286,6 @@ if __name__ == '__main__':
 #    m=m7(o3,dbg=True)
 #    print( ' Simple M7: ', tz,  m )
   
-  
 #    r=get_metrics(o3)  # was metrics2, why?
 #    o3p = np.ones(24)
 #    z=get_metrics(o3)  # was metrics2, why?
@@ -302,6 +304,14 @@ if __name__ == '__main__':
     print('METRIC', multiwrite( r.keys(), '%9s') )
     print('VALS  ', multiwrite( vals, '%9.4g') )
     print('DC    ', multiwrite( dc, '%9d'  ) )
+
+    #OCT 2020
+    r=get_metrics(o3,tz=12,keys=keys,dbg=dbg)
+    vals = [ r[kk][0] for kk in r.keys() ] 
+    dc   = [ int( r[kk][1]+0.5)  for kk in r.keys() ] 
+    print('TZ METRIC', multiwrite( r.keys(), '%9s') )
+    print('TZ VALS  ', multiwrite( vals, '%9.4g') )
+    print('TZ DC    ', multiwrite( dc, '%9d'  ) )
   
     #m, n = mean_of_ValidHrs(o3p)
     #print('TESTok  mean_of-VaidHrs ', m, n)

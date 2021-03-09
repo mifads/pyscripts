@@ -28,6 +28,7 @@ country_list="""##################################################
 50    BIH    BA    Bosnia_and_Herzegovina
 39    BLR    BY    Belarus
 24    CHE    CH    Switzerland
+210   CHN    CN    China
 55    CYP    CY    Cyprus
 46    CZE    CZ    Czech_Republic
 60    DEU    DE    Germany
