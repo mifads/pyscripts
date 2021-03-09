@@ -14,8 +14,9 @@ def getMaccRegions():
    MaccRegions['SA']  = [ -60.0,  13.0,  -90,  -30 ]
    MaccRegions['EUR'] = [  37.0,  75.0,  -15,  50 ]
    MaccRegions['WEUR'] = [  40.0,  60.0,  -10,  20 ] # ds
-   MaccRegions['NAF'] = [   0.0,  37.0,  -20,  65 ]
-   MaccRegions['Sahel'] = [  0.0,  30.0,   10,  18 ] # Hudman defs
+   MaccRegions['xNAF'] = [   0.0,  37.0,  -20,  65 ] #DS 65E is in Pakistan!
+   MaccRegions['NAF'] = [   0.0,  37.0,  -20,  50 ] # better, but includes anyway Middle East
+   MaccRegions['Sahel'] = [  0.0,  30.0,   10,  18 ] # DS, Hudman defs
    MaccRegions['SAF'] = [ -35.0,   0.0,  -20,  55 ]
    MaccRegions['RUS'] = [  35.0,  75.0,   50, 179 ]
    MaccRegions['SEA'] = [ -10.0,  37.0,   65, 170 ]
