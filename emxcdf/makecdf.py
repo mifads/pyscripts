@@ -358,6 +358,19 @@ if __name__ == '__main__':
      attrs = {'note':'test xx','NOTE':'test att'},
      coords={'time':nctimes, 'lat':lats,'lon':lons},data=data3 ) )
   xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR3dnc.nc',timeVar='days_since_1990')
+
+  # Better date handling:
+  xrarrays = []
+
+  tcoords={'time':nctimes}
+  xrarrays.append(dict(varname='time',dims=['time'],
+   attrs={'long_name':'time at middle of period', 'units':'days since 1900-1-1 0:0:0',
+   'calendar':'gregorian','standard_name':'time'},coords=tcoords,data=nctimes))
+
+  xrarrays.append( dict(varname='xr3d', dims=['time', 'lat','lon'],
+     attrs = {'note':'test xx','NOTE':'test att'},
+     coords={'time':nctimes, 'lat':lats,'lon':lons},data=data3 ) )
+  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR3dnc2.nc',timeVar='days_since_1990')
   sys.exit()
 
 
@@ -373,6 +386,7 @@ if __name__ == '__main__':
   variables['Var1']= dict(units='ppb',long_name='test_variable with CF-illegal units',data=data3[0,:,:])
   variables['Var2']= dict(units='ug/m3',data=data3[1,:,:])
   variables['Var3']= dict(units='m s-1',data=data3[2,:,:])
+
   # older code for comp
   xcreate_cdf(variables,'tmp_create_cdf3.nc','f4',lons,lats,
              txt='Demo of 3 variables',dbg=False)
