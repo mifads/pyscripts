@@ -253,7 +253,11 @@ def createCDF(variables,ofile,typ,lons,lats,data,lonlatfmt='full',txt='',dbg=Fal
   cdf.close()
 ####################
 
-def create_xrcdf(xrarrays,globattrs,outfile,timeVar=''):
+def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False):
+  """
+   Mar 2021 - added FillValue treatment, based upon tips in https://stackoverflow.com/questions/45693688/xarray-automatically-applying-fillvalue-to-coordinates-on-netcdf-output#45696423
+   Use always for coords, but user can choose for variables
+  """
 
   xrdatasets = []
 
@@ -287,6 +291,9 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar=''):
   print('OUTXR keys', outxr.keys())
   for var in outxr.coords:
     print('OUTXR:::::', var)
+    # if skip_fillValues is True: # Coordinates should never need FillValue!
+    encoding[var] = {'_FillValue':False} # need to init encoding:w
+
     #if var=='time' and  timeVar == 'days_since_1990':
     #  encoding['time'] = dict()
     #  encoding['time']['units'] = timeVar
@@ -299,6 +306,8 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar=''):
 #                   'chunksizes':[8, ny, 10],
                    'zlib':True,
                    'complevel':5}
+    if skip_fillValues is True:
+      encoding[var]['_FillValue'] = False
 # Consider least_significant_digit=4 to get 4 sif figures? See
 # Notes.Notes.netcdfCompression
   print('XRmake', outfile)
@@ -335,7 +344,9 @@ if __name__ == '__main__':
      attrs = {'note':'test xx','NOTE':'test att'},
      coords={'lat':lats,'lon':lons},data=data ) )
 
-  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR2.nc')
+  #xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR2.nc')
+  xrtestFill =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='fill_ntestXR2.nc',skip_fillValues=True)
+  sys.exit()
 
   # 2. Example of multiple scalar fields
   # nb order of variable names has to match data order
