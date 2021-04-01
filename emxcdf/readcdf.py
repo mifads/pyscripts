@@ -34,7 +34,7 @@ import matplotlib.pyplot as plt
 import time # for timing CPU
 #Not used: import netcdftime # ... to play with dates:
 # Own:
-import emxmisc.get_emepcoords as coords
+import emxgeo.get_emepcoords as coords
 
 # ---------------------------------------------------------------------------#
 class EmepFileClass(object):
