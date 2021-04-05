@@ -69,7 +69,8 @@ def sample_1d():
     return x, y, u, v, p #, crs
 
 
-def trend_arrows(x0,x1,y0,y1,x,y,u,v,p,scale_arrows=None,plotfile=None):
+def trend_arrows(x0,x1,y0,y1,x,y,u,v,p,scale_arrows=None,plotfile=None,
+   title=None,inset=False,insText='ppb/yr',insUp=1):
 
   crs=ccrs.PlateCarree()
   fig = plt.figure()
@@ -85,7 +86,7 @@ def trend_arrows(x0,x1,y0,y1,x,y,u,v,p,scale_arrows=None,plotfile=None):
   col='b'
   for n in range(len(x)):
     dx=u[n]
-    dy=v[n]
+    dy=v[n] 
     r=np.sqrt(dx**2 + dy**2)
     dx /= r # make all arrows same length
     dy /= r
@@ -99,8 +100,38 @@ def trend_arrows(x0,x1,y0,y1,x,y,u,v,p,scale_arrows=None,plotfile=None):
 
   ax.set_xlim([x0,x1])
   ax.set_ylim([y0,y1])
+  if title is not None:
+    plt.title(title)
+
+  if inset:
+    #axins = ax.inset_axes([0.8,0.1,0.2,0.2])
+    # keep x/y ratio consistent with xlim,ylim below
+    axins = ax.inset_axes([1.0,0.3,0.3,0.25])
+    #axins.plot([1.0,2.0,3.0,1.0])
+    kwargs=dict(color='k',width=0.0002,overhang=0.5)
+    # centre at x=dR, y=2dR
+    dR=1.0
+    axins.arrow(dR,2*dR,0.0,dR, **kwargs) # up
+    axins.arrow(dR,2*dR,dR ,0.0,**kwargs) # horiz
+    axins.arrow(dR,2*dR,0.0,-dR, **kwargs)# down
+    axins.set_xlim([0.0,6.0])
+    axins.set_ylim([0.0,5.0])
+    axins.text(0.5*dR,4.0*dR,'ppb/yr')
+    axins.text(0.7*dR,3.1*dR,'+%d' % insUp)
+    axins.text(3.1*dR,2*dR,'0',va='center')
+    axins.text(0.6*dR,0.5*dR,'-%d' % insUp)
+    #axins.set_xticklabels('')
+    #axins.set_yticklabels('')
+    #axins.tick_params(axis='both',which='both',...
+    axins.axis('off')
+
+
+  if plotfile is not None: 
+    print('SAVE PLOT', plotfile)
+    plt.savefig(plotfile)
   plt.show()
-  plt.clf()
+  #plt.clear()
+  plt.clf()# plt.gca())
   return
 
 def trend_quivers(x0,x1,y0,y1,x,y,u,v,c,plotfile=None):
@@ -150,5 +181,5 @@ def trend_quivers(x0,x1,y0,y1,x,y,u,v,c,plotfile=None):
 if __name__ == '__main__':
   
   x, y, u, v, p = sample_1d()
-  t=trend_arrows(-40,40,0.,80.,x,y,u,v,p)
+  t=trend_arrows(-40,40,0.,80.,x,y,u,v,p,inset=True)
 
