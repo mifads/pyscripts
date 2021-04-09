@@ -149,7 +149,7 @@ def trend_arrows(x0,x1,y0,y1,x,y,u,v,p,scale_arrows=None,plotfile=None,
   degs=np.linspace(90.,-90.,num=5,endpoint=True)
   dR=1.0
   x0=0.5;y0=3.5
-  axu.text(x0,6.0,'ppb/yr')
+  axu.text(x0,6.0,insText )
   for d in degs:
     dx=dR * np.cos(np.deg2rad(d))
     dy=dR * np.sin(np.deg2rad(d))
