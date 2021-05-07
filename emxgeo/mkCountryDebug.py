@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # TD is Chad, VE Vene, SD is ca 30E, NE is Niger 
 import emxgeo.rdGoogleCentroids as mc
-dbgCodes = 'VE BR US FR TD NE Sahel'.split()
+dbgCodes = 'VE BR US FR FI TD NE Sahel'.split()
 
 future="""
 jdbg=237;idbg=140  # see mkBugFixComp. Old had -1.08013, new had 3.62423
