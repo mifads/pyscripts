@@ -42,7 +42,8 @@ parser.add_argument('-v','--varkeys',nargs='*',
     help='varname  string in nc file, can be partial eg ug_PM',required=True)
 parser.add_argument('-i','--ifiles',help='Input files',nargs='*',required=True)
 parser.add_argument('-d','--domain',help='domain wanted, i0 i1 j0 j1, e.g. "30 100 40 80"\n(Optional)',required=False)
-parser.add_argument('-o','--ofile',help='output file',required=False)
+#parser.add_argument('-f','--ofile',help='output file',required=False)
+parser.add_argument('-f','--flag',help='output file',required=False)
 parser.add_argument('-O','--odir',help='output directory',default='.')
 parser.add_argument('-p','--plot',help='plot on screen?\n(Optional)',action='store_true')
 parser.add_argument('-L','--labels',help='labels, e.g. -L"rv4.15 rv4.15a rv4.15b"\n(Optional)',required=False)
@@ -70,8 +71,9 @@ for n, ifile in enumerate(args.ifiles):
    if  os.path.isfile(ifile):
       f = ifile
    else:
-      print('TRY File not found! ' + ifile)
+      print('TRY subdirs! ' + ifile)
       f = ifile + '/Base/Base_month.nc'  # Default
+      f = ifile + '/Base_month.nc'  # Default
    print('=>  ', f)
    if  not os.path.isfile(f):
      sys.exit('File not found! ' + f)
@@ -184,8 +186,9 @@ for var in args.varkeys:
        if( len(monthly) ==1 ): # Just have one value, e.g. annual
          plt.xticks(visible=False)
        plt.legend(loc='upper left',bbox_to_anchor=(0.05,1.0))
-       if args.ofile:
-          ofile=args.ofile
+       if args.flag:
+          #ofile=args.ofile
+          ofile='PlotCdfComp_%s_%s.png' % (key, args.flag)  # 
        else:
           ofile='PlotCdfComp_%s_%s_%s.png' % ( key, cases[0], '_'.join(labels) )
        plt.savefig('%s/%s' % ( odir, ofile ))
