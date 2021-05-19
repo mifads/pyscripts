@@ -2,6 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import emxmisc.geometry as geom
+import sys
 
 # Styles, added Dec 2017,  see e.g.
 # print(plt.style.available)
@@ -42,11 +43,13 @@ def emeploglogplot(x,y,xlabel,ylabel,txt=None,pcodes=None): #,label=None,
 
 def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
     title=None,
-    plotstyle='classic',
+    plotstyle='seaborn',
     labelx=0.1,labely=0.9,labelsize=16,
     addxy=0.0,  # Increases maxv to e.g. cope with label  overwrites
-    minv=0.0,  # lower  value limit for plots
+    minxy=None,  # lower  value limit for plots
+    statsxy=None, # loc reg stats text, e.g. (0.5,0.8)
     loglog=False,
+    regline_wanted=True,
     addStats=False,addStats4=False,  # 4 gives 4 figs
     skipOutliers=False,dbg=False,ofile=None):
 
@@ -84,6 +87,7 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   plt.ylabel(ylabel, fontsize=16)
   v=plt.axis()
   maxv=max(v)
+  minv=min(v)
 
   if addxy>0.0:
       maxv += addxy
@@ -147,16 +151,20 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
 
 #### 1:1 line  ############################################################
 
-  lin=(0,maxv) # 1:1 line
+  print('MAXv ', maxv, minv)
+
+  #lin=(0,maxv) # 1:1 line
+  lin=(minv,maxv) # 1:1 line
   plt.plot(lin,lin,'g--')
 
 #### regression line - all data ###########################################
   #[m,c]=np.polyfit(x,y,1) #r=np.corrcoef(x,y)
 
-  fit=( c, c+m*lin[1] )
+  #BUG fit=( c, c+m*lin[1] )
+  fit=( c+m*lin[0], c+m*lin[1] )
   if skipOutliers:
     plt.plot(lin,fit,'r--')
-  else:
+  elif regline_wanted:
     plt.plot(lin,fit,'k--')
   #plt.plot(lin,fit,'c--')
 
@@ -178,13 +186,18 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
     fitn=( cn, cn+mn*lin[1] )
     plt.plot(lin,fitn,'k--') # non outliers in black
 
-  vpos=0.17*maxv   #  vertical position  for text below, was 0.22
-  dvpos=0.05*maxv  # for text below
+  vspan = maxv+abs(minv)  # complete axis length
+  if statsxy is not None:
+    vpos=minv + statsxy[1]*vspan  # vertical position for text
+  else:
+    vpos=minv + 0.17*maxv   # vertical position  for text below
+  dvpos=0.05*vspan   # increment between text lines
+
   if addStats:
      #plt.text(0.6*maxv,0.25*maxv,'Year %4s'% year,fontsize=12)
      #plt.text(0.6*maxv,0.2*maxv,'Max altitude %4.0f m'% vlimit,fontsize=12)
      regline = 'y= %4.2f x + %6.1f'%( m, c)
-     col='k'
+     col='b'
      if skipOutliers: col='r'  # keep black for non-outliers
      #SKIP? if np.abs(c) < 1.0e-4*np.max(y):  #????
      signtxt = ' + '
@@ -194,22 +207,29 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
      if addStats4: 
          regline = r'$y= %6.4f x %s %6.3f$'%( m,signtxt,  c)
          corrtxt  = r'Corr.= %8.4f'%r[0,1]
-     print('TTTTT', m, c)
-     plt.text(0.6*maxv,vpos,regline,color=col,fontsize=12)
+     xpos = minv + 0.6*vspan
+     if statsxy is not None:
+       xpos = minv + statsxy[0]*vspan
+     print('TTTTT', m, c, maxv, minv, vpos, xpos)
+     plt.text(xpos,vpos,regline,color=col,fontsize=12)
      vpos -= dvpos
-     plt.text(0.6*maxv,vpos,corrtxt,color=col,fontsize=12)
+     plt.text(xpos,vpos,corrtxt,color=col,fontsize=12)
 
   if skipOutliers: # Now text for non-outliers in black
      vpos -= dvpos
-     plt.text(0.6*maxv,vpos,'y= %4.2f x + %6.1f'%( mn, cn),color='k',fontsize=12)
+     plt.text(xpos,vpos,'y= %4.2f x + %6.1f'%( mn, cn),color='k',fontsize=12)
      vpos -= dvpos
-     plt.text(0.6*maxv,vpos,'Corr.= %6.2f'%rn[0,1],color='k',fontsize=12)
+     plt.text(xpos,vpos,'Corr.= %6.2f'%rn[0,1],color='k',fontsize=12)
   #SEP 2018 plt.axis([0,maxv,0,maxv])
+  #plt.axis([minv,maxv,minv,maxv])
+  if minxy is not None:
+    minv=minxy
   plt.axis([minv,maxv,minv,maxv])
 
   if txt:  # place in upper left
-    vpos=0.95*maxv   #  vertical position  for text below, was 0.22
-    plt.text(0.06*maxv,vpos,txt,color='k',fontsize=12)
+    vpos=minv+0.90*vspan   #  vertical position  for text below, was 0.22
+    xpos = minv + 0.01*vspan
+    plt.text(xpos,vpos,txt,color='k',fontsize=12)
   #plt.xbound(0,2*maxv)
   #plt.axis('scaled')
   #plt.axis('equal')
