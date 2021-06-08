@@ -15,7 +15,7 @@ if domain == 'GLOBAL':
    idbg //= 2; jdbg //= 2 # France
 """
 
-def getCountryCodes(cc,lat0=-90.,lon0=-180.,dlat=0.5,dlon=0.5):
+def getCountryCodes(cc,lat0=-90.,lon0=-180.,dlat=0.5,dlon=0.5,dbg=False):
   """ CRUDE - just fixed lat0, lon0 now for CAMS"""
 
   geocc = dict()
@@ -27,6 +27,7 @@ def getCountryCodes(cc,lat0=-90.,lon0=-180.,dlat=0.5,dlon=0.5):
   else:
 
     geo=mc.getGoogleCentroids(cc)
+    if dbg: print('mkCountryDebg:cc=:',cc,' geo:', geo)
 
     geocc['j'] = int(( geo['lat']-lat0 )/dlat)
     geocc['i'] = int(( geo['lon']-lon0 )/dlon)
