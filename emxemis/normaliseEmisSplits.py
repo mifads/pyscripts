@@ -7,7 +7,7 @@ def sfmt(array):
   return ';'.join('%.5f'% x for x in array)
   #return ';'.join('%.5f'% str(x) for x in array)
 
-def normedVals(varray, txt='',dbg=False):
+def normedVals(varray, txt='',minval=1.0e-6,dbg=False):
   """ gets normalised PM fractions for aggregate of input arrays
      Usually used to combine A1+A2=A, F1+F2+F3+F4=F
   """
@@ -17,11 +17,18 @@ def normedVals(varray, txt='',dbg=False):
   if dbg: print(dtxt+txt+'types', type(varray), np.shape(varray), len(varray) )
   if isinstance(varray[0],float): # simple list
     vv = np.array(varray)
-    #nvals = np.zeros(len(varray)) # default
     if dbg: print(dtxt+txt+':SIMPLE LIST', np.shape(varray), np.sum(vv), np.sum(varray) )
+    if np.sum(varray) < minval: return varray
+
   else:
     #nvals = np.zeros(len(varray[0])) # default
+    if dbg:
+       print(dtxt+txt+':COMPLEX TYPE LIST', type(varray), np.shape(varray)) # , np.sum(vv), np.sum(varray) )
+       print('VVV', varray)
     vv = np.sum(varray,axis=0)  # length 7 returns
+    if dbg: print(dtxt+txt+':COMPLEX TYPE LISTB', type(varray), np.shape(varray) , np.sum(vv), np.sum(varray) )
+    #sys.exit()
+
     if dbg: print(dtxt+txt+':2D LIST=',  np.shape(varray) )
 
   if np.sum(varray) > 0.0:
