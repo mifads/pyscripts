@@ -35,6 +35,7 @@ parser.add_argument("--period", help="period (Summer, Winter, Annual)",type=str,
 parser.add_argument("--case", help="OC or OM)",type=str,required=True)
 parser.add_argument("--skipOutliers", help="skipOutliers",default=False)
 parser.add_argument("-o","--odir", help="output dir",default='.')
+parser.add_argument("--yaxisMax", help="fixed ymax",type=float,required=False)
 parser.add_argument("-y","--year", help="year",type=int,required=True)
 args = parser.parse_args()
 emepfile=args.mod
@@ -182,6 +183,7 @@ for ff in obsfiles:
     plt.plot(vv,label='Mod.')
     plt.fill_between(jday,minv,maxv,color='b',alpha=0.1)
     plt.plot(oo,'rx',label='Obs.')
+    if yaxisMax: plt.ylim(ymax=yaxisMax)
     plt.title('%s    Alt.=%dm' % ( code, alt) )
 
     #print('Ooo  ',code, len(oo), np.min(oo), np.max(oo), np.nanmin(oo), np.nanmax(oo))
