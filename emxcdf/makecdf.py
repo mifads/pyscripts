@@ -280,6 +280,9 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False):
     xrdatasets.append( xr.Dataset({varname:field}) )
 
   outxr = xr.merge(xrdatasets)
+  # Added following CAMS71/scripts testing.
+  outxr.lat.attrs={'long_name':'latitude','units':'degrees_north','standard_name':'latitude'} # below: ,'_FillValue':False}
+  outxr.lon.attrs={'long_name':'longitude','units':'degrees_east','standard_name':'longitude'} # below: ,'_FillValue':False}
   #print('GLOB', globattrs)
   #globattr = dict(aa='AA',bb='BB')
   #outxr.attrs['global'] = globattrs
