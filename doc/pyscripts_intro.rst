@@ -168,8 +168,9 @@ weibullw126.py
 |                            | hourly data (so far). Typically run     |
 |                            | using run_comp_ozone_metrics.py         |
 +----------------------------+-----------------------------------------+
+|  ebas_flags.py             | TMP FOR DOC make                        |
++----------------------------+-----------------------------------------+
 
-ebas_flags.py
 
 +----------------------------+-----------------------------------------+
 | Misc code                  | Comment                                 |
@@ -192,6 +193,9 @@ ebas_flags.py
 | sum_regional_emissions.py  | sums values from input netcdf over      |
 |                            | regions and globally. Used for          |
 |                            | emissions so far                        |
++----------------------------+-----------------------------------------+
+| scanLOGs.py                | scans multiple LOG files from                           |
+|                            | Verification(scatterstations) results   |
 +----------------------------+-----------------------------------------+
 | scanVerification.py        | scans multiple                          |
 |                            | Verification(scatterstations) results   |

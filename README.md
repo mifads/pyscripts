@@ -91,6 +91,7 @@ emepsitecomp.py | Compares 2 or more annual or monthly files, for key patterns a
 pyRef.py | Just started! reads Dave's Refs.bib, and allows search and pdf viewing.
 sum_regional_emissions.py | sums values from input netcdf over regions and globally. Used for emissions so far
 scanVerification.py | scans multiple Verification(scatterstations) results files and produces summary for annual statistics.
+scanLOGs.py | scans multiple LOG files from  Verification(scatterstations).
 LICENSE.txt         |             GPL
 README.md | This file.
 
