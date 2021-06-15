@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+"""
+June 2021 update. Res files look like:
+SO2_in_Air ugS/m3
+------------------------------------------------------------------------------
+  Period CDays   Ns    Np   pc<30% pc<50%        Obs      Mod     Bias  Rmse  Corr   IOA
+  YEARLY   274   57    57    (58%)  (86%)       0.30     0.33       8%  0.23  0.64  0.78
+  JANFEB    -    60    60    (48%)  (80%)       0.36     0.47      32%  0.40  0.62  0.74
+so no need for r-Y,r-YD etc"""
 
 from glob import glob
 import sys
@@ -50,13 +58,13 @@ Precipitation mm
 npolls='Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';')
 fmt='%-40.36s %4s' + '%8s'*5
 fmt='%-50.46s %4s' + '%8s'*5
-line = '-' * (40+5+8*5)
+fmt='%-50.46s %4s' + '%8s'*6   # June 2021
+line = '-' * (40+5+8*6)
 
-for p in polls:  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';'):
-  print(fmt % ( p, 'Ns', 'bias', 'r-Y', 'r-YD', 'ioa-Y', 'ioa-YD' ) )
-  print( line )
+for np, p in enumerate(polls):  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';'):
+  #print(fmt % ( p, 'Ns', 'bias', 'r-Y', 'r-YD', 'ioa-Y', 'ioa-YD' ) )
 
-  for run in runs:
+  for nrun, run in enumerate(runs):
     #QQ  if ( 'BM_' in tst0 ): tst = '%s-EmChem09soa' % tst0
     try:
       tst=run.split('.')[-3]   # "%s/Res.%s.%s.%s" % ( idir, tst, grid, year)
@@ -65,15 +73,17 @@ for p in polls:  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';'):
       r=re.search('Res_(\w+)', run ) # Stops at '-' in e.g h500-outluers_condays
       tst=r.groups()[0]
       #print( "XRUN :", run, tst)
-    tst=run.replace('Res_','').replace('-outliers_comday','')  # A2019 FIX!!
+    #tst=run.replace('Res_','').replace('-outliers_comday','')  # A2019 FIX!!
+ 
+    tst=tst.replace('Res_','').replace('_h500_outliers_comday','')  # A2019 FIX!!
 
     #print("TST ", tst, ":", run)
     Ns = '-' 
     bias = '-' 
+    mod  = '-' 
+    obs  = '-' 
     r2 = '-' 
     ioa= '-' 
-    dr2 = '-' 
-    dioa= '-' 
 
     try:
        f = open(run)
@@ -84,21 +94,31 @@ for p in polls:  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';'):
       
        try:  # species may not always exist in file
            row = tt[yearly + tt.index(p)]
-           #print('ROW', row)
-           #sys.exit()
            ioa = row.split()[-1]
            r2  = row.split()[-2]
+           rmse = row.split()[-3]
            bias = row.split()[-4]
+           mod  = row.split()[-5] 
+           obs  = row.split()[-6]
+           fmod  = float( mod )
+           fobs  = float( obs )
+           if fmod > 1000. or fobs > 1000.:
+             fac = 0.001
+             mod = '%.1fe3' % ( fac*fmod)
+             obs = '%.1fe3' % ( fac*fobs)
+          
            Ns   = row.split()[-10]
 #TMPpy           row = tt[yearday + tt.index(p)]
-           dioa = row.split()[-1]
-           dr2  = row.split()[-2]
+#           dioa = row.split()[-1]
+#          dr2  = row.split()[-2]
        except:
            pass
     except:
        pass
 
-    print(fmt % ( tst, Ns,  bias, r2, dr2, ioa, dioa ) )
+    if nrun==0: # header line
+      print(fmt % ( p, 'Ns', 'obs', 'mod', 'bias', 'rmse', 'r2', 'ioa' ) )
+    print(fmt % ( tst, Ns, obs, mod, bias, rmse, r2, ioa ) )
 
   print( line )
 
