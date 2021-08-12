@@ -17,6 +17,7 @@ def areaLonLatCell(clat,dLat,dLon):
   """ area matches calculation based on spherical cap, e.g.
       http://mathforum.org/library/drmath/view/63767.html
       Also uses WGS-84 R """
+  assert clat> -90.0 and clat<90,'emxgeo: Impossible lat %f' % clat
   drLon = dLon*deg2Rad
   rLat1 = (clat-0.5*dLat)*deg2Rad
   rLat2 = (clat+0.5*dLat)*deg2Rad
