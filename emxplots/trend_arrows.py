@@ -84,7 +84,7 @@ def annotate_axes(fig):
 #
 
 def trend_arrows(x0,x1,y0,y1,x,y,u,v,p,scale_arrows=None,plotfile=None,
-   title=None,inset=False,insText='ppb/yr',cbars=True,insUp=1,dbg=False):
+   title=None,inset=False,insFmt='%+.1f',insText='ppb/yr',cbars=True,insUp=1,dbg=False):
 
   crs=ccrs.PlateCarree()
   fig = plt.figure(figsize=[10.5,5.8])  # 10.5"
@@ -125,6 +125,7 @@ def trend_arrows(x0,x1,y0,y1,x,y,u,v,p,scale_arrows=None,plotfile=None,
   if scale_arrows is not None:
     fac *= scale_arrows
   col='b'
+  if dbg: print('DBGlen', len(x))
   for n in range(len(x)):
     dx=u[n]
     dy=v[n]
@@ -148,8 +149,10 @@ def trend_arrows(x0,x1,y0,y1,x,y,u,v,p,scale_arrows=None,plotfile=None,
     # centre at x=dR, y=2dR
   degs=np.linspace(90.,-90.,num=5,endpoint=True)
   dR=1.0
-  x0=0.5;y0=3.5
-  axu.text(x0,6.0,insText )
+  #DS x0=0.5;y0=3.5
+  x0=0.8;y0=4.2
+  #DS axu.text(x0,6.0,insText )
+  axu.text(x0-0.2,y0+2.0,insText )
   for d in degs:
     dx=dR * np.cos(np.deg2rad(d))
     dy=dR * np.sin(np.deg2rad(d))
@@ -161,7 +164,10 @@ def trend_arrows(x0,x1,y0,y1,x,y,u,v,p,scale_arrows=None,plotfile=None,
       dx = 0.0
       ha='center'
       dy *= (1.3*dR)
-    axu.text(x0+dx,y0+dy,'%+.1f' % (insUp*d/90.0),va=va,ha=ha)
+    print('DBGdeg', d, insUp )
+    axu.text(x0+dx,y0+dy,insFmt % (insUp*d/90.0),va=va,ha=ha)
+    #axu.text(x0+dx,y0+dy,'%+.2f' % (insUp*d/90.0),va=va,ha=ha)
+    #axu.text(x0+dx,y0+dy,'%+.1f' % 0.1, va=va,ha=ha)
     
   axu.set_xlim([0.0,5.0])
   axu.set_ylim([2.0,7.0])
@@ -195,6 +201,7 @@ def trend_arrows(x0,x1,y0,y1,x,y,u,v,p,scale_arrows=None,plotfile=None,
   if plotfile is not None:
     print('SAVE PLOT', plotfile)
     plt.savefig(plotfile)
+    plt.clf()
   else:
     plt.show()
   #plt.clear()
