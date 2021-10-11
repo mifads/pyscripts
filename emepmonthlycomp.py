@@ -47,6 +47,7 @@ parser.add_argument('-f','--oflag',help='output file flag label',required=False)
 parser.add_argument('-O','--odir',help='output directory',default='.')
 parser.add_argument('-p','--plot',help='plot on screen?\n(Optional)',action='store_true')
 parser.add_argument('-L','--labels',help='labels, e.g. -L"rv4.15 rv4.15a rv4.15b"\n(Optional)',required=False)
+parser.add_argument('-n','--nonegs',help='skip neg values',required=False,action='store_true')
 parser.add_argument('-t','--title',help='title',required=False)
 parser.add_argument('-V','--verbose',help='extra info',action='store_true')
 parser.add_argument('-y','--year',help='year',required=True)
@@ -84,7 +85,7 @@ for n, ifile in enumerate(args.ifiles):
       case[f]= tmpc[-3].replace('.%s'%args.year,'')  # rv4.2012 from rv4.2012/Base/Base_month.nc
    else:
      case[f]= tmpc[0]  #  CAMS_IPOA fro CAMS_IPOA/CAMS_IPOA_month.nc
-     print('CASE', case[f])
+     print('CASE', case[f], len(tmpc), tmpc )
 
    cases.append(case[f])
    ifiles.append(f)  # with full path name to .nc
@@ -108,25 +109,30 @@ odir='.'
 if args.odir:
   odir=args.odir
   os.makedirs(odir,exist_ok=True)
-tab=open(odir+'/ResCdfCompTab_%s_%s.txt' %
-           ( cases[0], '_'.join(labels[1:])), 'w' )
+if args.oflag:
+   tablab=args.oflag
+else:
+   tablab= '%s_%s' % ( cases[0], '_'.join(labels) )
+print('TABLAB', tablab )
+#sys.exit()
+tab=open(odir+'/ResCdfCompTab_%s.txt' % tablab, 'w') # ( cases[0], '_'.join(labels[1:])), 'w' )
 header='%-30s' % 'Variable'
 for c in labels: 
-  header += ( '%18s' % c )
+  header += ( '%18s' % c.replace('.%s'%args.year,'') )
 tab.write('%s\n' %  header )
 months=list(range(1,13))
 colours = 'red orange yellow blue green'.split()
 
 for var in args.varkeys:
    for key in keys:
-       if dbg: print(' VAR, KEY ', var, key )
+       #if dbg: print(' VAR, KEY ', var, key )
        if not var in key:
            continue
        if key.startswith('D3_'):
            print(' SKip 3D VAR, KEY ', var, key )
            continue
 
-       print('Processing ', var, key )
+       print('\nProcessing ', var, key )
 
        nfiles = len(ifiles)
        data_found=False
@@ -139,15 +145,17 @@ for var in args.varkeys:
            tmpx    = np.linspace(0.5,nfiles+0.5,nfiles+1)
            if key in ecdf.variables.keys():
              tmpv=ecdf.variables[key][:,:,:]
-             if dbg: print('KEY VALUES? ', ifile, key, np.max(tmpv) )
+             if dbg: print('KEY FDOM VALUES? ', ifile, key, np.max(tmpv), np.min(tmpv) )
              vals=ecdf.variables[key][:,j0:j1+1,i0:i1+1]
-             if np.max(vals) < 1.0e-3:
+             if np.max(vals) < 1.0e-9:
                print('ZERO VALUES? ', ifile, key, nf )
                continue
              else:
                data_found=True # something to plot
-             print('TMPV var ', key, tmpv.shape, i0, i1, j0, j1, np.max(vals) )
-             monthly = np.mean(vals,axis=(1,2))
+             if args.nonegs:
+               vals[vals<0] = np.nan
+             print('TMPV var ', key, tmpv.shape, i0, i1, j0, j1, np.nanmax(vals), np.nanmin(vals), ifile )
+             monthly = np.nanmean(vals,axis=(1,2))
              if dbg: print('TMPV monthly ', monthly, len(monthly))
            else:
              print(' KEY NOT FOUND ', key, case[ifile])
@@ -164,12 +172,13 @@ for var in args.varkeys:
              left=1.0   # Start in Jan.
              right=12.0  #  QUERY??
 
-           if nf ==1: tab.write('%-30s' % key)
+#S21           if nf ==1: tab.write('%-30s' % key)
+           if nf ==0: tab.write('%-30s' % key)
            tab.write('%18.3f' % np.mean(monthly) )
            if dbg: print('M:', monthly)
 
        if not data_found:
-         print('NO VALUES FOUND', ifile )
+         print('NO VALUES FOUND', ifile, key )
          continue
            
        if  args.title is None :
@@ -191,6 +200,7 @@ for var in args.varkeys:
           ofile='PlotCdfComp_%s_%s.png' % (key, args.oflag)  # 
        else:
           ofile='PlotCdfComp_%s_%s_%s.png' % ( key, cases[0], '_'.join(labels) )
+       if dbg: print('Plotting '+ofile)
        plt.savefig('%s/%s' % ( odir, ofile ))
        if args.plot: 
          plt.show()
