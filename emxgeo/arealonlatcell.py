@@ -5,8 +5,8 @@
 # Note, earlier version used simpler R=6371, later uses 
 from numpy import pi,sin
 
-R         = 6371.0  #! km
-EARTH_RAD = 6378.1370     # earth circumference in meters, WGS-84
+R         = 6371.0       #! km
+EARTH_RAD = 6378.1370    # earth circumference in meters, WGS-84
 R2 = R*R
 RAD2= EARTH_RAD*EARTH_RAD
 deg2Rad = pi/180.0
@@ -21,7 +21,18 @@ def areaLonLatCell(clat,dLat,dLon):
   drLon = dLon*deg2Rad
   rLat1 = (clat-0.5*dLat)*deg2Rad
   rLat2 = (clat+0.5*dLat)*deg2Rad
-  S = RAD2*drLon*(sin(rLat2)-sin(rLat1))
+  S = RAD2*drLon*(sin(rLat2)-sin(rLat1))  # ie uses WGS-84
+  return S
+
+def areaLatCell(clat,dll): 
+  """ area matches calculation based on spherical cap, e.g.
+      http://mathforum.org/library/drmath/view/63767.html
+      Also uses WGS-84 R """
+  assert clat> -90.0 and clat<90,'emxgeo: Impossible lat %f' % clat
+  drLon = dll*deg2Rad
+  rLat1 = (clat-0.5*dll)*deg2Rad
+  rLat2 = (clat+0.5*dll)*deg2Rad
+  S = RAD2*dll*(sin(rLat2)-sin(rLat1))  # ie uses WGS-84
   return S
 
 def areaLonLatCellX(clat,dLat,dLon): 
@@ -47,9 +58,9 @@ def AreaLonLatCell(clat,dll): # centres
 #
 if __name__ == '__main__' :
   print("Area XX Oslo, 1deg" , AreaLonLatCell(60.0,1.0))
-  print("Area  Oslo, 0.5" , AreaLonLatCell(60.0,0.5))
-  print("area  Oslo, 0.5" , areaLonLatCell(60.0,0.5,0.5))
-  print("area  OsloX, 0.5" , areaLonLatCellX(60.0,0.5,0.5))
+  print("AreaLonLatCell  Oslo, 0.5" , AreaLonLatCell(60.0,0.5))
+  print("areaLonLatCell  Oslo, 0.5" , areaLonLatCell(60.0,0.5,0.5))
+  print("AreaLonLatCellX Oslo, 0.5" , areaLonLatCellX(60.0,0.5,0.5))
   print("Area  SPole, 1deg" , AreaLonLatCell(-89.0,1.0))
   print("Area  Sahara, 15deg" , AreaLonLatCell(15.0,1.0))
   print("area  Sahara, 15deg" , areaLonLatCell(15.0,1.0,1.0))
