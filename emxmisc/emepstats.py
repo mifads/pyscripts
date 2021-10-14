@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
+import sys
 from collections import OrderedDict as odict
 
 def obsmodstats (x,y,ymin=0.0,dcLimit=75,dbg=False):
@@ -7,7 +8,10 @@ def obsmodstats (x,y,ymin=0.0,dcLimit=75,dbg=False):
     Calculate stats, with the usual case that x is
     obsverations and may have missing values, and y
     is model results which are complete
+    Oct 2021: upadted to cope with missing model values,
+    e.g. from partial annual runs.
   """
+  dtxt='obsmodstats:'
 
   stats=odict()
   stats['dc'] = 0.0
@@ -20,13 +24,15 @@ def obsmodstats (x,y,ymin=0.0,dcLimit=75,dbg=False):
   x = np.array(x)
   y = np.array(y)
 
-  for n, yy in enumerate(x):
-    if yy < 0.0:
+  for n, xx in enumerate(x): # Obs,  Mod test (maybeonly modelled JJA)
+    if np.isnan(xx) or np.isnan(y[n]):
       x[n] = np.nan
+      y[n] = np.nan
 
-  f=np.isfinite(x)
+  f=np.isfinite(x) # grab only ral numbers
   stats['Nvalid'] = sum(f)
   stats['dc'] = int( 0.5 +  sum(f)/(0.01*len(x)) ) # Data capture in %
+  print(dtxt+'Data capture test: ', stats['dc'], ' vs ', dcLimit, dbg)
   if stats['dc'] < dcLimit:
     print('Data capture fail: ', stats['dc'], ' vs ', dcLimit)
     return stats
@@ -34,7 +40,8 @@ def obsmodstats (x,y,ymin=0.0,dcLimit=75,dbg=False):
   meanx = np.mean(x[f])
   meany = np.mean(y[f])
   if dbg: print('MEANS ', meanx, meany )
-  stats['bias'] = int(  0.5+  100*(meany - meanx)/meanx )
+  if ~np.isnan(meanx) and  ~np.isnan(meany): 
+    stats['bias'] = int(  0.5+  100*(meany - meanx)/meanx )
   stats['R']    = np.corrcoef(x[f],y[f])[0,1]
   stats['meanx'] = meanx
   stats['meany'] = meany
