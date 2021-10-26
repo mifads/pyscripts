@@ -114,11 +114,13 @@ if args.oflag:
 else:
    tablab= '%s_%s' % ( cases[0], '_'.join(labels) )
 print('TABLAB', tablab )
-#sys.exit()
 tab=open(odir+'/ResCdfCompTab_%s.txt' % tablab, 'w') # ( cases[0], '_'.join(labels[1:])), 'w' )
 header='%-30s' % 'Variable'
 for c in labels: 
   header += ( '%18s' % c.replace('.%s'%args.year,'') )
+  print('CCC%s:%s'% (c, c.replace('.%s'%args.year,'')) )
+  print('%s' %  header )
+print('FINAL %s' %  header )
 tab.write('%s\n' %  header )
 months=list(range(1,13))
 colours = 'red orange yellow blue green'.split()
@@ -174,7 +176,8 @@ for var in args.varkeys:
 
 #S21           if nf ==1: tab.write('%-30s' % key)
            if nf ==0: tab.write('%-30s' % key)
-           tab.write('%18.3f' % np.mean(monthly) )
+           #tab.write('%18.3f' % np.mean(monthly) )
+           tab.write('%18.5g' % np.mean(monthly) )
            if dbg: print('M:', monthly)
 
        if not data_found:
