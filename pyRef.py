@@ -45,8 +45,9 @@ def scan_for_pdfs(search_terms):
 
      if all ( x in str(copy) for x in search_terms):
        if 'file' in entry:
-         print('MATCH:', len(pdfs), key, copy['file']) 
-         pdf = copy['file'].split(':')[1]
+         #oct 2021 pdf = copy['file'].split(':')[-1]
+         pdf = copy['file'].split(':')[-2]
+         print('MATCH:', len(pdfs), key, copy['file'], pdf) 
          if pdf.startswith('/home/'):
            pdfs.append( pdf )
          else:
@@ -76,7 +77,7 @@ def process_pdfs(pdfs):
             print('NUMBER TOO HIGH: %s !! Try again' % ans)
             continue
           else:
-            print('Opens pdf number', ipdf)
+            print('Opens pdf number', ipdf, pdfs[int(ipdf)] )
             subprocess.call('evince %s' %  pdfs[int(ipdf)],shell=True)
             retcode = 'C'
    return retcode
