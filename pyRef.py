@@ -41,11 +41,14 @@ def scan_for_pdfs(search_terms):
    for key in bb.entries_dict:
      entry = bb.entries_dict[key]
      copy  = entry.copy()
+     if 'VanderA' in str(copy):
+        #print('COPY ', type(copy), copy )
+        print('srch ', [x.lower() for x in search_terms])
      copy.pop('abstract',None)
 
-     if all ( x in str(copy) for x in search_terms):
+     #if all ( x in str(copy) for x in search_terms):
+     if all ( x.lower() in str(copy).lower() for x in search_terms):
        if 'file' in entry:
-         #oct 2021 pdf = copy['file'].split(':')[-1]
          pdf = copy['file'].split(':')[-2]
          print('MATCH:', len(pdfs), key, copy['file'], pdf) 
          if pdf.startswith('/home/'):
@@ -54,6 +57,7 @@ def scan_for_pdfs(search_terms):
            pdfs.append( texdir + pdf )
        else:
          print('NO PDF:', key )
+       #if 'VanderA' in str(copy): sys.exit()
    return pdfs
 
 def process_pdfs(pdfs):
