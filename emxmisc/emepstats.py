@@ -19,6 +19,7 @@ def obsmodstats (x,y,ymin=0.0,dcLimit=75,dbg=False):
   stats['meanx'] = np.nan
   stats['meany'] = np.nan
   stats['bias']  = np.nan
+  stats['rbias'] = np.nan # float version
   stats['R']     = np.nan
 
   x = np.array(x)
@@ -42,6 +43,7 @@ def obsmodstats (x,y,ymin=0.0,dcLimit=75,dbg=False):
   if dbg: print('MEANS ', meanx, meany )
   if ~np.isnan(meanx) and  ~np.isnan(meany): 
     stats['bias'] = int(  0.5+  100*(meany - meanx)/meanx )
+    stats['rbias'] = 100*(meany - meanx)/meanx
   stats['R']    = np.corrcoef(x[f],y[f])[0,1]
   stats['meanx'] = meanx
   stats['meany'] = meany
