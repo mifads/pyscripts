@@ -42,8 +42,12 @@ def obsmodstats (x,y,ymin=0.0,dcLimit=75,dbg=False):
   meany = np.mean(y[f])
   if dbg: print('MEANS ', meanx, meany )
   if ~np.isnan(meanx) and  ~np.isnan(meany): 
-    stats['bias'] = int(  0.5+  100*(meany - meanx)/meanx )
-    stats['rbias'] = 100*(meany - meanx)/meanx
+    rbias = 100*(meany - meanx)/meanx
+    if rbias > 0: 
+      stats['bias'] = int(  0.5 + rbias )
+    else:
+      stats['bias'] = -1 * int(  0.5 - rbias )
+    stats['rbias'] = rbias
   stats['R']    = np.corrcoef(x[f],y[f])[0,1]
   stats['meanx'] = meanx
   stats['meany'] = meany
