@@ -2,7 +2,9 @@
 #plotEmep + http://worksofscience.net/matplotlib/colorbar
 # From plotCordex3.py with different projection which was from plotrca....
 import matplotlib.pyplot as plt
-from  matplotlib.gridspec import GridSpec #see http://worksofscience.net/matplotlib/colorbar
+#DEC1: from https://stackoverflow.com/questions/30030328/correct-placement-of-colorbar-relative-to-geo-axes-cartopy#30077745
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+#DEC1 from  matplotlib.gridspec import GridSpec #see http://worksofscience.net/matplotlib/colorbar
 #import matplotlib.ticker as mticker
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
@@ -36,8 +38,10 @@ parser.add_option( '-o' ,help="Output file name", default="Screen")
 parser.add_option( '-t' ,help="Title",dest='title')
 parser.add_option( '-v' ,help="Variable name",dest='var')
 
-parser.add_option( '-b' ,help="add country borders",dest='borders', 
+parser.add_option( '-b' ,help="add country b, 'gray' is okayorders",dest='borders', 
                       default=False,action='store_true')
+parser.add_option( '--mercator', help="mercator proj", dest='mercator', default=False,action='store_true')
+parser.add_option( '--mesh', help="use pcolormesh", dest='mesh', default=False,action='store_true')
 parser.add_option( '--bullets' ,help="add bullets",nargs=1)
 parser.add_option( '--cmap' , help="cmap, eg --cmap hot,jet_r",
                       default='jet', dest='cmap', action='store',nargs=1)
@@ -45,6 +49,7 @@ parser.add_option( '--cmap' , help="cmap, eg --cmap hot,jet_r",
                      #default='YlOrRd', dest='cmap', action='store',nargs=1)
 parser.add_option( '--coast' ,help="Colour of coast",default='r')
 parser.add_option( '--skipcbar' ,help="No colourbar",dest='skipcbar')
+#FAILED parser.add_option( '--mercator' ,help="mercator proj",dest='mercator')
 parser.add_option( '--extent', help="extent (LonL,LonR,LatS,LatN), eg --extent -15.0,40.0,35.0,65.0",
                       default="-15.0,40.0,35.0,65.0",
                       dest='extent', action='store',nargs=1)
@@ -78,6 +83,7 @@ if opts.i is None:
 
 print("OPTS ALL  ", opts)
 
+ 
 
 #-----------------------------------------------------
 emepfile= opts.i
@@ -148,7 +154,13 @@ print("LONG LAT min max", dimx, dimy , ndim, vals.shape, vals.min(), vals.max())
 #CCC#projrot=ccrs.RotatedPole(pole_latitude=90.0,central_rotated_longitude=-162.0,globe=None)
 #CCC proj=ccrs.Stereographic(central_latitude=60.0,central_longitude=0.0)
 #CCC#proj=ccrs.RotatedPole(pole_latitude=39.25,pole_longitude=198.0,central_rotated_longitude=-162.0,globe=None)
-proj=ccrs.PlateCarree()
+print('PROJ IS', opts.mercator )
+if opts.mercator:
+  print('PROJ merc!')
+  proj=ccrs.Mercator()
+else:
+  print('PROJ  default')
+  proj=ccrs.PlateCarree()
 
 #CCC#EnsClim
 # & CORDEX RotPOle(198.0,39.25)  top-left corner Lon=331.79, Lat 21.67
@@ -165,23 +177,27 @@ img_bounds=list(map(float,img_extent))
 #D7_5: fig1=plt.figure(figsize=[8,6])
 fig1=plt.figure(figsize=[10,8])
 #gs = GridSpec(100,100,bottom=0.18,left=0.18,right=0.88)
-gs = GridSpec(100,100,bottom=0.05,left=0.05,right=0.88)
+#DEC1 gs = GridSpec(100,100,bottom=0.05,left=0.05,right=0.88)
 
 # ax for graph
-ax1 = fig1.add_subplot(gs[:,0:85],projection=proj,extent=img_bounds)
+#DEC1 ax1 = fig1.add_subplot(gs[:,0:85],projection=proj) # NOV30 ,extent=img_bounds)
+f, ax1 = plt.subplots(1, 1, subplot_kw=dict(projection=proj))
+ax1.set_extent(img_bounds,crs=ccrs.PlateCarree())
 
 # ax for colour bar 
 #axC = fig1.add_subplot(gs[20:80,95:99])
 #D7_5: axC = fig1.add_subplot(gs[20:90,95:99])
 #STARTS FROM TOP!!!
-cbar_dy= 20   # Pcnt 
-axC = fig1.add_subplot(gs[50-cbar_dy:50+cbar_dy,92:95])
+#DEC1 cbar_dy= 20   # Pcnt 
+#DEC1 axC = fig1.add_subplot(gs[50-cbar_dy:50+cbar_dy,92:95])
 ###################### GridSp
 
 ax1.coastlines(resolution='10m') # 10, 50, 110
 ax1.gridlines()
 if opts.borders:
-  ax1.add_feature(cfeature.BORDERS)  # odd looking: ,edgecolor='darkgray')
+  #ax1.add_feature(cfeature.BORDERS)  # odd looking: ,edgecolor='darkgray')
+  #ax1.add_feature(cfeature.BORDERS,ls='--',edgecolor='gray')  # odd looking: ,edgecolor='darkgray')
+  ax1.add_feature(cfeature.BORDERS,ls='--')  # odd looking: ,edgecolor='darkgray', 'gray' is okay)
 
 #----------- colors --------------------
 if opts.levels is None:
@@ -191,7 +207,8 @@ if opts.levels is None:
   #
   #M=plt.contourf(xi,yi,zT,cmap=cmap,extend='both')
   #CRDX hhh=plt.contourf(rlon,rlat,vals,cmap=cmap,extend='both') # Ens,transform=proj)
-  hhh=ax1.contourf(lons,lats,vals,cmap=cmap,extend='both') # Ens,transform=proj)
+  #NOV30 hhh=ax1.contourf(lons,lats,vals,cmap=cmap,extend='both') # Ens,transform=proj)
+  hhh=ax1.contourf(lons,lats,vals,cmap=cmap,extend='both',transform=ccrs.PlateCarree()) # transfort important?
 else:
   bounds=opts.levels.split(',')
   print("levels:", opts.levels)
@@ -210,27 +227,38 @@ else:
   Nv = len( v )  + 2 #CRDX
   print(" VV ", vv, Nv)
 
+  # see also https://stackoverflow.com/questions/48613920/use-of-extend-in-a-pcolormesh-plot-with-discrete-colorbar
   cmap = plt.cm.get_cmap(opts.cmap, len(v) )
-  #cmap = plt.cm.get_cmap("cool", len(v) )
   cmap.set_over('0.25')
   cmap.set_under('0.75')
   norm = mpl.colors.BoundaryNorm(v, cmap.N)
   print("LENGTH ", Nv, len(v), cmap.N)
 
-  #TEST cmap=mpl.cm.get_cmap(opts.cmap,Nv+1)
-  #TEST norm=mpl.colors.BoundaryNorm(v, cmap.N)
   #colours=[ cmap(i/(1.0*Nv)) for i in range(Nv) ]
-  #CRDX hhh=plt.contourf(rlon,rlat,vals,v,cmap=cmap,norm=norm,boundaries=vv,extend='both')
-  hhh=ax1.contourf(lons,lats,vals,v,cmap=cmap,norm=norm,boundaries=vv,extend='both')
+  #hhh=ax1.pcolormesh(lons,lats,vals,v,cmap=cmap,norm=norm,boundaries=vv,extend='both',transform=ccrs.PlateCarree())
+  if opts.mesh:
+    hhh=ax1.pcolormesh(lons,lats,vals,cmap=cmap,norm=norm,transform=ccrs.PlateCarree())
+  else:
+    hhh=ax1.contourf(lons,lats,vals,v,cmap=cmap,extend='both',transform=ccrs.PlateCarree()) # transfort important?
 
 
 if opts.skipcbar is None:
   print("Uses colorbar")
-  #cbar=plt.colorbar(ticks=bounds,orientation='horizontal')
+  # from https://stackoverflow.com/questions/30030328/correct-placement-of-colorbar-relative-to-geo-axes-cartopy#30077745
+  # following https://matplotlib.org/2.0.2/mpl_toolkits/axes_grid/users/overview.html#colorbar-whose-height-or-width-in-sync-with-the-master-axes
+  # we need to set axes_class=plt.Axes, else it attempts to create
+  # a GeoAxes as colorbar
+
+  divider = make_axes_locatable(ax1)
+  #ax_cb = divider.new_horizontal(size="5%", pad=0.1, axes_class=plt.Axes)
+  ax_cb = divider.new_horizontal(size="5%", pad=0.9, axes_class=plt.Axes)
+  f.add_axes(ax_cb)
+
   if opts.levels is None:
-     fig1.colorbar(hhh,ax=ax1,cax=axC)
+     plt.colorbar(hhh,cax=ax_cb)
+
   else:
-     cbar=fig1.colorbar(hhh,ax=ax1,cax=axC,ticks=v)
+     cbar=plt.colorbar(hhh,cax=ax_cb,ticks=v,extend='both')
 
 if opts.bullets is None:
   pass
@@ -240,6 +268,8 @@ else:
   bx=b[:,0]
   by=b[:,1]
   bz=b[:,2]
+# Might need transform=crs.Geodetic() or transform=crs.PlateCarree()
+# see mkSiteNamedMap.py
   B=ax1.scatter(bx,by,s=136,c=bz,marker='^',edgecolor='k',
           cmap=cmap,norm=norm,transform=proj)
 #  else:
@@ -255,10 +285,21 @@ if opts.title:
   #D7_5: ax1.text(12.5,70.0,opts.title,horizontalalignment='center')
   #TTT ax1.text(-14,74.0,opts.title,horizontalalignment='left',fontsize=18)
   #Oct2019 ax1.text(-14,85.0,opts.title,horizontalalignment='left',fontsize=18)
-  xtitle= np.mean(img_bounds[0:2]) - 10
-  ytitle= img_bounds[3]+5
+  xtitle= np.mean(img_bounds[0:2]) # - 10
+  ytitle= img_bounds[3]+0.1 # + 0.3 # MERC 5
+  #ytitle= 1.01* img_bounds[3] # MERC 5
+  print('XY??' , img_bounds, xtitle, ytitle) #->  [-15.0, 40.0, 35.0, 65.0] 2.5 70.0
   #ytitle= img_bounds[3]+12
-  ax1.text(xtitle,ytitle,opts.title,horizontalalignment='left',fontsize=18)
+  #NOV30 ax1.text(xtitle,ytitle,opts.title,horizontalalignment='left',fontsize=18)
+  #OR?
+  # see Cartopy_-_Basic_Maps_Scatter_Map_Bubble_Map_and_Connection_Map_eb.pdf
+  #ax1.text(xtitle,ytitle,opts.title,horizontalalignment='left',fontsize=18,transform=ccrs.Geodetic()) ## Important
+  #WORKS:ax1.text(xtitle,ytitle,opts.title,horizontalalignment='center',verticalalignment='bottom',fontsize=18,transform=ccrs.Geodetic()) ## Important
+  ax1.text(xtitle,ytitle,opts.title,horizontalalignment='center',verticalalignment='bottom',fontsize=18,transform=ccrs.PlateCarree()) ## Important
+  #OR? ax1.text(xtitle,ytitle,opts.title,horizontalalignment='left',fontsize=18,transform=ccrs.PlateCarree()) ## Important
+  #NOmerc plt.text(xtitle,ytitle,opts.title,horizontalalignment='left',fontsize=18,transform=ccrs.PlateCarree()) ## Important
+
+#print('HERE') plt.show() sys.exit()
 
 #ERR? fig1.tight_layout(pad=0)
 
