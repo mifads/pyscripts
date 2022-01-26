@@ -206,6 +206,8 @@ weibullw126.py
 |                            | pdf viewing. Hard-coded for Dave's      |
 |                            | Refs.bib so far, since just started.    |
 +----------------------------+-----------------------------------------+
+| write_emislist.py          | For writing NMVOC emissplit files       |
++----------------------------+-----------------------------------------+
 | LICENSE.txt                | GPL                                     |
 +----------------------------+-----------------------------------------+
 | README.md                  | This file.                              |
