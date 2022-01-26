@@ -92,6 +92,7 @@ pyRef.py | Just started! reads Dave's Refs.bib, and allows search and pdf viewin
 sum_regional_emissions.py | sums values from input netcdf over regions and globally. Used for emissions so far
 scanVerification.py | scans multiple Verification(scatterstations) results files and produces summary for annual statistics.
 scanLOGs.py | scans multiple LOG files from  Verification(scatterstations).
+write_emislist.py | function to write NMVOC split files
 LICENSE.txt         |             GPL
 README.md | This file.
 
