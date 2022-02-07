@@ -119,9 +119,12 @@ header='%-30s' % 'Variable'
 for c in labels: 
   header += ( '%18s' % c.replace('.%s'%args.year,'') )
   print('CCC%s:%s'% (c, c.replace('.%s'%args.year,'')) )
+  print("LEN", len(header))
   print('%s' %  header )
 print('FINAL %s' %  header )
+print('FINAL LEN' ,  len(header) )
 tab.write('%s\n' %  header )
+tab.write(header+"\n")
 months=list(range(1,13))
 colours = 'red orange yellow blue green'.split()
 
@@ -156,7 +159,18 @@ for var in args.varkeys:
                data_found=True # something to plot
              if args.nonegs:
                vals[vals<0] = np.nan
-             print('TMPV var ', key, tmpv.shape, i0, i1, j0, j1, np.nanmax(vals), np.nanmin(vals), ifile )
+             #DEBUG CO
+             #if np.nanmax(vals) > 1.0e9:
+             #  nt, nj, ni = np.shape(vals)
+             #  print('TMPV var ', key, tmpv.shape, i0, i1, j0, j1, np.nanmax(vals), np.nanmin(vals), ifile, nj, ni )
+             #  zz= np.nanmax(vals,axis=0)
+             #  for mm in range(12):
+             #    print('TMPV MM  ', mm, np.nanmax(vals), np.nanmax(vals[mm,:,:]), np.nanmin(vals) )
+             #  print('SHP', zz.shape )
+             #  jj, ii = np.where(zz==np.nanmax(zz))
+             #  for j, i in zip(jj,ii): # in case of repeated max
+             #   print('MAXLOC', key, j, i, vals[:,j,i] )
+          
              monthly = np.nanmean(vals,axis=(1,2))
              if dbg: print('TMPV monthly ', monthly, len(monthly))
            else:
