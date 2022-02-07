@@ -2,7 +2,9 @@
 from collections import OrderedDict as odict
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
 #import EmepStats
+import emxmisc.emepstats as emepstats #Nov2021
 dtxt='plotdiurnal:'
 
 def makediurnal(obs,mod=[],dstart=0,dend=367,debug=False):
@@ -15,9 +17,15 @@ def makediurnal(obs,mod=[],dstart=0,dend=367,debug=False):
   dtxt='makediurnal:'
   o24=np.zeros(24)
   n24=np.zeros(24)
+  if obs.ndim == 2:
+    obs = obs.flatten()
+    xcheck = np.array([ 1., 2., 3., 4.])
+    print('FLATTEN OBS to ', obs.ndim, np.shape(obs), np.shape(xcheck) )
   ndays =len(obs)//24
   haveModelled = len(mod)>0
   if haveModelled: # len(mod)>0:
+    if mod.ndim == 2:
+      mod = mod.flatten()
     assert len(obs) == len(mod), dtxt+'unequal lengths %d %d!!' % (len(mod), len(obs))
     m24=np.zeros(24)
   else:
@@ -28,16 +36,23 @@ def makediurnal(obs,mod=[],dstart=0,dend=367,debug=False):
     ndays = dend - dstart #+ 1
   h = 0
   doy=0
+  if debug: print('OBS in', type(obs), obs.ndim, len(obs), np.nanmax(obs), np.nanmin(obs), obs[0] )
+
   for n, o in enumerate(obs):
-     if np.isfinite(o) and o>=0.0:
-       if ( dstart <= doy < dend ):
-         o24[h] += o
-         n24[h] += 1
-         if haveModelled: m24[h] += mod[n]
-       h += 1
-       if h==24:
-          h=0
-          doy += 1
+    #print('NO ', n, obs[n], o)
+    if np.isfinite(o) and o>=0.0:
+     if ( dstart <= doy < dend ):
+      o24[h] += o
+      n24[h] += 1
+      if haveModelled: m24[h] += mod[n]
+      if debug: print('HOUT', doy, h, o, mod[n] )
+      if debug and  h==23 and ( np.nanmean(o24) > 0.0): 
+       print('DOYx', doy, n24[0], 100*(np.nanmean(m24)-np.nanmean(o24))/np.nanmean(o24) )
+    h += 1
+    if h==24:
+       h=0
+       doy += 1
+       #sys.exit()
   for h in range(24):
     if n24[h] >0:
        o24[h] /= n24[h]
@@ -45,7 +60,8 @@ def makediurnal(obs,mod=[],dstart=0,dend=367,debug=False):
     else:
        o24[h] = np.nan
        if haveModelled:  m24[h] = np.nan
-    if debug: print(dtxt+'CHECKn', len(obs), ndays, 100*n24[h] / ndays)
+    if debug: print(dtxt+'CHECKn', len(obs), ndays, 100*n24[h] / ndays, np.shape(o24) )
+  if debug: print(dtxt+'DONE  ', len(obs),  np.shape(o24), 100*n24/ndays )
   if haveModelled:
     return o24, m24, 100*n24/ndays
   else:
@@ -76,8 +92,10 @@ def plotdiurnal(concs=odict(),
   cols    = 'k r b g'.split()
   if len(lineLabels) ==0: lineLabels = list(concs.keys())
   for nk, key in enumerate( concs.keys()):
+    print('PLOTDIURNAL key',key, np.shape(concs[key]) )
     yvals = concs[key][:]
     print('PLOTDIURNAL means',nk, key, np.nanmean(yvals))
+    print('PLOTDIURNAL vals',yvals)
     if useMarkers: # Add markers, usually when gappy data
       plt.plot(hrs,yvals,lstyles[nk],lw=1.5,label=lineLabels[nk],marker='o')
     else:
