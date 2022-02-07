@@ -71,31 +71,37 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
      print( 'INTO emepscatplot p,x,y: ', p, x[i], y[i] )
 #vlimit=300.0
 #f=alt<vlimit
-  plt.subplot(111)
   plt.clf()
+  #OCT21 plt.subplot(111)
+  # fig, ax allows ax.transAxes for better label poistion
+  # see stackoverflow.com/questions/62856272/position-font-relative-to-axis-using-ax-text-matplotlib
+  fig, ax = plt.subplots()
   #  x = np.log(x)
   #  y = np.log(y)
-  fig=plt.scatter(x,y,color='b')
+  #OCT21 fig=plt.scatter(x,y,color='b')
+  ax.scatter(x,y,color='b')
   if loglog is True:
-    t= plt.xticks()
+    t= ax.xticks()
     print('TTT', t)
-    plt.xticks([1.0e-2,5.0e-2,0.1,0.3,0.5,0.7,1.0,3.0,1.0e2])
-    plt.yticks([1.0e-2,5.0e-2,0.1,0.3,0.5,0.7,1.0,3.0,1.0e2])
-    plt.xscale('log')
-    plt.yscale('log')
-  plt.xlabel(xlabel, fontsize=16)
-  plt.ylabel(ylabel, fontsize=16)
-  v=plt.axis()
+    ax.xticks([1.0e-2,5.0e-2,0.1,0.3,0.5,0.7,1.0,3.0,1.0e2])
+    ax.yticks([1.0e-2,5.0e-2,0.1,0.3,0.5,0.7,1.0,3.0,1.0e2])
+    ax.xscale('log')
+    ax.yscale('log')
+  ax.set_xlabel(xlabel, fontsize=12)
+  ax.set_ylabel(ylabel, fontsize=12)
+  v=ax.axis()
   maxv=max(v)
   minv=min(v)
 
   if addxy>0.0:
       maxv += addxy
   if title: # Hard-coded position so far, top-left
-    plt.title(title, fontsize=labelsize)
+    ax.title(title, fontsize=labelsize)
   if label: # Hard-coded position so far, top-left
-    plt.text(labelx*maxv,labely*maxv,label, fontsize=labelsize)
-  plt.gca().set_aspect('equal')
+    ax.text(labelx,labely,label, fontsize=labelsize,transform=ax.transAxes)
+  print('XYLAB', maxv, minv, labelx*maxv, labely*maxv, v, xlabel,label)
+  #plt.gca().set_aspect('equal')
+  ax.set_aspect('equal')
     
 
 ###########################################################################
@@ -145,7 +151,7 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
       col='k'
       if skipi[n] : col='r'
       print(dtxt, n, skipi[n], pcodes[n], x[n], y[n])
-      plt.text(x[n],y[n],label,color=col,fontsize=10)
+      ax.text(x[n],y[n],label,color=col,fontsize=10)
 
 #J8  v=plt.axis() #J8  maxv=max(v)
 
@@ -155,7 +161,7 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
 
   #lin=(0,maxv) # 1:1 line
   lin=(minv,maxv) # 1:1 line
-  plt.plot(lin,lin,'g--')
+  ax.plot(lin,lin,'g--')
 
 #### regression line - all data ###########################################
   #[m,c]=np.polyfit(x,y,1) #r=np.corrcoef(x,y)
@@ -163,9 +169,9 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   #BUG fit=( c, c+m*lin[1] )
   fit=( c+m*lin[0], c+m*lin[1] )
   if skipOutliers:
-    plt.plot(lin,fit,'r--')
+    ax.plot(lin,fit,'r--')
   elif regline_wanted:
-    plt.plot(lin,fit,'k--')
+    ax.plot(lin,fit,'k--')
   #plt.plot(lin,fit,'c--')
 
 ###########################################################################
@@ -184,7 +190,7 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
     [mn,cn]=np.polyfit(xn,yn,1)
     rn=np.corrcoef(xn,yn)
     fitn=( cn, cn+mn*lin[1] )
-    plt.plot(lin,fitn,'k--') # non outliers in black
+    ax.plot(lin,fitn,'k--') # non outliers in black
 
   vspan = maxv+abs(minv)  # complete axis length
   if statsxy is not None:
@@ -194,8 +200,7 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   dvpos=0.05*vspan   # increment between text lines
 
   if addStats:
-     #plt.text(0.6*maxv,0.25*maxv,'Year %4s'% year,fontsize=12)
-     #plt.text(0.6*maxv,0.2*maxv,'Max altitude %4.0f m'% vlimit,fontsize=12)
+
      regline = 'y= %4.2f x + %6.1f'%( m, c)
      col='b'
      if skipOutliers: col='r'  # keep black for non-outliers
@@ -210,26 +215,31 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
      xpos = minv + 0.6*vspan
      if statsxy is not None:
        xpos = minv + statsxy[0]*vspan
-     print('TTTTT', m, c, maxv, minv, vpos, xpos)
-     plt.text(xpos,vpos,regline,color=col,fontsize=12)
-     vpos -= dvpos
-     plt.text(xpos,vpos,corrtxt,color=col,fontsize=12)
+     print('TTTTT', m, c, maxv, minv, vpos, vspan, xpos)
+     #plt.text(xpos,vpos,regline,color=col,fontsize=12)
+     #plt.figtext(labelx,labely-0.05,regline,color=col,fontsize=12)
+     print('XYSTAT', maxv, minv, labelx*maxv, labely*maxv, v, xlabel,label)
+     # Switch to using ax.transAxes
+     #tips from https://stackoverflow.com/questions/62856272/position-font-relative-to-axis-using-ax-text-matplotlib
+     dvpos = 0.05 # ax coords 0-1
+     ax.text(labelx,labely-dvpos,regline,color=col,fontsize=12,transform=ax.transAxes)
+     #vpos -= dvpos
+     #plt.text(xpos,vpos,corrtxt,color=col,fontsize=12)
+     ax.text(labelx,labely-2*dvpos,corrtxt,color=col,fontsize=12,transform=ax.transAxes)
 
   if skipOutliers: # Now text for non-outliers in black
      vpos -= dvpos
-     plt.text(xpos,vpos,'y= %4.2f x + %6.1f'%( mn, cn),color='k',fontsize=12)
+     ax.text(xpos,vpos,'y= %4.2f x + %6.1f'%( mn, cn),color='k',fontsize=12)
      vpos -= dvpos
-     plt.text(xpos,vpos,'Corr.= %6.2f'%rn[0,1],color='k',fontsize=12)
-  #SEP 2018 plt.axis([0,maxv,0,maxv])
-  #plt.axis([minv,maxv,minv,maxv])
+     ax.text(xpos,vpos,'Corr.= %6.2f'%rn[0,1],color='k',fontsize=12)
   if minxy is not None:
     minv=minxy
-  plt.axis([minv,maxv,minv,maxv])
+  ax.axis([minv,maxv,minv,maxv])
 
   if txt:  # place in upper left
     vpos=minv+0.90*vspan   #  vertical position  for text below, was 0.22
     xpos = minv + 0.01*vspan
-    plt.text(xpos,vpos,txt,color='k',fontsize=12)
+    ax.text(xpos,vpos,txt,color='k',fontsize=12)
   #plt.xbound(0,2*maxv)
   #plt.axis('scaled')
   #plt.axis('equal')
