@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf8 -*-
+"""
+  getDiurnal - returns 24 mean vals from vector or 365x24 array
+  getDayNightIndex - calculates ratio di24 = dmax/dmin 
+  getSeasonalMetrics - outputs either sum or average of e.g. AOT, M7, O3 ...
+"""
 
 import numpy as np
 import calendar
@@ -82,6 +87,7 @@ def getDayNightIndex(o3,dbg=False):
   return di24
 #-----------------------------------------------------------------------------
 
+
 def getSeasonalMetrics(yr, x, metric,mm1,nmm,accumulate,
    monthlyWanted=False,  # returns seasonal and monthly if True
    correctionWanted=True, # scales for missing values.
@@ -121,7 +127,6 @@ def getSeasonalMetrics(yr, x, metric,mm1,nmm,accumulate,
   dtxt='getSM:'
   mtxt=dtxt+metric+':'  # eg getSM:AOT40:
 
-
   for imm in range(nmm):
      mm = mm1 + imm
      if mm > 12: mm = mm - 12
@@ -152,7 +157,7 @@ def getSeasonalMetrics(yr, x, metric,mm1,nmm,accumulate,
      frac[mm] = nsum[mm] / nmdays[mm]
      if dbg: print('\nMM'+mtxt+' Date ', day,  mm, dd, 
        ' Msum=', msum[mm], ' Nsum=', nsum[mm], 
-       ' nActive=', nActiveDays, ' nValid=', nValidDays )
+       ' nActive=', nActiveDays, ' nValid=', nValidDays, 'inGS?', in_season[mm]  )
 
      if frac[mm] > min_days_fraction:
          if dbg: print('VM'+mtxt+'   Valid month ', mm, 
