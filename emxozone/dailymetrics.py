@@ -18,9 +18,16 @@
   time-zone already. If needed, the function settzo3 can make this
   shift, and also just return smaller array if hours limited
   NB:
-  EU AOT40 is 08:00 - 19:59 CET ie 09:00-20:59 GMT
-    # Data for hh==8 say is from 08:00:00 to 09:00:00
-    # and 20 gives up to 20:59 say, all GMT
+  BUG in thinking: EU AOT40 is 08:00 - 19:59 CET ie 09:00-20:59 GMT
+  EU AOT40 is 08:00 - 19:59 CET ie 07:00-18:59 GMT  
+    # Data for hh==1 say (with hh from 0 to 23) is from 00:00 to 01:00 GMT
+    # Data for hh==8 say (with hh from 0 to 23) is from 07:00 to 08:00 GMT
+    #  ie                                          from 08:00 to 09:00 CET
+    # Data for hh==20    (with hh from 0 to 23) is from 07:00 to 20:00 GMT
+    #  ie                                          from 20:00 to 21:00 CET
+    # So need hh=8 to hh=19, python range (8:20)
+    (Note: CET not CEST, ie no summertime correction
+     see EU_AirQualityDirective_CELEX_32008L0050_2008eb.pdf)
 
     Valid data? Any O3 less than zero is set to np.nan
 """
@@ -115,7 +122,14 @@ def m7(o3,dbg=False):
   return mean_of_ValidHrs( o3used ) 
 #-----------------------------------------------------------------------------
 def m12(o3,dbg=False):
-  o3used = settzo3(o3,9,20)          # 08:00 - 19:59
+  #o3used = settzo3(o3,9,20)          # 08:00 - 19:59
+  #if dbg: print('M12 o3 type ', type(o3))
+  # Bug 8 to 20 isn't python range here
+  #BUG o3used = settzo3(o3,8,20)          # 08:00 - 19:59
+  o3used = settzo3(o3,8,19)          # 08:00 - 19:59
+  if dbg: print('M12 len ', len(o3used))
+  if dbg: print('M12 shape ', o3used)
+  if dbg: print('M12: ', o3used )
   return mean_of_ValidHrs( o3used ) 
 #-----------------------------------------------------------------------------
 def AOT40(o3,dbg=False):
@@ -182,8 +196,9 @@ def EUAOT40(o3,dbg=False):
         pValid += 1
     if dbg: print( ' AOT ', h, o3[h], max(0.0,o3[h]-40.0), aot, pValid )
   pValid = (100.0*pValid)/(hh2+1-hh1)
+  tmp= aot
   if pValid  < 1.0 : aot = np.NaN
-  #print( ' AOTF ', aot, pValid )
+  if dbg: print( ' AOTF ', tmp, aot, pValid, o3[hh1:hh2+1] )
   #aot =np.sum(o3[hh1:hh2])
   return aot, pValid
 
@@ -283,8 +298,10 @@ if __name__ == '__main__':
     print('Test%d with tz=%d ' % (case,tz) + multiwrite(o3,'%3.0f') )
 
 #    gg=EUAOT40(o3)
-#    m=m7(o3,dbg=True)
-#    print( ' Simple M7: ', tz,  m )
+    m=m12(o3,dbg=True)
+    print( ' Simple M12: ', tz,  m )
+    sys.exit()
+
   
 #    r=get_metrics(o3)  # was metrics2, why?
 #    o3p = np.ones(24)
