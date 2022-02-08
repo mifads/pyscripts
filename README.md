@@ -41,6 +41,9 @@ macc2emep.py  |  Converts TNO/MACC format files to EMEP emission netcdf files
 normaliseEmisSplits.py |  normalises arrays to 1.0, eg F1, F2 to F emissplits
 cams_emep_coords.py | returns lats, lons, grid info for simple cases
 mkMonthlyFacs_EclipseSNAP.py  | makes MonthlyFac files for global runs
+camsmakeNMVOCsplits.py        | creates emissplits for CAMS-REG-v5_1_with_Ref2_0_1_year2018_DT_rnr
+camsmakePMsplits.py           | creates emissplits for CAMS-REG-v5_1_with_Ref2_0_1_year2018_DT_rnr
+camsmakePMsums.py             | prep sums for emissplits
 
 emxmisc code                  | Comment
 :--------------------------   |:---------------------------------------

@@ -82,6 +82,10 @@ The code is organised in ‘emx’ directories (emx = emep/esx)
 +----------------------------+-----------------------------------------+
 |normaliseEmisSplits.py      | normalises eg F1, F2 to F emissplits    |
 +----------------------------+-----------------------------------------+
+|camsmakeNMVOCsplits.py      | creates emissplits for CAMS-REG-v51rnr  |
+|camsmakePMsplits.py         | creates emissplits for CAMS-REG-v51rnr  |
+|camsmakePMsums.py           | prep sums for emissplits                |
++----------------------------+-----------------------------------------+
 
 +----------------------------+-----------------------------------------+
 | emxmisc code               | Comment                                 |
@@ -194,7 +198,7 @@ weibullw126.py
 |                            | regions and globally. Used for          |
 |                            | emissions so far                        |
 +----------------------------+-----------------------------------------+
-| scanLOGs.py                | scans multiple LOG files from                           |
+| scanLOGs.py                | scans multiple LOG files from           |
 |                            | Verification(scatterstations) results   |
 +----------------------------+-----------------------------------------+
 | scanVerification.py        | scans multiple                          |
