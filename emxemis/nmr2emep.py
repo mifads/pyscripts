@@ -5,9 +5,9 @@
   Updated Nov 2019 for new sector possibilities
   previous:  July 2017
   From  NMR-RWC, reads file such as :
-  Lon;Lat;ISO3;Year;GNFR_Sector;SourceType;EC_coarse;OC_coarse;EC_fine;OC_fine;remPPM25;remPPMc
-30.35;53.075;BLR;2015;A;6.238825725;8.110473443;170.83743528;1533.297820456;118.248394664;48.038958088
-
+Lon;Lat;ISO3;Year;GNFR_Sector;SourceType;EC_coarse;OC_coarse;SO4_coarse;Na_coarse;OthMin_coarse;EC_fine;OC_fine;SO4_fine;Na_fine;OthMin_fine
+-4.250000000;48.025000000;FRA;2015;Cf;A;3.258181162;0.183700710;0.000000000;0.211288887;17.475717960;15.773615404;44.312587775;0.609503468;0.116269231;29.658024453
+14.750000000;41.325000000;ITA;2015;Cf;A;0.185477034;0.000000000;0.000000000;0.003279270;0.139170701;0.576266359;2.241383583;0.088344069;0.041452721;1.197825403
 """
 import argparse
 from collections import OrderedDict as odict
@@ -48,8 +48,11 @@ logger.warning('WARN args: '+ str(args))
 extraSnaps=False
 
 extraSnaps = True # TMP
-pollmap = dict( EC_coarse = 'EC_c', OC_coarse='OC_c', EC_fine='EC_f', 
-  OC_fine='OC_f', remPPM25='remPPM25', remPPMc = 'remPPMc', SO4_coarse='SO4', SO4_fine='SO4' )
+pollmap = dict(
+  EC_coarse = 'EC_c',  OC_coarse='OC_c',
+  EC_fine='EC_f',      OC_fine='OC_f',
+  remPPM25='remPPM25', remPPMc = 'remPPMc',
+  SO4_coarse='pSO4',   SO4_fine='SO4' )
 
 if not os.path.exists(args.ifile): sys.exit('Error!\n File does not exist: '+args.ifile)
 
@@ -85,6 +88,17 @@ else:
 if extraSnaps==True: extended='_ext'
 
 df=pd.read_csv(args.ifile,sep=";")
+
+# merge to remPPM:
+df['remPPM25'] = df.Na_fine + df.OthMin_fine
+df['remPPMc']  = df.Na_coarse + df.OthMin_coarse
+df.drop(['Na_fine',   'OthMin_fine'],axis=1,inplace=True)
+df.drop(['Na_coarse', 'OthMin_coarse'],axis=1,inplace=True)
+df['GNFR_Sector'] = 'C'  # from Cb, Cf, C
+
+bfile='tmpnmr'+os.path.basename(args.ifile)
+df.to_csv(bfile,index=False,sep=";")  # tmp output as csv
+
 dflons=np.sort( df.Lon.unique() )
 dflats=np.sort( df.Lat.unique() )
 countries = df.ISO3.unique()
@@ -125,9 +139,7 @@ globattrs={
                 'Conventions': "CF-1.0" ,
                 'projection': "lon lat" ,
                 'Grid_resolution': "0.1" ,
-                'Created_with': "R version 3.6.2 (2019-12-12)" ,
-                'ncdf4_version': "1.17" ,
-                'Created_by': codetxt.codetxt(),  # will add script and data
+                'Created_by': codetxt.codetxt(__file__),  # will add script and date
                 'Data_from': "TNO, J. Kuenen, Jan 2022",
                 'MSC-W_Contact': "David Simpson",
                 'Sector_names': "GNFR_CAMS" ,
@@ -154,10 +166,14 @@ globattrs={
 }
 
 
+all_polls = True  # produce file with all polls
+if all_polls:
+  xrarrays=[] #
 for poll in polls:
 
-  if 'OC_f' not in poll: continue
-  xrarrays=[]
+#  if 'OC_f' not in poll: continue
+  if not all_polls:
+    xrarrays=[] #
 
   sectemis = dict()
   SumEmis  =  np.zeros([ len(lats),len(lons) ])
@@ -225,10 +241,10 @@ for poll in polls:
 
       sectemis[v][iy,ix] += x
       sectemis[vtot][iy,ix] += x
-      if abs(lon-17.65) < 0.001 and ( 45 < lat < 50 ):
-        print('LLAT ',v,lon,lat, ymin, 10*(lat-ymin), iy, x, sectemis[vtot][iy,ix])
+      #if abs(lon-17.65) < 0.001 and ( 45 < lat < 50 ):
+      #  print('LLAT ',v,lon,lat, ymin, 10*(lat-ymin), iy, x, sectemis[vtot][iy,ix])
 
-  print('ENDKEYS ', v, iso3, poll, sectemis.keys() )
+  #print('ENDKEYS ', v, iso3, poll, sectemis.keys() )
   for v in sectemis.keys():
     fields=v.split('_')
     iso2=fields[0]
@@ -243,7 +259,12 @@ for poll in polls:
        coords={'lat':lats,'lon':lons},data=sectemis[v].copy() ) )
 
   # end of poll:
-  xrout =  cdf.create_xrcdf(xrarrays,globattrs=globattrs,outfile='nmrTnoEmis%s_%s.nc' % ( poll, args.label) ,skip_fillValues=True)
+  if not all_polls:
+    xrout =  cdf.create_xrcdf(xrarrays,globattrs=globattrs,outfile='xxnmrTnoEmis%s_%s.nc' % ( poll, args.label) ,skip_fillValues=True)
+if all_polls:
+  ofile='nmr'+os.path.basename(args.ifile).replace('.csv','.nc')
+  xrout =  cdf.create_xrcdf(xrarrays,globattrs=globattrs,outfile=ofile,skip_fillValues=True)
+  #xrout =  cdf.create_xrcdf(xrarrays,globattrs=globattrs,outfile='xxnmrTnoEmis%s_%s.nc' % ( 'polls', args.label) ,skip_fillValues=True)
 #  sys.exit()
 
 
