@@ -40,8 +40,8 @@ def xcreate_cdf(variables,ofile,typ,lons,lats,lonlatfmt='full',txt='',dbg=False)
 # "Can't add HDF5 file metadata"
 # May 12th . changed longitude to lon in 1st. 2018-02-26 - added back full:
   lonv, latv = 'lon', 'lat' 
-  #if lonlatfmt == 'full':
-  if lonlatfmt is 'full':
+  #if lonlatfmt is 'full':
+  if lonlatfmt == 'full':
      lonv, latv = 'longitude', 'latitude'
   lonvar = cdf.createVariable(lonv,'f4' ,('lon',))
   latvar = cdf.createVariable(latv,'f4' ,('lat',))
@@ -67,7 +67,8 @@ def xcreate_cdf(variables,ofile,typ,lons,lats,lonlatfmt='full',txt='',dbg=False)
 
    for key in variables[var].keys():
      #print('KEY', key)
-     if key is 'data':
+     #if key is 'data':
+     if key == 'data':
        pass
      else:
        if dbg: print('ATTR', key, variables[var][key])
@@ -127,8 +128,8 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,nctimes=None,
 # "Can't add HDF5 file metadata"
 # May 12th . changed longitude to lon in 1st. 2018-02-26 - added back full:
   lonv, latv = 'lon', 'lat' 
-  #if lonlatfmt == 'full':
-  if lonlatfmt is 'full':
+  if lonlatfmt == 'full':
+  #if lonlatfmt is 'full':
      lonv, latv = 'longitude', 'latitude'
   lonvar = cdf.createVariable(lonv,'f4' ,('lon',))
   latvar = cdf.createVariable(latv,'f4' ,('lat',))
@@ -168,7 +169,8 @@ def create_cdf(variables,ofile,typ,lons,lats,times=None,nctimes=None,
 
    for key in variables[var].keys():
      #print('KEY', key)
-     if key is 'data':
+     #if key is 'data':
+     if key == 'data':
        pass
      else:
        if dbg: print('ATTR', key, variables[var][key])
@@ -267,14 +269,14 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False):
     #if 'str' in type(a): print('STRING ', a )
     print('A  keys', a.keys())
     varname = a['varname']
-    print('XR VAR ', varname)
+    #print('XR VAR ', varname)
     print('XR sub ', varname, a['attrs'], type(a['attrs']) )
     print('XR keys', varname, a.keys())
-    c  = a['coords']
+    #c  = a['coords']
     #print('XR ckeys', varname, c.keys())
-    #print('XR coord? ', varname, c['lon'], type(c['lon']) )
     #print('XR coords ', varname, c['lon'], type(c['lon']) )
     #print('XR digits %s %12.6f '% (varname, c['lon'][0]) )
+    #print('XR sizes', varname, a['attrs'] ) 
     field = xr.DataArray(a['data'],dims=a['dims'],coords=a['coords'],
                            attrs=a['attrs'])
     xrdatasets.append( xr.Dataset({varname:field}) )
@@ -344,8 +346,9 @@ if __name__ == '__main__':
 
   xrarrays = []
   xrarrays.append( dict(varname='xrxr', dims=['lat','lon'],
-     attrs = {'note':'test xx','NOTE':'test att'},
+      attrs = {'note':'test xx','sector':3,'NOTE':'test att'},
      coords={'lat':lats,'lon':lons},data=data ) )
+#ds.time.encoding["dtype"] = "float64"
 
   #xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR2.nc')
   xrtestFill =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='fill_ntestXR2.nc',skip_fillValues=True)
