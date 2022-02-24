@@ -255,64 +255,83 @@ def createCDF(variables,ofile,typ,lons,lats,data,lonlatfmt='full',txt='',dbg=Fal
   cdf.close()
 ####################
 
-def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False):
+def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sigfigs=-1):
   """
    Mar 2021 - added FillValue treatment, based upon tips in https://stackoverflow.com/questions/45693688/xarray-automatically-applying-fillvalue-to-coordinates-on-netcdf-output#45696423
    Use always for coords, but user can choose for variables
+   sigfigs: number significant figures in output. Set negative to skip
   """
 
   xrdatasets = []
 
   print(len(xrarrays), type(xrarrays))
   for a in xrarrays:
-    print('A  type', type(a))
-    #if 'str' in type(a): print('STRING ', a )
-    print('A  keys', a.keys())
-    varname = a['varname']
-    #print('XR VAR ', varname)
-    print('XR sub ', varname, a['attrs'], type(a['attrs']) )
-    print('XR keys', varname, a.keys())
-    #c  = a['coords']
-    #print('XR ckeys', varname, c.keys())
-    #print('XR coords ', varname, c['lon'], type(c['lon']) )
-    #print('XR digits %s %12.6f '% (varname, c['lon'][0]) )
-    #print('XR sizes', varname, a['attrs'] ) 
-    field = xr.DataArray(a['data'],dims=a['dims'],coords=a['coords'],
+      varname = a['varname']
+      print('XR sub ', varname, a['attrs'], type(a['attrs']))
+      print('XR keys', varname, a.keys())
+      print('XR coords', varname, a.keys())
+      field = xr.DataArray(a['data'],
+                           dims=a['dims'],
+                           coords=a['coords'],
                            attrs=a['attrs'])
-    xrdatasets.append( xr.Dataset({varname:field}) )
+      xrdatasets.append(xr.Dataset({varname: field}))
 
   outxr = xr.merge(xrdatasets)
+
   # Added following CAMS71/scripts testing.
-  outxr.lat.attrs={'long_name':'latitude','units':'degrees_north','standard_name':'latitude'} # below: ,'_FillValue':False}
-  outxr.lon.attrs={'long_name':'longitude','units':'degrees_east','standard_name':'longitude'} # below: ,'_FillValue':False}
-  #print('GLOB', globattrs)
-  #globattr = dict(aa='AA',bb='BB')
-  #outxr.attrs['global'] = globattrs
-  for key, val in globattrs.items():
-    outxr.attrs[key] = val
+  outxr.lon.attrs = {
+        'long_name': 'longitude',
+        'units': 'degrees_east',
+        '_FillValue': False,
+        'standard_name': 'longitude'
+  }
+  outxr.lat.attrs = {
+        'long_name': 'latitude',
+        'units': 'degrees_north',
+        '_FillValue': False,
+        'standard_name': 'latitude'
+  }
+
+  #for key, val in globattrs.items():
+  #  outxr.attrs[key] = val
+
+      #for var in outxr.coords:  # Coordinates should never need FillValue!
+    # was following https://stackoverflow.com/questions/45693688/xarray-automatically-applying-fillvalue-to-coordinates-on-netcdf-output#45696423
+    # but didn't work. Added FillValue above
+    #    print('OUTXR coords ', var)
+    #    encoding[var] = {'zlib':False,'_FillValue': False}
+
+    # compression settings:
 
   encoding=dict()
+  data_comp = dict(zlib=True, complevel=5, shuffle=True,  # _FillValue=np.nan,
+                     dtype='float32')
 
-  print('OUTXR keys', outxr.keys())
   for var in outxr.coords:
-    print('OUTXR:::::', var)
-    # if skip_fillValues is True: # Coordinates should never need FillValue!
-    encoding[var] = {'_FillValue':False} # need to init encoding:w
+      if var=='lat': continue  # as defined aboe. Otherwise error
+      if var=='lon': continue
+      encoding[var] = data_comp
+      print('OUTXR coords ', var, data_comp)
 
+  if sigfigs > 0:
+      data_comp['least_significant_digit'] = np.int32(sigfigs)
+      globattrs['least_significant_digit'] = np.int32(sigfigs)
+
+  if skip_fillValues is True: # Coordinates should never need FillValue!
+     data_comp['_FillValue'] = False
+  else:
+     data_comp['_FillValue'] = True
+    # encoding[var] = {'_FillValue':False} # need to init encoding:w
     #if var=='time' and  timeVar == 'days_since_1990':
     #  encoding['time'] = dict()
     #  encoding['time']['units'] = timeVar
 
   for var in outxr.data_vars:
-    print('VARxr ', var)
-    encoding[var]={ 'shuffle':True,
-                    'dtype':'float32',
-#                    'dtype':'float64',
-#                   'chunksizes':[8, ny, 10],
-                   'zlib':True,
-                   'complevel':5}
-    if skip_fillValues is True:
-      encoding[var]['_FillValue'] = False
+      encoding[var] = data_comp
+      print('OUTXR vars ', var, data_comp)
+
+  #  if skip_fillValues is True:
+  #    encoding[var]['_FillValue'] = False
 # Consider least_significant_digit=4 to get 4 sif figures? See
 # Notes.Notes.netcdfCompression
   print('XRmake', outfile)
