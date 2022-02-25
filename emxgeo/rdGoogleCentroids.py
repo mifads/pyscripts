@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
+import os
 import sys
 #ISO  ISO3  ISO-Numeric   fips  Country Capital Area(in sq km) Population   Continent    tld   CurrencyCode  CurrencyName  Phone  Postal Code Format   Postal Code Regex    Languages    geonameid    neighbours   EquivalentFipsCode
 
@@ -8,7 +9,8 @@ import sys
 def getGoogleCentroids(iso2,dbg=False):
 
   geo=dict()
-  with open('/home/davids/Data/GEODATA/google_centroids.txt',errors='ignore',encoding='utf-8') as f:
+  homeDir=os.environ['HOME']
+  with open(homeDir+'/Data/GEODATA/google_centroids.txt',errors='ignore',encoding='utf-8') as f:
     for line in f:
       #print(line.encode('utf-8'))
       #print(line) FAILS
