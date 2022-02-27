@@ -60,8 +60,8 @@ def km2_AreaLonLatCell(clat,dll): # centres
   return S
 
 # And from https://gis.stackexchange.com/questions/127165/more-accurate-way-to-calculate-area-of-rasters
-def km2_area_of_pixel(center_lat, pixel_size): #DS re-ordered, center_lat):
-    """Calculate m^2 area of a wgs84 square pixel.
+def km2_area_of_wgs84pixel(center_lat, pixel_size): #DS re-ordered, center_lat):
+    """Calculate km^2 area of a wgs84 square pixel.
 
     Adapted from: https://gis.stackexchange.com/a/127327/2397
 
@@ -147,6 +147,21 @@ def globArea_km2():
     print("Glob area,%15s, %15.7e km2, %15.7e m2" % (  key, val, 1.0e6*val ))
   print("cf: http://www.jpz.se/Html_filer/wgs_84.html:", 510065621.724 )
 
+def globArea_comp():
+    """ from https://scipython.com/book/chapter-2-the-core-python-language-i/questions/problems/estimating-the-surface-area-of-the-earth/"""
+    import math
+    a = 6378137.0           # semi-major axis, m
+    c = 6356752.314245      # semi-minor axis, m
+    e2 = 1 - (c/a)**2
+    e = math.sqrt(e2)
+    A_WGS84 = 2*math.pi*a**2*(1 + (1-e2)/e * math.atanh(e))
+    A_WGS84                 # 510065621724078.94  # fits _pixel v. well!
+    r = 6371000.            # mean radius, m
+    A_sphere = 4 * math.pi * r**2
+    A_sphere                # 510064471909788.25 
+    #(A_WGS84 - A_sphere)/A_WGS84 * 100 =  0.00022542477707103626,  ie 0.00023%
+    print("Glob area from comp (km2): %15.7e %15.7e" % ( 1.0e-6*A_WGS84, 1.0e-6*A_sphere) ) 
+
 if __name__ == '__main__' :
   dll = 1.0
   print("Area XX Oslo,%f deg"%dll , km2_AreaLonLatCell(60.0,1.0))
@@ -165,8 +180,8 @@ if __name__ == '__main__' :
 # https://stackoverflow.com/questions/28372223/python-call-function-from-string#28372280
 # and *val from https://note.nkmk.me/en/python-argument-expand/
 
-clat=60.0; dLat=dLon=dll=1.0
 clat=60.0; dLat=dLon=dll= 30.0/60
+clat=60.0; dLat=dLon=dll=1.0
 functions = dict( km2_areaLonLatCell=(clat,dLat,dLon), km2_areaLatCell=(clat,dll), 
                   km2_areaLonLatCellX=(clat,dLat,dLon), km2_AreaLonLatCell=(clat,dll),
                   km2_area_of_pixel=(clat,dll),  km2_area_wgs84cell=(clat,dll) )
@@ -174,4 +189,5 @@ for key, args in functions.items():
   print( 'AREA FUNC %15s %12.3e km2 ' % ( key,  locals()[key](*args) ) )
 
 x=globArea_km2()
+globArea_comp()
 
