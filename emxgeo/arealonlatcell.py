@@ -59,11 +59,16 @@ def km2_AreaLonLatCell(clat,dll): # centres
   #print rLat1, rLat2, S 
   return S
 
-# And from https://gis.stackexchange.com/questions/127165/more-accurate-way-to-calculate-area-of-rasters
+def km2_areaLonLat_of_wgs84pixel(clat,dLat,dLon): 
+    """ uses RGS84 pixel calc, but accounts for unequal dlat, dlon """
+    km2pixel=km2_area_of_wgs84pixel(clat,dLat)
+    return dLon/dLat * km2pixel  # simple scale
+
 def km2_area_of_wgs84pixel(center_lat, pixel_size): #DS re-ordered, center_lat):
     """Calculate km^2 area of a wgs84 square pixel.
 
     Adapted from: https://gis.stackexchange.com/a/127327/2397
+    see: https://gis.stackexchange.com/questions/127165/more-accurate-way-to-calculate-area-of-rasters  
 
     Parameters:
         pixel_size (float): length of side of pixel in degrees.
@@ -184,7 +189,7 @@ clat=60.0; dLat=dLon=dll= 30.0/60
 clat=60.0; dLat=dLon=dll=1.0
 functions = dict( km2_areaLonLatCell=(clat,dLat,dLon), km2_areaLatCell=(clat,dll), 
                   km2_areaLonLatCellX=(clat,dLat,dLon), km2_AreaLonLatCell=(clat,dll),
-                  km2_area_of_pixel=(clat,dll),  km2_area_wgs84cell=(clat,dll) )
+                  km2_area_of_wgs84pixel=(clat,dll),  km2_area_wgs84cell=(clat,dll) )
 for key, args in functions.items():
   print( 'AREA FUNC %15s %12.3e km2 ' % ( key,  locals()[key](*args) ) )
 
