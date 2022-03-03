@@ -307,18 +307,20 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sig
   data_comp = dict(zlib=True, complevel=5, shuffle=True,  # _FillValue=np.nan,
                      dtype='float32')
 
-  for var in outxr.coords:
-      if var=='lat': continue  # as defined aboe. Otherwise error
-      if var=='lon': continue
-      encoding[var] = data_comp
-      print('OUTXR coords ', var, data_comp)
+#F22  for var in outxr.coords:
+#F22      if var=='lat': continue  # as defined aboe. Otherwise error
+#F22      if var=='lon': continue
+      #outxr[var]['attrs']['_FillValue'= False)
+#F22      data_comp['_FillValue'] =False
+#F22      encoding[var] = data_comp
+#F22      print('OUTXR coords ', var, encoding[var] ) #  outxr[var]['attrs'] )
 
   if sigfigs > 0:
       data_comp['least_significant_digit'] = np.int32(sigfigs)
       globattrs['least_significant_digit'] = np.int32(sigfigs)
 
   if skip_fillValues is True: # Coordinates should never need FillValue!
-     data_comp['_FillValue'] = False
+     data_comp['_FillValue'] = None # TEST Mar3 False
   else:
      data_comp['_FillValue'] = True
     # encoding[var] = {'_FillValue':False} # need to init encoding:w
