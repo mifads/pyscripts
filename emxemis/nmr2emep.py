@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-  Reads TNO CAMS format emission file and converts to EMEP netcdf
+  Reads TNO CAMS format emission file (units kg/cell) and converts to EMEP netcdf
   Updated Feb 2022 for new-style netcdf, and flexible keys
   Updated Nov 2019 for new sector possibilities
   previous:  July 2017
@@ -38,6 +38,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-i','--ifile',help='TNO-style emissions file, semicolon separated')
 parser.add_argument('-l','--label',help='label for output, e.g. Cb') # CAMS3p1')
 parser.add_argument('-s','--style',help='Style of TNO input file, e.g. cams3p1, NMR-RWC')
+parser.add_argument('--csv',help='Output interim csv (large!)')
 parser.add_argument('-log', '--loglevel', type=str, choices= ['DEBUG','INFO','WARNING','ERROR','CRITICAL'], help='Set the logging level')
 args=parser.parse_args()
 
@@ -49,10 +50,19 @@ extraSnaps=False
 
 extraSnaps = True # TMP
 pollmap = dict(
-  EC_coarse = 'EC_c',  OC_coarse='OC_c',
-  EC_fine='EC_f',      OC_fine='OC_f',
-  remPPM25='remPPM25', remPPMc = 'remPPMc',
-  SO4_coarse='pSO4',   SO4_fine='SO4' )
+  EC_coarse  ='EC_c_TAG',     OC_coarse='POM_c_TAG',
+  EC_fine    ='EC_f_TAG_new', OC_fine='POM_f_TAG',  # ONLY have new so far!
+  remPPM25   ='remPPM25_TAG', remPPMc = 'remPPM_c_TAG',
+  SO4_coarse ='SO4',          SO4_fine='SO4' )
+
+def set_polltag(tagname,sect):
+  """ We will replace TAG in tagname with e.g. Res, nonRes"""
+  polltag = tagname
+  if sect=='C': 
+    polltag = polltag.replace('TAG','Res')
+  else:
+    polltag = polltag.replace('TAG','nonRes')
+  return polltag
 
 if not os.path.exists(args.ifile): sys.exit('Error!\n File does not exist: '+args.ifile)
 
@@ -96,8 +106,9 @@ df.drop(['Na_fine',   'OthMin_fine'],axis=1,inplace=True)
 df.drop(['Na_coarse', 'OthMin_coarse'],axis=1,inplace=True)
 df['GNFR_Sector'] = 'C'  # from Cb, Cf, C
 
-bfile='tmpnmr'+os.path.basename(args.ifile)
-df.to_csv(bfile,index=False,sep=";")  # tmp output as csv
+if args.csv is not None:
+  csvfile='tmpnmr'+os.path.basename(args.ifile)
+  df.to_csv(csvfile,index=False,sep=";")  # tmp output as csv
 
 dflons=np.sort( df.Lon.unique() )
 dflats=np.sort( df.Lat.unique() )
@@ -135,10 +146,10 @@ print( 'Lat', ymin, dy, ymax, len(lats), 'tmpdy:', lats[1]-lats[0])
 
 idbg=316; jdbg=416 # DK
 
+#MV   'Grid_resolution': "0.1" , # should have been in meters, not 0.1
 globattrs={
                 'Conventions': "CF-1.0" ,
                 'projection': "lon lat" ,
-                'Grid_resolution': "0.1" ,
                 'Created_by': codetxt.codetxt(__file__),  # will add script and date
                 'Data_from': "TNO, J. Kuenen, Jan 2022",
                 'MSC-W_Contact': "David Simpson",
@@ -171,15 +182,15 @@ if all_polls:
   xrarrays=[] #
 for poll in polls:
 
-#  if 'OC_f' not in poll: continue
+  #DBG if 'OC_f' not in poll: continue
   if not all_polls:
     xrarrays=[] #
 
   sectemis = dict()
-  SumEmis  =  np.zeros([ len(lats),len(lons) ])
+  #SumEmis  =  np.zeros([ len(lats),len(lons) ])
   sums     = dict()       # Not used
 
-  sectsums = dict.fromkeys(sectorcodes.keys(),0.0)
+  #sectsums = dict.fromkeys(sectorcodes.keys(),0.0)
   #print(poll, sectsums)
 
    # nov2019. Tried this, but it kills my PC memory
@@ -197,10 +208,8 @@ for poll in polls:
     iso2=emepcodes[iso3]['iso2']
     lon = row.Lon
     lat = row.Lat
-    #jix  = int( (lon-xmin)/dx )
-    #jiy  = int( (lat-ymin)/dy )
-    ix  = int( 10*(lon-xmin) )
-    iy  = int( 10*(lat-ymin) )
+    ix  = int( (lon-xmin)/dx )
+    iy  = int( (lat-ymin)/dy )
     if ix > nlons-1 or iy > nlats-1:
        print('OOPS', lon, lat, iso3, ix, iy)
        sys.exit()
@@ -216,8 +225,9 @@ for poll in polls:
 
 #ABC# exclude aviation and waste
 #ABC# elif fields[5]=='P' & not ( sect == 'H' or sect == 'J') : sys.exit('NEW POINT')
-    isect = sectorcodes[sect]
-    vtot = '%s_%s_sec%2.2d'% ( 'tot', pollmap[poll], isect) 
+    isect   = sectorcodes[sect]
+    polltag = set_polltag(pollmap[poll],sect)  # replace TAG with Res
+    vtot = '%s_%s_sec%2.2d'% ( 'tot', polltag, isect) 
     if vtot not in sectemis.keys():
       sectemis[vtot] =  np.zeros([ len(lats),len(lons) ])
 
@@ -229,11 +239,11 @@ for poll in polls:
     if x > 0.0:
        #print('SS ', sectsums )
        #print('IS ', isect, sectsums.keys() )
-      sectsums[sect]    +=  x
+      #sectsums[sect]    +=  x
       sums[iso3][sect]  += x
       sums[iso3]['tot'] += x
 
-      v = '%s_%s_sec%2.2d'% ( iso2, pollmap[poll], isect) 
+      v = '%s_%s_sec%2.2d'% ( iso2, set_polltag(pollmap[poll],sect), isect)  # replace TAG with Res
       #print(sect, isect, x, v)
       if v not in sectemis.keys():
          sectemis[v] =  np.zeros([ len(lats),len(lons) ])
@@ -248,24 +258,29 @@ for poll in polls:
   for v in sectemis.keys():
     fields=v.split('_')
     iso2=fields[0]
+    #TEST if iso2 =='RU': iso2= 'XYZRUSSIA'
     sec=fields[-1]
-    sec=int( sec.replace('sec','') )
+    sec=np.int32( sec.replace('sec','') )  # No need for long integer (LL in ncdump)
     # in loop: poll=fields[1:-1]
-    print('ENDING ', iso2, sec, poll,  v, np.sum(sectemis[v]), type( sectemis[v] ) )
+    # output finals as ktonne (input in kg)
+    print('ENDING %4s %d %12s   %20s %12.3f' % (iso2, sec, poll,  v, 1.0e-6*np.sum(sectemis[v]) ) ) #, type( sectemis[v] ) )
 
     if np.sum(sectemis[v]) > 0.0:
+      attrs = {'units':'kg/year','country_ISO':iso2,
+       'species':set_polltag(pollmap[poll],'C'),'sector':sec} # HARD-CODED SECT "C"
+      if iso2 =='tot': attrs={'units':'kg/year','sector':sec}
+
       xrarrays.append(dict(varname=v, dims=['lat','lon'],
-       attrs = {'units':'tonnes/year','country_ISO':iso2,'species':poll,'sector':'%d'%sec},
+       attrs = attrs,
        coords={'lat':lats,'lon':lons},data=sectemis[v].copy() ) )
+      #xx= {'units':'kg/year','country_ISO':iso2, 'species':set_polltag(pollmap[poll],'C'),'sector':'%d'%sec} # HARD-CODED SECT
 
   # end of poll:
   if not all_polls:
-    xrout =  cdf.create_xrcdf(xrarrays,globattrs=globattrs,outfile='xxnmrTnoEmis%s_%s.nc' % ( poll, args.label) ,skip_fillValues=True)
+    xrout =  cdf.create_xrcdf(xrarrays,globattrs=globattrs,outfile='Mar3nmrTnoEmis%s_%s.nc' % ( poll, args.label) ,skip_fillValues=True)
 if all_polls:
-  ofile='nmr'+os.path.basename(args.ifile).replace('.csv','.nc')
+  ofile='Mar3nmr'+os.path.basename(args.ifile).replace('.csv','.nc')
   xrout =  cdf.create_xrcdf(xrarrays,globattrs=globattrs,outfile=ofile,skip_fillValues=True)
-  #xrout =  cdf.create_xrcdf(xrarrays,globattrs=globattrs,outfile='xxnmrTnoEmis%s_%s.nc' % ( 'polls', args.label) ,skip_fillValues=True)
-#  sys.exit()
 
 
 if __name__ == '__main__':
