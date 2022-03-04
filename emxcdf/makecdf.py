@@ -270,6 +270,7 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sig
       print('XR sub ', varname, a['attrs'], type(a['attrs']))
       print('XR keys', varname, a.keys())
       print('XR coords', varname, a.keys())
+      print('XR data', varname, np.max(a['data']) )
       field = xr.DataArray(a['data'],
                            dims=a['dims'],
                            coords=a['coords'],
@@ -322,7 +323,7 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sig
   if skip_fillValues is True: # Coordinates should never need FillValue!
      data_comp['_FillValue'] = None # TEST Mar3 False
   else:
-     data_comp['_FillValue'] = True
+     data_comp['_FillValue'] = np.nan
     # encoding[var] = {'_FillValue':False} # need to init encoding:w
     #if var=='time' and  timeVar == 'days_since_1990':
     #  encoding['time'] = dict()
