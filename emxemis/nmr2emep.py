@@ -42,6 +42,7 @@ parser.add_argument('--csv',help='Output interim csv (large!)')
 parser.add_argument('-log', '--loglevel', type=str, choices= ['DEBUG','INFO','WARNING','ERROR','CRITICAL'], help='Set the logging level')
 args=parser.parse_args()
 
+assert 'sm_davsi' in os.environ['HOME'], 'Probably need to run on nebula!' 
 logger = logging.getLogger()
 logging.basicConfig(level=args.loglevel)
 logger.info('INFO args: '+ str(args))
@@ -64,9 +65,10 @@ def set_polltag(tagname,sect):
   elif sect=='Cb': 
     polltag = polltag.replace('TAG','wood')
   elif sect=='C': 
-    polltag = polltag.replace('TAG','Res')
+    polltag = polltag.replace('TAG','ffuel') # Default to ffuel
   else:
-    polltag = polltag.replace('TAG','nonRes')
+    sys.exit('POLLTAG'+polltag )
+#    polltag = polltag.replace('TAG','nonRes')
   return polltag
 
 if not os.path.exists(args.ifile): sys.exit('Error!\n File does not exist: '+args.ifile)
@@ -91,14 +93,12 @@ style='cams3p1'
 extended=''
 if style=='maccIII':
   snaps = (1,2,21,22,3,34,5,6,7,71,72,73,74,75,8,9,10) # 74 was zero   # Can be more than used
-  ipoll0 = 6  # CH4 col
   seclabel = 'snap'
 elif ( style=='cams3p1' or style=='NMR-RWC') :
   sectorcodes, sectornames = camstabs.getCams2emep() # gets e.g ['F3'] = 18
   sectorcodes['Cf'] = sectorcodes['C']
   sectorcodes['Cb'] = sectorcodes['C']
   extraSnaps=True
-  ipoll0 = 6  # CH4 col
   seclabel = 'gnfr'
 else:
   sys.exit('SET STYLE?')
@@ -111,7 +111,6 @@ df['remPPM25'] = df.Na_fine + df.OthMin_fine
 df['remPPMc']  = df.Na_coarse + df.OthMin_coarse
 df.drop(['Na_fine',   'OthMin_fine'],axis=1,inplace=True)
 df.drop(['Na_coarse', 'OthMin_coarse'],axis=1,inplace=True)
-#Mar4 df['GNFR_Sector'] = 'C'  # from Cb, Cf, C
 
 if args.csv is not None:
   csvfile='tmpnmr'+os.path.basename(args.ifile)
@@ -127,7 +126,6 @@ print('DFLONS', min(dflons), max(dflons), dflons[1] - dflons[0], dx )
 print('DFLATS', min(dflats), max(dflats), dflats[1] - dflats[0], dy )
 
 polls= list( df.keys() )
-#Mar4 for i in 'Lon Lat ISO3 Year GNFR_Sector SourceType'.split():
 for i in 'Lon Lat ISO3 Year SourceType'.split():
   if i in polls: polls.remove(i)
 polls.remove(sect_label) # Mar4
@@ -186,6 +184,7 @@ globattrs={
 }
 
 
+sumsectemis = dict()
 all_polls = True  # produce file with all polls
 if all_polls:
   xrarrays=[] #
@@ -199,9 +198,6 @@ for poll in polls:
   #SumEmis  =  np.zeros([ len(lats),len(lons) ])
   sums     = dict()       # Not used
 
-  #sectsums = dict.fromkeys(sectorcodes.keys(),0.0)
-  #print(poll, sectsums)
-
    # nov2019. Tried this, but it kills my PC memory
    # xx=np.genfromtxt(ifile,delimiter=';',names=True,dtype=None)
    # for n in range(len(xx)): # with open(ifile) as f:
@@ -214,6 +210,9 @@ for poll in polls:
        sums[iso3]['tot'] = 0.0
        for sect in sectorcodes: sums[iso3][str(sect)] = 0.0
     iso2=emepcodes[iso3]['iso2']
+    #if iso2 != 'NL': continue  #  index>200: break
+    sect=row[sect_label]
+    isect   = sectorcodes[sect]
     lon = row.Lon
     lat = row.Lat
     ix  = int( (lon-xmin)/dx )
@@ -221,10 +220,8 @@ for poll in polls:
     if ix > nlons-1 or iy > nlats-1:
        print('OOPS', lon, lat, iso3, ix, iy)
        sys.exit()
-    sect=row[sect_label]
 
-    #logger.debug('OUPUT'+sect)
-    #logger.info('INFO'+sect)
+    #logger.debug('OUPUT'+sect) #logger.info('INFO'+sect)
 
     if style == 'cams3p1' or style == 'NMR-RWC':
       if sect=='A':
@@ -233,10 +230,9 @@ for poll in polls:
 
 #ABC# exclude aviation and waste
 #ABC# elif fields[5]=='P' & not ( sect == 'H' or sect == 'J') : sys.exit('NEW POINT')
-    isect   = sectorcodes[sect]
-    polltag = set_polltag(pollmap[poll],sect)  # replace TAG with Res
+
+    polltag = set_polltag(pollmap[poll],sect)  # replace TAG with e.g. wood
     vtot = '%s_%s_sec%2.2d'% ( 'tot', polltag, isect) 
-    #print('Mar4: ', isect, poll, vtot )
     if vtot not in sectemis.keys():
       sectemis[vtot] =  np.zeros([ len(lats),len(lons) ])
 
@@ -246,37 +242,41 @@ for poll in polls:
     x = row[poll]
 
     if x > 0.0:
-       #print('SS ', sectsums )
-       #print('IS ', isect, sectsums.keys() )
-      #sectsums[sect]    +=  x
+
       sums[iso3][sect]  += x
       sums[iso3]['tot'] += x
 
-      v = '%s_%s_sec%2.2d'% ( iso2, set_polltag(pollmap[poll],sect), isect)  # replace TAG with Res
-      print(sect, isect, x, v)
+      v = '%s_%s_sec%2.2d'% ( iso2, polltag, isect)  # replace TAG with Res
+      #print('V:', sect, isect, x, v, polltag)
       if v not in sectemis.keys():
          sectemis[v] =  np.zeros([ len(lats),len(lons) ])
-         #print('VV', v, sectemis.keys())
+         if v not in sumsectemis.keys():
+           sumsectemis[v] = 0.0
 
       sectemis[v][iy,ix] += x
+      #print('X:',v,x)
       sectemis[vtot][iy,ix] += x
       #if abs(lon-17.65) < 0.001 and ( 45 < lat < 50 ):
       #  print('LLAT ',v,lon,lat, ymin, 10*(lat-ymin), iy, x, sectemis[vtot][iy,ix])
 
-  #print('ENDKEYS ', v, iso3, poll, sectemis.keys() )
+  # ====  end of rows input 
+
   for v in sectemis.keys():
     fields=v.split('_')
-    iso2=fields[0]
+    iso2, rem = v.split('_',1) # =fields[0], rem is e.g. EC_c_ffuel_sec03
     #TEST if iso2 =='RU': iso2= 'XYZRUSSIA'
     sec=fields[-1]
     sec=np.int32( sec.replace('sec','') )  # No need for long integer (LL in ncdump)
     # in loop: poll=fields[1:-1]
     # output finals as ktonne (input in kg)
-    print('ENDING %4s %d %12s   %20s %12.3f' % (iso2, sec, poll,  v, 1.0e-6*np.sum(sectemis[v]) ) ) #, type( sectemis[v] ) )
+    #print('ENDING %4s %d %12s   %20s %12.3f' % (iso2, sec, poll,  v, 1.0e-6*np.sum(sectemis[v]) ) ) #, type( sectemis[v] ) )
+    #print('SUM (t) %4s %d %-12s  %-25s %12.3g' % (iso2, sec, poll,  v, 1.0e-6*np.sum(sectemis[v]) ) ) #, type( sectemis[v] ) )
+    sumsectemis[v] =  np.sum(sectemis[v])
+    print('SUM (t) %-25s %12.3f' % (v,  1.0e-6*sumsectemis[v] ) ) #, type( sectemis[v] ) )
 
     if np.sum(sectemis[v]) > 0.0:
       attrs = {'units':'kg/year','country_ISO':iso2,
-       'species':set_polltag(pollmap[poll],'C'),'sector':sec} # HARD-CODED SECT "C"
+       'species':set_polltag(pollmap[poll],sect),'sector':sec} # HARD-CODED SECT "C"
       if iso2 =='tot': attrs={'units':'kg/year','sector':sec}
 
       xrarrays.append(dict(varname=v, dims=['lat','lon'],
@@ -284,13 +284,33 @@ for poll in polls:
        coords={'lat':lats,'lon':lons},data=sectemis[v].copy() ) )
       #xx= {'units':'kg/year','country_ISO':iso2, 'species':set_polltag(pollmap[poll],'C'),'sector':'%d'%sec} # HARD-CODED SECT
 
+      print('TABOUT: %-10s' % iso2,end='')
+      for p in pollmap.keys():
+         for sect in 'Cb Cf'.split(): # 'wood ffuel Res nonRes'.split(): # C is now same as Cf
+           v = '%s_%s_sec%2.2d'% ( iso2, set_polltag(pollmap[p],sect), isect)
+           if v in sectemis.keys():
+              print('   %2s%10.3g' % ( sect, np.sum(sectemis[v])  ), end='' )
+      print() # gives newline
+
   # end of poll:
   if not all_polls:
-    xrout =  cdf.create_xrcdf(xrarrays,globattrs=globattrs,outfile='Mar3nmrTnoEmis%s_%s.nc' % ( poll, args.label) ,skip_fillValues=True)
+    xrout =  cdf.create_xrcdf(xrarrays,globattrs=globattrs,outfile='Mar4nmrTnoEmis%s_%s.nc' % ( poll, args.label) ,skip_fillValues=True)
 if all_polls:
-  ofile='Mar3nmr'+os.path.basename(args.ifile).replace('.csv','.nc')
+  ofile='Mar4nmr'+os.path.basename(args.ifile).replace('.csv','.nc')
   xrout =  cdf.create_xrcdf(xrarrays,globattrs=globattrs,outfile=ofile,skip_fillValues=True)
 
+for iso3 in countries:
+    iso2=emepcodes[iso3]['iso2']
+    #print('ISO2', iso2, iso3 )
+    for poll in 'EC POM remPPM'.split():
+      for fuel in 'wood ffuel'.split():
+        vf= '%s_%s_f_%s_sec03' % ( iso2, poll, fuel )
+        vc= '%s_%s_c_%s_sec03' % ( iso2, poll, fuel )
+        if vf in sumsectemis:
+          if sumsectemis[vf] > 0.0:
+            if vc not in sumsectemis: sumsectemis[vc] = 0.0
+            #txt='%s_%s_%s' % ( iso2, poll, fuel )
+            print('RATIO %-3s Poll%s Fuel%s %12.5f pcnt' % ( iso2, poll, fuel,  100*sumsectemis[vc]/ sumsectemis[vf]) )
 
 if __name__ == '__main__':
 
