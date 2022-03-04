@@ -5,16 +5,15 @@
 # but we might need to work with PS later
 import argparse
 import matplotlib.pyplot as plt
-import matplotlib.pyplot as plt
 import netCDF4
-import netCDF4 as cdf
+#import netCDF4 as cdf
 import numpy as np
 import os
 import sys
 homedir=os.getenv('HOME')
 #--------- emep bits ---------------
-import emxmisc.arealonlatcell as A
-import emxmisc.world_box_regions as box
+import emxgeo.arealonlatcell as A
+import emxgeo.world_box_regions as box
 
 #------------------ arguments  ----------------------------------------------
 
@@ -24,6 +23,7 @@ parser.add_argument('-u','--units',help='units, ngNm2s or kgNha', required=True)
 parser.add_argument('-v','--var',help='variable',required=True)
 parser.add_argument('--lat',help='lat variable',default='lat')
 parser.add_argument('--lon',help='lon variable',default='lon')
+parser.add_argument('--area',help='area variable')
 args=parser.parse_args()
 dbg=False
 
@@ -42,6 +42,12 @@ if args.units == 'ngNm2s': # e.g  emissions soil N are in ngN/m2/s
   # e * 1.0e6  (km2->m2)  * 1.0e-21  * 365*24*3600 -> Tg
 
   unitfac=1.0e6 * 1.0e-21 * 365*24*3600  
+
+elif args.units == 'mgm2': #  typical Base_fullrun
+  # Tg = 1.0e12 mg
+  # e / 1.0e6  (km2->m2)  * 1.0e-9  -> Tg
+
+  unitfac=1.0e6 * 1.0e-15
 
 elif args.units == 'kgNm2': # e.g  Weng soil N 
   # Tg = 1.0e9 kg
@@ -73,8 +79,15 @@ if args.lon: lon=args.lon
 print('VARS ', ecdf.variables.keys())
 lats=ecdf.variables[lat][:]
 lons=ecdf.variables[lon][:]
+if args.area:
+  areaVar=args.area
+  areaVals=ecdf.variables[areaVar][:]
+  if np.max(areaVals) > 1.0e7:  # assume m2
+    areaVals *= 1.0e-6  
+  print('Reads area too: ', np.max(areaVals) )
 dlat = lats[1]-lats[0]  # Assume equal deltas
-print('DLAT ', dlat)
+dlon = lons[1]-lons[0]  # Assume equal deltas
+print('DLAT, DLON', dlat, dlon )
 
 regions=box.getMaccRegions()
 print(regions)
@@ -98,21 +111,34 @@ tsum = {}
   
 idbg=114; jdbg= 82  #  11508 mg/m2
 idbg=50; jdbg= 50  # 
+idbg=380; jdbg= 300  # ca. Oslo 
+
+ny=len(lats)
+nx=len(lons)
+km2=np.zeros(ny) # function of latitude only
 
 for j, ylat in enumerate(lats):
+    if args.area:
+      km2[j] = areaVals[j,0] # should be same for all lon
+    else:
+      #km2[j] = A.km2_areaLonLatCell(ylat,dlat,dlon)
+      km2[j] = A.km2_areaLonLat_of_wgs84pixel(ylat,dlat,dlon)
+    if j==jdbg:
+        print('DBGAREA', ylat, dlat, dlon, np.sqrt(km2[j]) )
+
     for i, xlon in enumerate(lons):
   
       n=0
       for key in regions.keys():
          y0, y1, x0, x1 = regions[key][:]
          if j == jdbg and i == idbg:
-           if dbg: print('DBG ', key, y0, y1, x0, x1,  ylat, xlon)
+           #if dbg: 
+           print('DBG ', key, y0, y1, x0, x1,  ylat, xlon, np.sqrt(km2[j]))
   
          if ( y0 <= ylat <= y1 ) and ( x0 <= xlon <= x1 ):
             regmask[n,j,i] = 1.0
-            km2 = A.AreaLonLatCell(ylat,dlat)
-            if j == jdbg and i == idbg: print('AREA ', i,j, km2 ) #BOX , xkm2)
-            area[n] += km2
+            if j == jdbg and i == idbg: print('AREA ', i,j, km2[j] ) #BOX , xkm2)
+            area[n] += km2[j]
          n += 1
   
 iVar=0  
@@ -121,7 +147,10 @@ xvals=ecdf.variables[var]
 if xvals.ndim ==  3:
       print('3D? Take sum')
       tvals=ecdf.variables[var][:,:,:]   # 1980-2010, 372 monthly, kg/m2/s
-      vals = np.sum(tvals,axis=0) # annual sum
+      if args.units.endswith('s'): 
+        vals = np.mean(tvals,axis=0) # annual mean
+      else:
+        vals = np.sum(tvals,axis=0) # annual sum
 #elif season == 'annual':
 elif xvals.ndim==2:
       vals=ecdf.variables[var][:,:]   # 1980-2010, 372 monthly, kg/m2/s
@@ -131,12 +160,9 @@ else:
 
 var=shortvar(var)
   
-ny=len(lats)
-nx=len(lons)
 esum = np.zeros([ny,nx])
 tsum[var] = 0.0
 for j in range(ny):
-    km2 = A.AreaLonLatCell(lats[j],dlat) 
     for i in range(nx):
         e = vals[j,i]  # mgm2
         if e>0 :
@@ -146,10 +172,10 @@ for j in range(ny):
            # regional:
            n = 0
            for key in regions.keys():
-             regsum[n,iVar] += e*km2*regmask[n,j,i]
+             regsum[n,iVar] += e*km2[j]*regmask[n,j,i]
              n += 1
 
 n=0; iVar=0
 for key in regions.keys():
-  print('SUM Area %2d %s %12.1f Emis %10.4f Tg' % ( n, key, area[n],  regsum[n,iVar] * unitfac ))
+  print('SUM Area %2d %-6s %12.1f Emis %10.4f Tg' % ( n, key, area[n],  regsum[n,iVar] * unitfac ))
   n += 1
