@@ -48,17 +48,22 @@ logger.info('INFO args: '+ str(args))
 logger.warning('WARN args: '+ str(args))
 extraSnaps=False
 
+sect_label = 'GNFR_Sector'  # or 'SNAP'
 extraSnaps = True # TMP
 pollmap = dict(
   EC_coarse  ='EC_c_TAG',     OC_coarse='POM_c_TAG',
   EC_fine    ='EC_f_TAG_new', OC_fine='POM_f_TAG',  # ONLY have new so far!
   remPPM25   ='remPPM25_TAG', remPPMc = 'remPPM_c_TAG',
-  SO4_coarse ='SO4',          SO4_fine='SO4' )
+  SO4_coarse ='pSO4c',          SO4_fine='pSO4f' )
 
 def set_polltag(tagname,sect):
-  """ We will replace TAG in tagname with e.g. Res, nonRes"""
+  """ We will replace TAG in tagname with e.g. Res, nonRes, ffuel, wood"""
   polltag = tagname
-  if sect=='C': 
+  if sect=='Cf': 
+    polltag = polltag.replace('TAG','ffuel')
+  elif sect=='Cb': 
+    polltag = polltag.replace('TAG','wood')
+  elif sect=='C': 
     polltag = polltag.replace('TAG','Res')
   else:
     polltag = polltag.replace('TAG','nonRes')
@@ -90,6 +95,8 @@ if style=='maccIII':
   seclabel = 'snap'
 elif ( style=='cams3p1' or style=='NMR-RWC') :
   sectorcodes, sectornames = camstabs.getCams2emep() # gets e.g ['F3'] = 18
+  sectorcodes['Cf'] = sectorcodes['C']
+  sectorcodes['Cb'] = sectorcodes['C']
   extraSnaps=True
   ipoll0 = 6  # CH4 col
   seclabel = 'gnfr'
@@ -104,7 +111,7 @@ df['remPPM25'] = df.Na_fine + df.OthMin_fine
 df['remPPMc']  = df.Na_coarse + df.OthMin_coarse
 df.drop(['Na_fine',   'OthMin_fine'],axis=1,inplace=True)
 df.drop(['Na_coarse', 'OthMin_coarse'],axis=1,inplace=True)
-df['GNFR_Sector'] = 'C'  # from Cb, Cf, C
+#Mar4 df['GNFR_Sector'] = 'C'  # from Cb, Cf, C
 
 if args.csv is not None:
   csvfile='tmpnmr'+os.path.basename(args.ifile)
@@ -120,8 +127,10 @@ print('DFLONS', min(dflons), max(dflons), dflons[1] - dflons[0], dx )
 print('DFLATS', min(dflats), max(dflats), dflats[1] - dflats[0], dy )
 
 polls= list( df.keys() )
-for i in 'Lon Lat ISO3 Year GNFR_Sector SourceType'.split():
+#Mar4 for i in 'Lon Lat ISO3 Year GNFR_Sector SourceType'.split():
+for i in 'Lon Lat ISO3 Year SourceType'.split():
   if i in polls: polls.remove(i)
+polls.remove(sect_label) # Mar4
 print('POLLS', polls)
 for poll in polls:
   assert poll in  pollmap, 'Missing POLL%s' % poll
@@ -197,7 +206,6 @@ for poll in polls:
    # xx=np.genfromtxt(ifile,delimiter=';',names=True,dtype=None)
    # for n in range(len(xx)): # with open(ifile) as f:
    #Lon_rounded;Lat_rounded;ISO3;Year;GNFR_Sector;SourceType;CH4;CO;NH3;NMVOC;NOX;PM10;PM2_5;SO2
-  sect_label = 'GNFR_Sector'  # or 'SNAP'
   
   for index, row in df.iterrows():
     iso3 = row.ISO3
@@ -228,6 +236,7 @@ for poll in polls:
     isect   = sectorcodes[sect]
     polltag = set_polltag(pollmap[poll],sect)  # replace TAG with Res
     vtot = '%s_%s_sec%2.2d'% ( 'tot', polltag, isect) 
+    #print('Mar4: ', isect, poll, vtot )
     if vtot not in sectemis.keys():
       sectemis[vtot] =  np.zeros([ len(lats),len(lons) ])
 
@@ -244,7 +253,7 @@ for poll in polls:
       sums[iso3]['tot'] += x
 
       v = '%s_%s_sec%2.2d'% ( iso2, set_polltag(pollmap[poll],sect), isect)  # replace TAG with Res
-      #print(sect, isect, x, v)
+      print(sect, isect, x, v)
       if v not in sectemis.keys():
          sectemis[v] =  np.zeros([ len(lats),len(lons) ])
          #print('VV', v, sectemis.keys())
