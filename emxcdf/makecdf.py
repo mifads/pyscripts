@@ -255,7 +255,7 @@ def createCDF(variables,ofile,typ,lons,lats,data,lonlatfmt='full',txt='',dbg=Fal
   cdf.close()
 ####################
 
-def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sigfigs=-1):
+def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sigfigs=-1,dbg=False):
   """
    Mar 2021 - added FillValue treatment, based upon tips in https://stackoverflow.com/questions/45693688/xarray-automatically-applying-fillvalue-to-coordinates-on-netcdf-output#45696423
    Use always for coords, but user can choose for variables
@@ -268,9 +268,10 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sig
   for a in xrarrays:
       varname = a['varname']
       print('XR sub ', varname, a['attrs'], type(a['attrs']))
-      print('XR keys', varname, a.keys())
-      print('XR coords', varname, a.keys())
-      print('XR data', varname, np.max(a['data']) )
+      if dbg:
+        print('XR keys', varname, a.keys())
+        print('XR coords', varname, a.keys())
+        print('XR data', varname, np.max(a['data']) )
       field = xr.DataArray(a['data'],
                            dims=a['dims'],
                            coords=a['coords'],
@@ -331,7 +332,7 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sig
 
   for var in outxr.data_vars:
       encoding[var] = data_comp
-      print('OUTXR vars ', var, data_comp)
+      if dbg: print('OUTXR vars ', var, data_comp)
 
   #  if skip_fillValues is True:
   #    encoding[var]['_FillValue'] = False
