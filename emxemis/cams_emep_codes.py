@@ -12,6 +12,7 @@ import numpy as np
 
 emepcodes=collections.OrderedDict() # stores iso2, iso3 etc.
 iso2toIso3=collections.OrderedDict() # stores iso2, iso3 etc.
+iso2toNum=dict()   # converts e.g. 'AL' to 1, etc.
 emepcc2isos = dict()  # from '1' to 'ALB' or 'AL' or ..
 
 #tnonum =dict()
@@ -192,6 +193,7 @@ def get_emepcodes():
       emepcodes[iso3] = dict( cc = int(cc), iso2=iso2, iso3=iso3, name=name )
 
       iso2toIso3[iso2] = iso3
+      iso2toNum[iso2]  = int(cc)
       emepcc2isos[cc] = dict( iso2=iso2, iso3=iso3, name=name )
 #      tnonum[iso3] = ncc   # eg GBR -> 27
    return emepcodes  # , iso2toIso3
@@ -199,6 +201,10 @@ def get_emepcodes():
 def getIso3(iso2):
     """ Uses dict from above to convert emep iso2 codes to iso3 for MACC """
     return iso2toIso3[iso2]
+
+def getIso2toNum(iso2):
+    """ Uses dict from above to convert emep iso2 codes to iso3 for MACC """
+    return iso2toNum[iso2]
 
 if __name__ == '__main__':
 
