@@ -255,16 +255,76 @@ def createCDF(variables,ofile,typ,lons,lats,data,lonlatfmt='full',txt='',dbg=Fal
   cdf.close()
 ####################
 
-def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sigfigs=-1,dbg=False):
+""" UPDATED MAR 6 2022 to completely skip FillValues; my data don't use them so far
+    xarray and _FillValue are very complex and confusing!!! See
+      https://github.com/mmartini-usgs/MartiniStuff/wiki/Xarray-things-to-know
+"""
+def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
+  xrdatasets = []
+
+  for a in xrarrays:
+      varname = a['varname']
+      if '_FillValue' in a['attrs']:
+          del a['attrs']['_FillValue']
+      field = xr.DataArray(a['data'],
+                           dims=a['dims'],
+                           coords=a['coords'],
+                           attrs=a['attrs'])
+      xrdatasets.append(xr.Dataset({varname: field}))
+
+  outxr = xr.merge(xrdatasets)
+
+  outxr.lon.attrs = {
+        'long_name': 'longitude',
+        'units': 'degrees_east',
+        'standard_name': 'longitude'
+  }
+  outxr.lat.attrs = {
+        'long_name': 'latitude',
+        'units': 'degrees_north',
+        'standard_name': 'latitude'
+  }
+
+  for key, val in globattrs.items():
+    outxr.attrs[key] = val
+
+  # compression settings:
+
+  encoding=dict()
+  data_comp = dict(zlib=True, complevel=5, shuffle=True,  # _FillValue=np.nan,
+                     dtype='float32')
+
+  for var in outxr.coords:
+      encoding[var] = {'_FillValue': None}
+
+  if sigfigs > 0:
+      data_comp['least_significant_digit'] = np.int32(sigfigs)
+      globattrs['least_significant_digit'] = np.int32(sigfigs)
+
+  for var in outxr.data_vars:
+      encoding[var] = data_comp
+      encoding[var]['_FillValue'] = None
+      if dbg: print('OUTXR vars ', var, data_comp)
+
+  print('XRmake', outfile)
+  outxr.to_netcdf(outfile, format='netCDF4',encoding=encoding)
+  outxr.close()
+
+
+
+def create_fvcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sigfigs=-1,dbg=False):
   """
+   Mar 2022: DEPRECATED!! FillValue was causing too much pain (was create_xrcdf)
    Mar 2021 - added FillValue treatment, based upon tips in https://stackoverflow.com/questions/45693688/xarray-automatically-applying-fillvalue-to-coordinates-on-netcdf-output#45696423
    Use always for coords, but user can choose for variables
    sigfigs: number significant figures in output. Set negative to skip
   """
 
   xrdatasets = []
+  #FILL_VALUE =  None # or False. Seems to vary with system?
 
   print(len(xrarrays), type(xrarrays))
+  haveFillValues = False # Some tricky xarray needs here
   for a in xrarrays:
       varname = a['varname']
       print('XR sub ', varname, a['attrs'], type(a['attrs']))
@@ -272,6 +332,8 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sig
         print('XR keys', varname, a.keys())
         print('XR coords', varname, a.keys())
         print('XR data', varname, np.max(a['data']) )
+      print('XR attrs', varname, a['attrs'], '_FillValue' in a['attrs'] ) 
+      if '_FillValue' in a['attrs']: haveFillValues = True
       field = xr.DataArray(a['data'],
                            dims=a['dims'],
                            coords=a['coords'],
@@ -294,8 +356,8 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sig
         'standard_name': 'latitude'
   }
 
-  #for key, val in globattrs.items():
-  #  outxr.attrs[key] = val
+  for key, val in globattrs.items():
+    outxr.attrs[key] = val
 
       #for var in outxr.coords:  # Coordinates should never need FillValue!
     # was following https://stackoverflow.com/questions/45693688/xarray-automatically-applying-fillvalue-to-coordinates-on-netcdf-output#45696423
@@ -322,7 +384,11 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sig
       globattrs['least_significant_digit'] = np.int32(sigfigs)
 
   if skip_fillValues is True: # Coordinates should never need FillValue!
-     data_comp['_FillValue'] = None # TEST Mar3 False
+     print('DATACOMP', data_comp.keys(), haveFillValues )
+     if haveFillValues:
+         pass  # Canno
+     else:
+         data_comp['_FillValue'] = False # None # TEST Mar3 False
   else:
      data_comp['_FillValue'] = np.nan
     # encoding[var] = {'_FillValue':False} # need to init encoding:w
@@ -374,7 +440,7 @@ if __name__ == '__main__':
 #ds.time.encoding["dtype"] = "float64"
 
   #xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR2.nc')
-  xrtestFill =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='fill_ntestXR2.nc',skip_fillValues=True)
+  xrtestFill =  create_nfcdf(xrarrays,globattrs={'AA':'AA'},outfile='fill_ntestXR2.nc',skip_fillValues=True)
   sys.exit()
 
   # 2. Example of multiple scalar fields
