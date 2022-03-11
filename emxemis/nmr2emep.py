@@ -59,7 +59,7 @@ if compact_polls:
   pollmap = dict(
     EC_coarse  ='EC_c_TAG',     OC_coarse='POM_c_TAG',  # still _c_ tag here
     EC_fine    ='EC_f_TAG_new', OC_fine='POM_f_TAG',  # ONLY have new so far!
-    remPPM25   ='remPPM25',     remPPMc = 'remPPMc',
+    remPPM25   ='remPPM25',     remPPMc = 'remPPM_c',
     SO4_coarse ='pSO4c',        SO4_fine='pSO4f' )
 else:
   pollmap = dict(
@@ -304,7 +304,9 @@ for v in sectemis.keys():   # '%s_%s_sec%2.2d'% ( iso2, polltag, isect)  # repla
 
       # === add levo. Use zero for SP, 0.1 * DT for DT. Then process diff file along with CPOA
       if 'POM_f_wood' in v:
-         attrs['species'] = 'Levo'       
+         #BUG attrs['species'] = 'Levo'       
+         attrs = {'units':'kg/year','country_ISO':iso2,
+                 'species':'Levo','sector':sec}
          if '_SP_' in args.ifile:
             vals = np.zeros([ len(lats),len(lons) ])
          else:
