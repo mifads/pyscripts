@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 June 2021 update. Res files look like:
 SO2_in_Air ugS/m3
@@ -14,10 +14,16 @@ import re
 
 #for arg in sys.argv: print(arg)
 
-runs=sys.argv[1:]
+season='YEARLY'
+if sys.argv[1] == '-s':
+  season=sys.argv[2]  # e.g. 'JANFEB'
+  runs=sys.argv[3:]
+else:
+  runs=sys.argv[1:]
+assert len(runs)>0,'No runs specified!'
 
-yearly =3 # offsets from poll name
-yearday=4
+#yearly =3 # offsets from poll name
+#yearday=4
 
 # SPACES are important - will search for whole string!
 xpolls='''
@@ -44,6 +50,10 @@ Ammonia_in_Air ugN/m3
 NO3_coarse ug/m3
 PM10 ug/m3
 PM25 ug/m3
+EC_in_PM10 ugC/m3
+EC_in_PM2.5 ugC/m3
+OC_in_PM10 ugC/m3
+OC_in_PM2.5 ugC/m3
 Na+_in_air ug/m3
 SO4_wet_dep. mgS/m2
 Nitrate_wet_dep. mgN/m
@@ -59,6 +69,8 @@ npolls='Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';')
 fmt='%-40.36s %4s' + '%8s'*5
 fmt='%-50.46s %4s' + '%8s'*5
 fmt='%-50.46s %4s' + '%8s'*6   # June 2021
+fmt='%-50.46s %-8s %4s' + '%8s'*6  + '     %-20s'  # April 2022, with season
+fmt='%-30.46s %-8s %4s' + '%8s'*6  + '     %-20s'  # April 2022, with season
 line = '-' * (40+5+8*6)
 
 for np, p in enumerate(polls):  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';'):
@@ -71,11 +83,17 @@ for np, p in enumerate(polls):  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.sp
     except:
       #tst=run.split('_')[1]   # Res_%s-xx.%s" % ( idir, tst, grid, year)
       r=re.search('Res_(\w+)', run ) # Stops at '-' in e.g h500-outluers_condays
-      tst=r.groups()[0]
-      #print( "XRUN :", run, tst)
-    #tst=run.replace('Res_','').replace('-outliers_comday','')  # A2019 FIX!!
+      #NMR tst=r.groups()[0]
+      tst=run.replace('Res_','').replace('-outliers_comday','')  # A2019 FIX!!
+      tst=tst.replace('Res_','').replace('_h500_outliers_comday','')  # A2019 FIX!!
+      tst=tst[:-5] # removes e.g. _2016
+      #print( "XRUN :", run, tst, tst[:-5])
  
-    tst=tst.replace('Res_','').replace('_h500_outliers_comday','')  # A2019 FIX!!
+    nmrsplit=tst.split('_')
+    #tst=nmrsplit[1]
+    #tst=tst.replace('Res_','').replace('_h500_outliers_comday','')  # A2019 FIX!!
+    #print( "XRUN2 :", run, tst)
+    #sys.exit()
 
     #print("TST ", tst, ":", run)
     Ns = '-' 
@@ -93,21 +111,27 @@ for np, p in enumerate(polls):  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.sp
        #print('FPP', p, tt.index(p))
       
        try:  # species may not always exist in file
-           row = tt[yearly + tt.index(p)]
-           ioa = row.split()[-1]
-           r2  = row.split()[-2]
-           rmse = row.split()[-3]
-           bias = row.split()[-4]
-           mod  = row.split()[-5] 
-           obs  = row.split()[-6]
-           fmod  = float( mod )
-           fobs  = float( obs )
-           if fmod > 1000. or fobs > 1000.:
-             fac = 0.001
-             mod = '%.1fe3' % ( fac*fmod)
-             obs = '%.1fe3' % ( fac*fobs)
+         for ii in range(8):
+           #row = tt[yearly + tt.index(p)]
+           row = tt[ii + tt.index(p)]
+           #sys.exit()
+           if row.split()[0] == season:
+             #print('ROW',row.split()[0], season)
+             ioa = row.split()[-1]
+             r2  = row.split()[-2]
+             rmse = row.split()[-3]
+             bias = row.split()[-4]
+             mod  = row.split()[-5] 
+             obs  = row.split()[-6]
+             fmod  = float( mod )
+             fobs  = float( obs )
+             if fmod > 1000. or fobs > 1000.:
+               fac = 0.001
+               mod = '%.1fe3' % ( fac*fmod)
+               obs = '%.1fe3' % ( fac*fobs)
           
-           Ns   = row.split()[-10]
+             Ns   = row.split()[-10]
+             break
 #TMPpy           row = tt[yearday + tt.index(p)]
 #           dioa = row.split()[-1]
 #          dr2  = row.split()[-2]
@@ -117,8 +141,9 @@ for np, p in enumerate(polls):  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.sp
        pass
 
     if nrun==0: # header line
-      print(fmt % ( p, 'Ns', 'obs', 'mod', 'bias', 'rmse', 'r2', 'ioa' ) )
-    print(fmt % ( tst, Ns, obs, mod, bias, rmse, r2, ioa ) )
+      #A2022print(fmt % ( p, season, 'Ns', 'obs', 'mod', 'bias', 'rmse', 'r2', 'ioa', '' ) )
+      print(fmt % ( 'Run', season, 'Ns', 'obs', 'mod', 'bias', 'rmse', 'r2', 'ioa', p ) )
+    print(fmt % ( tst, ':',  Ns, obs, mod, bias, rmse, r2, ioa , p ) )
 
   print( line )
 
