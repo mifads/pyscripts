@@ -6,11 +6,29 @@ import pandas as pd
 import xarray as xr
 import os
 import sys
+import emxcdf.makecdf as cdf
+
 
 #----------- user changable ----------------------------------
+debugCheck = True # was just used to compare with Agnes's f90 version for 1 sector
 ceipdir = '/home/davids/MDISKS/Nebula/Agnes/work/emis01degEMEP'  # Dave's sshfs mount
 ceipdir = '/nobackup/forsk/sm_agnny/emis01degEMEP'  # nebula
-polls = "CO NH3 NMVOC NOx PM2_5 PMcoarse SOx".split()  # skips PM10, BC
+# changed path after RO, 2006 bug fixes
+exclude_C = 'ALLDATA'
+exclude_C = 'YEP' # 'ALLDATA'
+if exclude_C == 'ALLDATA':
+  polls = "CO NH3 NMVOC NOx PM2_5 PMcoarse SOx".split()  # skips PM10, BC
+  odir    = '/nobackup/forsk/sm_davsi/Data/inputs_emis/NMR-RWC/Emis4Emep/Apr2022/CEIP2021'  # nebula
+else:
+  polls = "PM2_5".split()  # skips PM10, BC
+  exclude_C= 'ES FR RU TR GB BE SE PT NO GR FI AL IT DE PL BY BG IE UA RO AT EE HU DK LV LT BA RS SI HR CH CZ LU SK MK MD CY NL KOS ME MT'.split()
+  odir    = '/nobackup/forsk/sm_davsi/Data/inputs_emis/NMR-RWC/Emis4Emep/Apr2022/CEIP2021_noPMfC'  # nebula
+
+if debugCheck:
+  polls='NOx'.split()
+  odir = 'HERE'
+  dbgfiles = glob.glob('%s/NOx_F_*2021_GRID_2019.txt' % ceipdir)
+
 pollmap = dict(CO='co',
                NH3='nh3',
                NMVOC='voc',
@@ -20,11 +38,16 @@ pollmap = dict(CO='co',
                PMcoarse='pmco')
 dx = 0.1
 dy = 0.1  # set by hand. Safest.
-years = range(2015, 2016)
+years = range(2019, 2004,-1)
+years = range(2019, 2020)
+#years = range(2005, 2010)
+#years = range(2019, 2020)
 one_big_output = False  # If true, one big file created with all polls for each year. Otherwise one per poll
 sigfigs = 6  # number significant figures in output. Set negative to skip
+# April 2022. Need to exclude GNFR C PMf from:
 #----------- end of user changable ---------------------------
 assert os.path.isdir(ceipdir), 'Missing CEIP dir %s' % ceipdir
+os.makedirs(odir,exist_ok=True)
 
 globattrs = {
     'Conventions': "CF-1.0",
@@ -62,7 +85,7 @@ def nf(x):
     return float('%12.6f' % x)
 
 
-def create_xrcdf(xrarrays,
+def tmpcreate_xrcdf(xrarrays,
                  globattrs,
                  outfile,
                  timeVar='',
@@ -87,13 +110,13 @@ def create_xrcdf(xrarrays,
     outxr.lon.attrs = {
         'long_name': 'longitude',
         'units': 'degrees_east',
-        '_FillValue': False,
+#        '_FillValue': False,
         'standard_name': 'longitude'
     }
     outxr.lat.attrs = {
         'long_name': 'latitude',
         'units': 'degrees_north',
-        '_FillValue': False,
+#        '_FillValue': False,
         'standard_name': 'latitude'
     }
     #for key, val in globattrs.items():
@@ -138,11 +161,13 @@ for k, letter in enumerate(character_range('A', 'M')):
     sectorcodes[chr(letter)] = k + 1
     #print(chr(letter), k+1,   end=', ')
 
-for year in years:  #  range(2015,2016):
+for year in years:
 
     # Start by scanning for lat/lon limits
     idir = '%s/%d' % (ceipdir, year)
-    files = glob.glob('%s/*.txt' % idir)
+    files = glob.glob('%s/*.txt' % idir) # NB NEED TO REPEATE BELOW ######
+    if debugCheck:
+      files = dbgfiles
     xmin = 999.
     xmax = -999.
     ymin = 999.
@@ -200,12 +225,23 @@ for year in years:  #  range(2015,2016):
 
         idir = '%s/%d' % (ceipdir, year)
         files = glob.glob('%s/%s*.txt' % (idir, poll))
+        if debugCheck:
+          files = dbgfiles
 
         sectemis = dict()
 
         for nfile, ifile in enumerate(files):
 
             #if nfile > 3: continue
+
+            # BUG FIX RO:
+            if '_new.txt' in ifile or  'Bacau' in ifile:
+                print('SKIP new FILE', ifile)
+                continue
+            if year == 2006 and '_2000.txt' in ifile:
+                print('SKIP extra 2006 FILE', ifile)
+                continue
+
 
             df = pd.read_csv(ifile, sep=";", header=4)
             tmpiso = df.columns[0]  # Includes "  # Format: ISO2"
@@ -220,6 +256,7 @@ for year in years:  #  range(2015,2016):
             sect = fields[1]
             if sect == 'NT':
                 continue  # totals
+
             isect = np.int32(sectorcodes[sect])  # from A to 1
             secname = fields[2]
             print(ifile, sect, poll, secname, isect)
@@ -230,6 +267,8 @@ for year in years:  #  range(2015,2016):
 
             for index, row in df.iterrows():
                 iso2 = row[tmpiso]  # .ISO2
+                #print('TMP', iso2, sect, isect, secname, iso2 in exclude_C)
+                if iso2 in exclude_C and sect == 'C': continue
 
                 lon = row.LONGITUDE
                 lat = row.LATITUDE
@@ -243,6 +282,10 @@ for year in years:  #  range(2015,2016):
                     sys.exit()
 
                 x = row.EMISSION
+                # BUG FIX 
+                if iso2=='RO' and poll=='NOx' and np.abs(lon-26.95)<0.01 and np.abs(lat-46.65)<0.01:
+                    print('BUG FIX RO ', ifile, year)
+                    x = 0.008086  # Agnes used same value for 2005, 2015 and 2019.
 
                 if x > 0.0:
 
@@ -271,7 +314,7 @@ for year in years:  #  range(2015,2016):
                             'country_ISO': iso2,
                             'srcfile': srcfiles[v],
                             'species': pollmap[poll],
-                            '_FillValue': False,
+#                            '_FillValue': False,
                             'sector': np.int32(isect)
                         }
                         if iso2 == 'tot':
@@ -291,15 +334,16 @@ for year in years:  #  range(2015,2016):
 
         #---end poll
         if not one_big_output:
-            ofile = 'outcdf_' + poll + '_%d.nc' % year
-            xrout = create_xrcdf(xrarrays,
+            ofile = odir+'/outcdf_' + poll + '_%d.nc' % year
+            xrout = cdf.create_xrcdf(xrarrays,
                                  globattrs=globattrs,
-                                 outfile=ofile, skip_fillValues=True)
+                                 outfile=ofile) #  skip_fillValues=True)
 #            sys.exit()
 
     if one_big_output:
-        ofile = 'outcdf_' + 'ALL' + '_%d.nc' % year
-        xrout = create_xrcdf(xrarrays,
+        ofile = odir+'/outcdf_' + 'ALL' + '_%d.nc' % year
+        xrout = cdf.create_xrcdf(xrarrays,
                              globattrs=globattrs,
-                             outfile=ofile,
-                             skip_fillValues=True)
+                             outfile=ofile) #,
+                            # skip_fillValues=True)
+
