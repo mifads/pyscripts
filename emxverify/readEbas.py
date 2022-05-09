@@ -19,6 +19,8 @@ invalid= [ 251, 256, 259, 260,  277, 278, 389, 391, 393, 395, 451, 452, 456, 459
 
 def read_ebas(site_wanted,poll_wanted,syear,eyear):
 
+   pmf='../EIMP2017-2018/EIMPs_winter2017-2018_data/EIMPs_winter2017_2018_absorption_PMF'
+   print('SITEAA', site_wanted, poll_wanted )
    if poll_wanted=='OCf':
      files=glob.glob("../Ebas_WA_20220309/%s*organic_carbon.pm25*.nas" % site_wanted )
    elif poll_wanted=='PMf':
@@ -27,8 +29,12 @@ def read_ebas(site_wanted,poll_wanted,syear,eyear):
      files=glob.glob("../Ebas_WA_20220309/%s*elemental_carbon.pm25*.nas" % site_wanted )
    elif poll_wanted=='Levo':
      files=glob.glob("../Ebas_WA_20220309/%s*levogl*.nas" % site_wanted )
+   elif poll_wanted=='eBCbb':
+     print('SITEBB', site_wanted, poll_wanted )
+     files=glob.glob(pmf+"/%s*PMF*.nas" % site_wanted )
    else:
-     sys.exit('INCORRECT OBS '+poll_wanted)
+     print('SITECC', site_wanted, poll_wanted )
+     sys.exit('INCORRECT OBS '+poll_wanted+site_wanted)
    sites=dict()
    """
    starttime endtime OC flag_OC
@@ -81,7 +87,13 @@ def read_ebas(site_wanted,poll_wanted,syear,eyear):
                  sites[code][lhs] = rhs  # NB can be 2 values, e.g. Station lat or Measurement lat. Confusing!
               continue
    
-           stime, etime, val, flag = [ float(k) for k in line.split() ]
+           if code=='eBC_bb':
+              stime, etime, val, eBCff = [ float(k) for k in line.split() ]
+              flag=0
+           else:
+              stime, etime, val, flag = [ float(k) for k in line.split() ]
+           print('HERE ', code, stime, val )
+           sys.exit()
 
            flag1 = int(1000000*flag+0.001)//1000 # e.g. 0.467666 = flags 467 666
            flag2 = int(1000000*flag+0.001)% 1000
