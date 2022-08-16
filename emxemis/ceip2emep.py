@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 #formatted with yapf3 --style=google
+import argparse
 import glob
 import numpy as np
 import pandas as pd
@@ -7,12 +8,26 @@ import xarray as xr
 import os
 import sys
 import emxcdf.makecdf as cdf
+Usage="""
+  Usage:
+     ceip2emep.py -i CEIP_DIR  -o  odir
+  e.g.
+     ceip2emep.py -i /home/davids/MDISKS/Nebula/Agnes/work/emis01degEMEP/trends_2022  -o TMPDIR 
+    DEAL with years later
 
+"""
 
 #----------- user changable ----------------------------------
-debugCheck = True # was just used to compare with Agnes's f90 version for 1 sector
+parser = argparse.ArgumentParser()
+parser.add_argument('-i','--idir',help='location of .txt files')
+parser.add_argument('-o','--odir',help='location of .txt files')
+#parser.add_argument('-s','--style',help='Style of TNO input file, e.g. cams3p1, NMR-RWC')
+args=parser.parse_args()
+
+debugCheck = False # was just used to compare with Agnes's f90 version for 1 sector
 ceipdir = '/home/davids/MDISKS/Nebula/Agnes/work/emis01degEMEP'  # Dave's sshfs mount
 ceipdir = '/nobackup/forsk/sm_agnny/emis01degEMEP'  # nebula
+
 # changed path after RO, 2006 bug fixes
 exclude_C = 'ALLDATA'
 exclude_C = 'YEP' # 'ALLDATA'
@@ -23,6 +38,18 @@ else:
   polls = "PM2_5".split()  # skips PM10, BC
   exclude_C= 'ES FR RU TR GB BE SE PT NO GR FI AL IT DE PL BY BG IE UA RO AT EE HU DK LV LT BA RS SI HR CH CZ LU SK MK MD CY NL KOS ME MT'.split()
   odir    = '/nobackup/forsk/sm_davsi/Data/inputs_emis/NMR-RWC/Emis4Emep/Apr2022/CEIP2021_noPMfC'  # nebula
+
+if args.idir is not None:  # CEIP for Agri so far:
+    polls = "CO NH3 NMVOC NOx PM2_5 PMcoarse SOx".split()  # skips PM10, BC
+    ceipdir = args.idir
+if args.odir is not None:
+    odir = args.odir
+print('CEIPDIR', ceipdir)
+print('ODIR', odir)
+
+#--- best on nebula for multi-polls
+if len(polls) > 1:
+    assert 'sm_dav' in os.environ['USER'], 'TOO MANY POLLS FOR PC'
 
 if debugCheck:
   polls='NOx'.split()
@@ -159,7 +186,7 @@ def character_range(char1, char2):
 sectorcodes = dict()
 for k, letter in enumerate(character_range('A', 'M')):
     sectorcodes[chr(letter)] = k + 1
-    #print(chr(letter), k+1,   end=', ')
+    print(chr(letter), k+1,   end=', ')
 
 for year in years:
 
@@ -272,9 +299,19 @@ for year in years:
 
                 lon = row.LONGITUDE
                 lat = row.LATITUDE
-                if lon < xleft or lon > xright or lat < ybottom or lat > ytop:
-                    print('XXLL', iso2, lon, lat, sect, poll)
-                ix = int((lon - xleft) / dx)
+
+                # Mangled .txt files will throw errors here:
+                try:
+                  if lon < xleft or lon > xright or lat < ybottom or lat > ytop:
+                   print('XXLL', iso2, lon, lat, sect, poll)
+                except:
+                  print('XXLLPROBLEM', iso2, lon,  xleft, dx, lat, sect, poll )
+                  sys.exit(row)
+                try:
+                  ix = int((lon - xleft) / dx)
+                except:
+                  print('XXPROBLEM', iso2, lon,  xleft, dx, lat, sect, poll )
+                  sys.exit(row)
                 iy = int((lat - ybottom) / dy)
                 if ix > nlons - 1 or iy > nlats - 1:
                     continue  # just skip
