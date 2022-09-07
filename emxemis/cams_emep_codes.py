@@ -71,10 +71,15 @@ country_list="""##################################################
 32    ATL    AO    Atlantic_Ocean
 33    MED    MS    Mediterranean_Sea
 34    BLS    BS    Black_Sea
+59    LI     LI    Lichtenstein
+63    NOA    NOA   NorthAfrica
 80    CAS    CAS   Caspian_Sea
 601   GRL    GRL   Greenland
-95    TKM    TMT   Turkmenistan
+92    KZT    KZT   KazakhstanAll
+93    RUE    RUE   RussianFedereationAll
 94    UZB    UZT   Uzbekistan
+95    TKM    TMT   Turkmenistan
+96    AST    AST   AsiaAreasEmepDomain
 373   KOS    KOS   Kosovo
 237   EGY    EGYP  Egypt
 250   IRN    IRAN  Iran_(Islamic_Republic_of)
