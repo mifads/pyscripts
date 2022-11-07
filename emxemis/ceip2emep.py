@@ -8,6 +8,7 @@ import xarray as xr
 import os
 import sys
 import emxcdf.makecdf as cdf
+#import emxgeo.km2_area_of_wgs84pixel as km2cell  # (center_lat, pixel_size):
 Usage="""
   Usage:
      ceip2emep.py -i CEIP_DIR  -o  odir
@@ -20,6 +21,7 @@ Usage="""
 #----------- user changable ----------------------------------
 parser = argparse.ArgumentParser()
 parser.add_argument('-i','--idir',help='location of .txt files')
+parser.add_argument('-y','--year',help='year')
 parser.add_argument('-o','--odir',help='location of .txt files')
 #parser.add_argument('-s','--style',help='Style of TNO input file, e.g. cams3p1, NMR-RWC')
 args=parser.parse_args()
@@ -29,9 +31,10 @@ ceipdir = '/home/davids/MDISKS/Nebula/Agnes/work/emis01degEMEP'  # Dave's sshfs 
 ceipdir = '/nobackup/forsk/sm_agnny/emis01degEMEP'  # nebula
 
 # changed path after RO, 2006 bug fixes
-exclude_C = 'ALLDATA'
-exclude_C = 'YEP' # 'ALLDATA'
-if exclude_C == 'ALLDATA':
+# BUG here was ALLDATA.
+exclude_C = 'none'  # Keep lower case to avoid match with e.g. AT
+exclude_C = 'YEP' 
+if exclude_C == 'none':
   polls = "CO NH3 NMVOC NOx PM2_5 PMcoarse SOx".split()  # skips PM10, BC
   odir    = '/nobackup/forsk/sm_davsi/Data/inputs_emis/NMR-RWC/Emis4Emep/Apr2022/CEIP2021'  # nebula
 else:
@@ -41,6 +44,7 @@ else:
 
 if args.idir is not None:  # CEIP for Agri so far:
     polls = "CO NH3 NMVOC NOx PM2_5 PMcoarse SOx".split()  # skips PM10, BC
+    #SEP22 tests polls = "NMVOC".split()  # skips PM10, BC
     ceipdir = args.idir
 if args.odir is not None:
     odir = args.odir
@@ -65,8 +69,11 @@ pollmap = dict(CO='co',
                PMcoarse='pmco')
 dx = 0.1
 dy = 0.1  # set by hand. Safest.
-years = range(2019, 2004,-1)
-years = range(2019, 2020)
+if args.year is not None:
+  years = [ int( args.year ), ]
+else:
+  years = range(2019, 2004,-1)
+  years = range(2019, 2020)
 #years = range(2005, 2010)
 #years = range(2019, 2020)
 one_big_output = False  # If true, one big file created with all polls for each year. Otherwise one per poll
@@ -190,26 +197,38 @@ for k, letter in enumerate(character_range('A', 'M')):
 
 for year in years:
 
+    print('STARTING YEAR ', year )
     # Start by scanning for lat/lon limits
     idir = '%s/%d' % (ceipdir, year)
     files = glob.glob('%s/*.txt' % idir) # NB NEED TO REPEATE BELOW ######
+    files = glob.glob('%s/*%d.txt' % (idir, year)) # Agri-VOC FIX
     if debugCheck:
       files = dbgfiles
+      print('FILES', ceipdir, year )
+      print('FILES', files)
     xmin = 999.
     xmax = -999.
     ymin = 999.
     ymax = -999.
     # from frac file:
-    xmin = -29.95
-    xmax = 89.95
-    ymin = 30.05
-    ymax = 81.95
+    #May xmin = -29.95
+    #May xmax = 89.95
+    #May ymin = 30.05
+    #May ymax = 81.95
 
     if xmax < 0:  # find domain from files:
         for nfile, ifile in enumerate(files):
+            print('READING ', nfile, ifile )
+            if '_new.txt' in ifile or  'Bacau' in ifile:
+                continue
             df = pd.read_csv(ifile, sep=";", header=4)
             lats = np.sort(np.unique(df.LATITUDE.values))
             lons = np.sort(np.unique(df.LONGITUDE.values))
+
+            #km2 = np.zeros([len(lats)]) # , len(lons)])
+            #for j, lat in enumerate(lats):
+            #  km2[j] =  mk2cell(lat,dy) 
+
             if len(lons) > 0:  # some files have only headers
                 if lons[0] < xmin:
                     xmin = lons[0]
@@ -238,7 +257,7 @@ for year in years:
     ybottom = nf(ymin - 0.5 * dy)
     ytop    = nf(ymax + 0.5 * dy)
 
-    countries_used = set('tot')  # will store totals
+    countries_used = set(['tot']) # will store totals (could also use {'tot'} for set
     srcfiles = dict() # will store file name
 
     # Now, start data processing...
@@ -249,13 +268,21 @@ for year in years:
 
         if not one_big_output:
             xrarrays = []  # stores arrays for netcdf
+        olog = open('Logging_sums_%d_%s.txt' % ( year, poll), 'w' )
+        olog.write('iso')
+        for i in range(1,21):
+          olog.write('%11d' % i )
+        olog.write('\n')
 
         idir = '%s/%d' % (ceipdir, year)
         files = glob.glob('%s/%s*.txt' % (idir, poll))
+        files = glob.glob('%s/%s*%d.txt' % (idir,poll, year)) # Agri-VOC FIX
         if debugCheck:
           files = dbgfiles
 
         sectemis = dict()
+        sumemis = dict()
+        sumemis['tot'] = np.zeros(20)
 
         for nfile, ifile in enumerate(files):
 
@@ -274,28 +301,42 @@ for year in years:
             tmpiso = df.columns[0]  # Includes "  # Format: ISO2"
             countries = set(df[tmpiso].unique())
             countries_used = countries_used | countries  # Union of sets -> all
-            print('Countries:', len(countries), len(countries_used))
+            countries_list = list( sorted(countries_used ))
+            #print('Countries:', len(countries), len(countries_used))
+            #print('Countries:', countries_list)
+            #sys.exit()
             tmpname = os.path.basename(ifile).replace(
                 'PM2_5', 'PM25')  # simplify to allow next split for all polls
             fields = tmpname.split(
                 '_')  # e.g. PM25_A_PublicPower_2021_GRID_2015.txt
             #xpoll=fields[0]
             sect = fields[1]
+            #print('SECT', sect )
             if sect == 'NT':
                 continue  # totals
 
             isect = np.int32(sectorcodes[sect])  # from A to 1
             secname = fields[2]
-            print(ifile, sect, poll, secname, isect)
+            #print(ifile, sect, poll, secname, isect)
 
-            vtot = '%s_%s_sec%2.2d' % ('tot', sect, isect)
+            #SEP22 BUG FIX vtot = '%s_%s_sec%2.2d' % ('tot', sect, isect)
+            #SEP22 BUX FIX?
+            vtot = '%s_%s_sec%2.2d' % ('tot', pollmap[poll], isect)  
             if vtot not in sectemis.keys():
                 sectemis[vtot] = np.zeros([len(lats), len(lons)])
+                print('New vtot: ', vtot, sect )
+
 
             for index, row in df.iterrows():
                 iso2 = row[tmpiso]  # .ISO2
-                #print('TMP', iso2, sect, isect, secname, iso2 in exclude_C)
-                if iso2 in exclude_C and sect == 'C': continue
+                print('TMP', iso2, sect, isect, secname, iso2 in exclude_C)
+#            for isect in range(1, 20):
+                if iso2 in exclude_C and sect == 'C':
+                    print('ExcludeC: ', iso2, sect )
+                    continue
+                if iso2 not in sumemis:
+                    print('ADDISO2', iso2, poll )
+                    sumemis[iso2] =  np.zeros(20)
 
                 lon = row.LONGITUDE
                 lat = row.LATITUDE
@@ -306,12 +347,14 @@ for year in years:
                    print('XXLL', iso2, lon, lat, sect, poll)
                 except:
                   print('XXLLPROBLEM', iso2, lon,  xleft, dx, lat, sect, poll )
+                  print('XXLLPROBLEM L',  index,   tmpname) 
                   sys.exit(row)
                 try:
                   ix = int((lon - xleft) / dx)
                 except:
                   print('XXPROBLEM', iso2, lon,  xleft, dx, lat, sect, poll )
                   sys.exit(row)
+
                 iy = int((lat - ybottom) / dy)
                 if ix > nlons - 1 or iy > nlats - 1:
                     continue  # just skip
@@ -326,8 +369,8 @@ for year in years:
 
                 if x > 0.0:
 
-                    v = '%s_%s_sec%2.2d' % (iso2, pollmap[poll], isect)  
-                             # e.g. AT_PM25_sec03
+                    v = '%s_%s_sec%2.2d' % (iso2, pollmap[poll], isect)  # e.g. AT_PM25_sec03
+                    vtot = '%s_%s_sec%2.2d' % ('tot', pollmap[poll], isect)  
 
                     if v not in sectemis.keys():
                         sectemis[v] = np.zeros([len(lats), len(lons)])
@@ -335,30 +378,50 @@ for year in years:
 
                     sectemis[v][iy, ix] += x
                     sectemis[vtot][iy, ix] += x
+                    sumemis[iso2][isect] +=  x    # NOT AREA BASED?? * km2[iy] )
+                    sumemis['tot'][isect] +=  x    # NOT AREA BASED?? * km2[iy] )
 
         # Now, add to xrarrays (alph and number order)
-        for iso2 in sorted(countries_used):  #  + [ 'tot' ]:
+        #SEP2022 for iso2 in countries_list:  #  + [ 'tot' ]:
+        #print('SUMSEP22 ',  np.sum(sectemis['tot_A_sec01']), np.sum(sectemis['tot_K_sec11'])  )
+        for iso2 in countries_list + [ 'tot' ]:
+            if iso2 not in sumemis: 
+                print('KEY NOT FOUND: ', poll,  iso2, isect )
+                continue
+            olog.write('%3s ' % iso2 )
             for isect in range(1, 20):
                 v = '%s_%s_sec%2.2d' % (iso2, pollmap[poll], isect)
+                print('SEP22v', v, vtot, vtot in sectemis )
+                try:
+                  if sumemis[iso2][isect] > 10.0:  # SEP 6 WHY: or  sumemis[iso2][isect] < 1.0e-6 :
+                    olog.write('%11.1f' %  sumemis[iso2][isect] )
+                  else:
+                    olog.write('%11.3e' %  sumemis[iso2][isect] )
+                except:
+                  print('KEY ERRROR', iso2, isect )
+                  sys.exit()
+                if iso2=='tot': print('SEP22: ', iso2, v, vtot,  v in sectemis )
                 if v in sectemis.keys():
 
                     print('ENDING %4s %d %12s   %20s %12.5f' %
                           (iso2, isect, poll, v, 1.0e-6 * np.sum(sectemis[v])))
 
+                    if iso2=='tot': print('SEP22: ', iso2, v, sectemis[v] )
                     if np.sum(sectemis[v]) > 0.0:
-                        attrs = {
+                        if iso2 == 'tot':
+                          attrs = {
+                                'units': 'tonnes',
+                                'sector': isect
+                          }  # Skip species, stops emissions being used
+                        else:
+                          attrs = {
                             'units': 'tonnes',
                             'country_ISO': iso2,
                             'srcfile': srcfiles[v],
                             'species': pollmap[poll],
 #                            '_FillValue': False,
                             'sector': np.int32(isect)
-                        }
-                        if iso2 == 'tot':
-                            attrs = {
-                                'units': 'tonnes',
-                                'sector': isect
-                            }  # Skip species, stops emissions being used
+                          }
                         xrarrays.append(
                             dict(varname=v,
                                  dims=['lat', 'lon'],
@@ -368,7 +431,10 @@ for year in years:
                                      'lat': lats
                                  },
                                  data=sectemis[v].copy()))
+            olog.write('%12.1f\n' %  np.sum(sumemis[iso2][:]) )
+             
 
+        #sys.exit('TMPR')
         #---end poll
         if not one_big_output:
             ofile = odir+'/outcdf_' + poll + '_%d.nc' % year
