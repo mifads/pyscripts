@@ -124,7 +124,7 @@ colours = 'red orange yellow blue green'.split()
 
 for var in args.varkeys:
    for key in keys:
-       if dbg: print(' VAR, KEY ', var, key )
+       #if dbg: print(' VAR, KEY ', var, key )
        if not var in key:
            continue
        if key.startswith('D3_'):
