@@ -13,248 +13,6 @@ import sys
 import xarray as xr
 import emxcdf.cdftimes as cdft
 
-# Older code, without time possibilty. Kept just while testing
-def xcreate_cdf(variables,ofile,typ,lons,lats,lonlatfmt='full',txt='',dbg=False):
-  """
-    Creates a netcdf file for a simple 2 or 3-D data sets and lonlat projection
-    together with a variables dictionary containing names, units, etc.
-    Variables lon,lat can be output in full format "float longitude(lon)"
-    or short - set with lonlatfmt. (Not sure why this was needed!)
-    Update: if full, don't see lon, lat with ncdump -c ! 
-  """
-  if dbg: print('OFILE ',ofile)
-  cdf=nc.Dataset(ofile,'w',format='NETCDF4_CLASSIC')
-  cdf.Conventions = 'CF-1.6'
-  cdf.projection = 'lon lat'
-  cdf.history = 'Created ' + time.ctime(time.time())
-  cdf.description = 'From emxcdf.makecdf module '+ txt
-  nx=len(lons)
-  ny=len(lats)
-
-  lon= cdf.createDimension('lon',nx)
-  lat= cdf.createDimension('lat',ny)
-# typ can be e.g. u2, u8, f4
-# where u2 = 16 bit unsigned int, i2 = 16 bit signed int, 
-# f = f4, d = f8 
-# CAREFUL. If file exists, or some problem, can get error
-# "Can't add HDF5 file metadata"
-# May 12th . changed longitude to lon in 1st. 2018-02-26 - added back full:
-  lonv, latv = 'lon', 'lat' 
-  #if lonlatfmt is 'full':
-  if lonlatfmt == 'full':
-     lonv, latv = 'longitude', 'latitude'
-  lonvar = cdf.createVariable(lonv,'f4' ,('lon',))
-  latvar = cdf.createVariable(latv,'f4' ,('lat',))
-  lonvar.units = 'degrees_east'
-  latvar.units = 'degrees_north'
-  lonvar.long_name = 'longitude'
-  latvar.long_name = 'latitude'
-
-  if dbg :
-    print('NX NY ', nx, ny, lons.max(), lats.max())
-    #print('SHAPE data ', data.shape)
-    print('LATS', latvar )
-
-  # Fill coord  data
-  lonvar[:] = lons[:]
-  latvar[:] = lats[:]
-
-  for var in variables.keys():
-
-   if dbg: print('VAR:', var) #, variables[var])
-   datvar = cdf.createVariable(var,typ ,('lat', 'lon',),zlib=True)
-   datvar[:,:] = variables[var]['data'][:,:] # fill data
-
-   for key in variables[var].keys():
-     #print('KEY', key)
-     #if key is 'data':
-     if key == 'data':
-       pass
-     else:
-       if dbg: print('ATTR', key, variables[var][key])
-       datvar.setncattr(key,variables[var][key])
-
-  if dbg: print( 'NX NY VAR ', nx, ny, np.max(cdf.variables[lonv][:]),
-     np.max(cdf.variables[latv][:]))
-
-  cdf.close()
-####################
-
-def create_cdf(variables,ofile,typ,lons,lats,times=None,nctimes=None,
-                 lonlatfmt='short',txt='',dbg=False):
-  """
-    Creates a netcdf file for a simple 2 or 3-D data sets and lonlat projection
-    together with a variables dictionary containing names, units, etc.
-    Variables lon,lat can be output in full format "float longitude(lon)"
-    or short - set with lonlatfmt. (Not sure why this was needed!)
-    Update: if full, don't see lon, lat with ncdump -c ! 
-   ADDING TIME
-   Nov 2018. Adding optional nctime, whic is from 1900-01-01
-  """
-  if dbg: print('OFILE ',ofile)
-  cdf=nc.Dataset(ofile,'w',format='NETCDF4_CLASSIC')
-  cdf.Conventions = 'CF-1.6'
-  cdf.projection = 'lon lat'
-  cdf.history = 'Created by David Simpson (Met Norway) ' + time.ctime(time.time())
-  cdf.description = 'From emxcdf.makecdf module '+ txt
-  nx=len(lons)
-  ny=len(lats)
-
-
-  lon= cdf.createDimension('lon',nx)
-  lat= cdf.createDimension('lat',ny)
-
-  #print ('TEST TIMING ', times)
-  timdim=False
-  if times is not None:
-    tim= cdf.createDimension('time',len(times))
-    print ('DO TIMING ', times)
-    timdim=True
-#  sys.exit()
-  if nctimes is not None:
-    tim= cdf.createDimension('time',len(nctimes))
-    timvar = cdf.createVariable('time','f4' ,('time',))
-    timvar.long_name = 'time at middle of period'
-    timvar.units = 'days since 1900-1-1 0:0:0'
-    timdim=True
-    timvar[:] = nctimes[:]
-    print ('NC TIMING ', len(nctimes) )
-#    sys.exit()
-
-# typ can be e.g. u2, u8, f4
-# where u2 = 16 bit unsigned int, i2 = 16 bit signed int, 
-# f = f4, d = f8 
-# CAREFUL. If file exists, or some problem, can get error
-# "Can't add HDF5 file metadata"
-# May 12th . changed longitude to lon in 1st. 2018-02-26 - added back full:
-  lonv, latv = 'lon', 'lat' 
-  if lonlatfmt == 'full':
-  #if lonlatfmt is 'full':
-     lonv, latv = 'longitude', 'latitude'
-  lonvar = cdf.createVariable(lonv,'f4' ,('lon',))
-  latvar = cdf.createVariable(latv,'f4' ,('lat',))
-  lonvar.units = 'degrees_east'
-  latvar.units = 'degrees_north'
-  lonvar.long_name = 'longitude'
-  latvar.long_name = 'latitude'
-
-  if dbg :
-    print('NX NY ', nx, ny, lons.max(), lats.max())
-    #print('SHAPE data ', data.shape)
-    print('LATS', latvar )
-
-  # Fill coord  data
-  lonvar[:] = lons[:]
-  latvar[:] = lats[:]
-
-  for var in variables.keys():
-
-   if dbg: print('VAR:', var, 'timdim:', timdim) #, variables[var])
-   print('TMPVAR:', var, 'timdim:', timdim) #, variables[var])
-   if timdim:
-     #print('Shape times= ', np.shape( times)  )
-     datvar = cdf.createVariable(var,typ ,('time','lat', 'lon',),zlib=True)
-     x=variables[var]['data']
-     print('SHAPEx', x.shape)
-     if ( len(x.shape) == 3 ):
-        datvar[:,:,:] = variables[var]['data'][:,:,:] # fill data
-     else:
-        datvar[0,:,:] = variables[var]['data'][:,:] # fill data
-   else:
-     #print('dbgVAR0 ', var, typ)
-     datvar = cdf.createVariable(var,typ ,('lat', 'lon',),zlib=True)
-     #dbgvar = variables[var]['data']
-     #print('dbgVAR ', var, dbgvar.shape, datvar.shape)
-     datvar[:,:] = variables[var]['data'][:,:] # fill data
-
-   for key in variables[var].keys():
-     #print('KEY', key)
-     #if key is 'data':
-     if key == 'data':
-       pass
-     else:
-       if dbg: print('ATTR', key, variables[var][key])
-       datvar.setncattr(key,variables[var][key])
-
-  if dbg: print( 'NX NY VAR ', nx, ny, np.max(cdf.variables[lonv][:]),
-     np.max(cdf.variables[latv][:]))
-
-  cdf.close()
-
-##################
-
-#Depreated. create_cdf is neater
-def createCDF(variables,ofile,typ,lons,lats,data,lonlatfmt='full',txt='',dbg=False):
-  """
-    Creates a netcdf file for a simple 2 or 3-D data sets and lonlat projection
-    together with a variables dictionary containing names, units, etc.
-    Variables lon,lat can be output in full format "float longitude(lon)"
-    or short - set with lonlatfmt. (Not sure why this was needed!)
-  """
-  if dbg: print('OFILE ',ofile)
-  cdf=nc.Dataset(ofile,'w',format='NETCDF4_CLASSIC')
-  cdf.Conventions = 'CF-1.6'
-  cdf.projection = 'lon lat'
-  cdf.history = 'Created ' + time.ctime(time.time())
-  cdf.description = 'From emxcdf.makecdf module '+ txt
-  nx=len(lons)
-  ny=len(lats)
-
-  lon= cdf.createDimension('lon',nx)
-  lat= cdf.createDimension('lat',ny)
-# typ can be e.g. u2, u8, f4
-# where u2 = 16 bit unsigned int, i2 = 16 bit signed int, 
-# f = f4, d = f8 
-# CAREFUL. If file exists, or some problem, can get error
-# "Can't add HDF5 file metadata"
-# May 12th . changed longitude to lon in 1st. 2018-02-26 - added back full:
-  lonv, latv = 'lon', 'lat' 
-  if lonlatfmt == 'full':
-     lonv, latv = 'longitude', 'latitude'
-  lonvar = cdf.createVariable(lonv,'f4' ,('lon',))
-  latvar = cdf.createVariable(latv,'f4' ,('lat',))
-  lonvar.units = 'degrees_east'
-  latvar.units = 'degrees_north'
-  lonvar.long_name = 'longitude'
-  latvar.long_name = 'latitude'
-
-  if dbg :
-    print('NX NY ', nx, ny, lons.max(), lats.max())
-    print('SHAPE data ', data.shape)
-    print('LATS', latvar )
-
-  # Fill coord  data
-  lonvar[:] = lons[:]
-  latvar[:] = lats[:]
-
-
-  # We need a list of dictionaries. If variables is just a single
-  # dict, we make it into a list
-
-  print('TMPAPR5 ', variables)
-  if isinstance(variables, dict):
-
-    variables = [ variables, ]
-    varname=variables[0]['name']
-
-  for n, var in enumerate(variables):
-     varname=var['name']
-     datvar = cdf.createVariable(varname,typ ,('lat', 'lon',),zlib=True)
-     if len(data.shape) == 2:
-       datvar[:,:] = data[:,:]
-     else:
-       datvar[:,:] = data[n,:,:]
-
-     for key in var.keys():
-       if key == 'name' : continue # alrady done
-       datvar.setncattr(key,var[key])
-
-  if dbg: print( 'NX NY VAR ', nx, ny, np.max(cdf.variables[lonv][:]),
-     np.max(cdf.variables[latv][:]))
-
-  cdf.close()
-####################
-
 """ UPDATED MAR 6 2022 to completely skip FillValues; my data don't use them so far
     xarray and _FillValue are very complex and confusing!!! See
       https://github.com/mmartini-usgs/MartiniStuff/wiki/Xarray-things-to-know
@@ -284,6 +42,9 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
         'units': 'degrees_north',
         'standard_name': 'latitude'
   }
+  outxr.time.attrs = {
+          'dtype': 'f4',
+  }
 
   for key, val in globattrs.items():
     outxr.attrs[key] = val
@@ -295,7 +56,10 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
                      dtype='float32')
 
   for var in outxr.coords:
-      encoding[var] = {'_FillValue': None}
+      if 'time' in var:
+        encoding[var] = {'dtype': 'f4'} # f4 works better than float for ncview
+#      print('COORDS encoding', var, encoding[var] )
+#      encoding[var] = {'_FillValue': None}
 
   if sigfigs > 0:
       data_comp['least_significant_digit'] = np.int32(sigfigs)
@@ -309,7 +73,6 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
   print('XRmake', outfile)
   outxr.to_netcdf(outfile, format='netCDF4',encoding=encoding)
   outxr.close()
-
 
 
 def create_fvcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sigfigs=-1,dbg=False):
@@ -410,11 +173,12 @@ def create_fvcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sig
 
 
 if __name__ == '__main__':
+
   import matplotlib.pyplot as plt
   from collections import OrderedDict as odict
   lons = np.linspace(-179.5,179.5,360)
   lats = np.linspace(-89.5,89.5,180)
-  data = np.zeros([180,360],dtype=np.float)
+  data = np.zeros([180,360],dtype=float)
   for j in range(180): #len(lats)): # 150,170):  # upper 
     for i in range(360): #len(lons)): # 30,60):  # left 
        data[j,i] = lats[j] # j*1000.0 + i
@@ -440,32 +204,59 @@ if __name__ == '__main__':
 #ds.time.encoding["dtype"] = "float64"
 
   #xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR2.nc')
-  xrtestFill =  create_nfcdf(xrarrays,globattrs={'AA':'AA'},outfile='fill_ntestXR2.nc',skip_fillValues=True)
-  sys.exit()
+  #FAILS:
+  #xrtestFill =  create_nfcdf(xrarrays,globattrs={'AA':'AA'},outfile='fill_ntestXR2.nc',skip_fillValues=True)
+  #sys.exit()
 
   # 2. Example of multiple scalar fields
   # nb order of variable names has to match data order
 
-  data3 = np.zeros([3,180,360],dtype=np.float)
+  data3 = np.zeros([3,180,360],dtype=float)
   for n in range(3):
        data3[n,:,:] = data[:,:]*(n**2+1)
   times = [ 0, 1, 2 ]
 
+  # Better date handling:
   xrarrays = []
   xrarrays.append( dict(varname='xr3d', dims=['time', 'lat','lon'],
      attrs = {'note':'test xx','NOTE':'test att'},
      coords={'time':times, 'lat':lats,'lon':lons},data=data3 ) )
 
   xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR3d.nc')
-  nctimes= [ cdft.days_since_1900(1997,mm,15) for mm in range(1,4)  ]
+  #nctimes= [ cdft.days_since_1900(1997,mm,15) for mm in range(1,4)  ]
+  # Better date handling:
+  #import datetime as dt
+  #https://docs.xarray.dev/en/stable/user-guide/time-series.html
+  #https://stackoverflow.com/questions/55107623/create-netcdf-file-with-xarray-define-variable-data-types
+
+  import pandas as pd # for cdf dates
+  nctimes=pd.date_range("%d-01-01" % 2012,freq="3H",periods=3)
+  #t0=dt.datetime(2012,1,1)
   # with nctimes
   xrarrays = []
   xrarrays.append( dict(varname='xr3d', dims=['time', 'lat','lon'],
      attrs = {'note':'test xx','NOTE':'test att'},
      coords={'time':nctimes, 'lat':lats,'lon':lons},data=data3 ) )
-  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR3dnc.nc',timeVar='days_since_1990')
+  # timeVar NOT USED ******
+  xrtest =  create_xrcdf(xrarrays,globattrs={'BB':'BB'},outfile='bbtestXR3dnc.nc',timeVar='hours_since:2012-01-01 00:00:00') #days_since_1990')
 
-  # Better date handling:
+  # DIRECT TEST:
+  ds=xr.Dataset(
+        {"x3d": (("time","lat","lon"),data3)},
+        coords={
+             "lat":lats,
+             "lon":lons,
+             "time":nctimes, #[0,1,2],
+        }
+  )
+  ds.to_netcdf('aatest3d.nc',encoding={'time':{'dtype':'f4'}})
+
+  #def ncreate_cdf(variables,lons,lats,nctimes,data):
+
+
+  sys.exit()
+  #xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR3dnc.nc',timeVar='hours_since_2012-01-01')
+
   xrarrays = []
 
   tcoords={'time':nctimes}
