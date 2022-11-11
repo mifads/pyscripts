@@ -42,9 +42,8 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
         'units': 'degrees_north',
         'standard_name': 'latitude'
   }
-  outxr.time.attrs = {
-          'dtype': 'f4',
-  }
+  if 'time' in outxr.keys():
+    outxr.time.attrs = { 'dtype': 'f4', }
 
   for key, val in globattrs.items():
     outxr.attrs[key] = val
@@ -183,30 +182,20 @@ if __name__ == '__main__':
     for i in range(360): #len(lons)): # 30,60):  # left 
        data[j,i] = lats[j] # j*1000.0 + i
 
-  #print( 'LONS ', lons[0], lons[-1], lons[1]-lons[0], len(lons))
-  #print( 'lats ', lats)
-  #plt.imshow(data)
-  #plt.show()
-
   # 1. Example of simple scalar field
-  #TestVar=dict( name='TEST1', units='uuu' )
-  #createCDF(TestVar,'tmp_mkCdfm.nc','f4',lons,lats,data,dbg=True)
 
   TestVar=odict()
   TestVar['TEST2D'] = dict(units='uuu', data=data )
-  #create_cdf(TestVar,'tmp_create_cdf.nc','f4',lons,lats,data,dbg=True)
-#  create_cdf2(TestVar,'tmp_create_cdf.nc','f4',lons,lats,times=[1., 2., 3.],dbg=True)
 
   xrarrays = []
   xrarrays.append( dict(varname='xrxr', dims=['lat','lon'],
       attrs = {'note':'test xx','sector':3,'NOTE':'test att'},
      coords={'lat':lats,'lon':lons},data=data ) )
-#ds.time.encoding["dtype"] = "float64"
 
-  #xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR2.nc')
+  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR2.nc')
+
   #FAILS:
   #xrtestFill =  create_nfcdf(xrarrays,globattrs={'AA':'AA'},outfile='fill_ntestXR2.nc',skip_fillValues=True)
-  #sys.exit()
 
   # 2. Example of multiple scalar fields
   # nb order of variable names has to match data order
@@ -228,6 +217,7 @@ if __name__ == '__main__':
   #import datetime as dt
   #https://docs.xarray.dev/en/stable/user-guide/time-series.html
   #https://stackoverflow.com/questions/55107623/create-netcdf-file-with-xarray-define-variable-data-types
+  # or pandas:
 
   import pandas as pd # for cdf dates
   nctimes=pd.date_range("%d-01-01" % 2012,freq="3H",periods=3)
