@@ -5,12 +5,15 @@
   3 = NAM, 4=EUR
 """
 import numpy as np
+import os
 import sys
 import xarray as xr
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-hdir='/home/davids/Data/HTAP_v2/'
+homeDir  = os.environ['HOME']
+hdir=homeDir+'/Data/HTAP_v2/'
+
 ds=xr.open_dataset(hdir+'HTAP_Phase2_tier1NC05x05_v2.nc') #receptorNC.nc')
 xlons=ds.long.data   # 0.25 .. 359.75
 lons=np.roll(xlons,360)
