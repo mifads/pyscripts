@@ -105,6 +105,7 @@ def settzo3(o3,hh1=0,hh2=23,tz=None,dbg=None):
   o3used = []
   hnew=0
   #print('settzo3', len(o3) )
+  sys.exit('NEEDS CHECK. Only returns short array')
   for h in range(hh1,hh2+1):
      if h > 23: h = h - 24  # we allow wrap-around
      o3used.append( o3[h] )
