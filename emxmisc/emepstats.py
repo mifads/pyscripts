@@ -21,6 +21,7 @@ def obsmodstats (x,y,ymin=0.0,dcLimit=75,dbg=False):
   stats['bias']  = np.nan
   stats['rbias'] = np.nan # float version
   stats['R']     = np.nan
+#FAILED  stats['trend'] = np.nan
 
   x = np.array(x)
   y = np.array(y)
@@ -30,10 +31,10 @@ def obsmodstats (x,y,ymin=0.0,dcLimit=75,dbg=False):
       x[n] = np.nan
       y[n] = np.nan
 
-  f=np.isfinite(x) # grab only ral numbers
+  f=np.isfinite(x) # grab only real numbers
   stats['Nvalid'] = sum(f)
   stats['dc'] = int( 0.5 +  sum(f)/(0.01*len(x)) ) # Data capture in %
-  print(dtxt+'Data capture test: ', stats['dc'], ' vs ', dcLimit, dbg)
+  #print(dtxt+'Data capture test: ', stats['dc'], ' vs ', dcLimit, dbg)
   if stats['dc'] < dcLimit:
     print('Data capture fail: ', stats['dc'], ' vs ', dcLimit)
     return stats
@@ -51,6 +52,7 @@ def obsmodstats (x,y,ymin=0.0,dcLimit=75,dbg=False):
   stats['R']    = np.corrcoef(x[f],y[f])[0,1]
   stats['meanx'] = meanx
   stats['meany'] = meany
+#FAILED  stats['trend'] = np.polyfit(x,y,deg=1)[0]
   if dbg:
     for k, v in stats.items():
        print('STATS %-10s %8.3f'% (k, v) )
