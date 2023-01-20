@@ -123,6 +123,7 @@ def getSeasonalMetrics(yr, x, metric,mm1,nmm,accumulate,
 
   ValidSeason = True
   in_season= np.array( [ False ] * 13 )
+  valid_month = np.array( [ False ] * 13 )
 
   dtxt='getSM:'
   mtxt=dtxt+metric+':'  # eg getSM:AOT40:
@@ -141,6 +142,7 @@ def getSeasonalMetrics(yr, x, metric,mm1,nmm,accumulate,
 
   for mm in range(1,13):
 
+     if in_season[mm] : nActiveMonths += 1
      for dd  in range(1,nmdays[mm]+1):
          if extra_dbg: print(mtxt+'dd:', day, mm,dd, x[day], \
               np.nansum(msum),in_season[mm], nmdays[mm] )
@@ -160,14 +162,15 @@ def getSeasonalMetrics(yr, x, metric,mm1,nmm,accumulate,
        ' nActive=', nActiveDays, ' nValid=', nValidDays, 'inGS?', in_season[mm]  )
 
      if frac[mm] > min_days_fraction:
-         if dbg: print('VM'+mtxt+'   Valid month ', mm, 
+       if dbg: print('VM'+mtxt+'   Valid month ', mm, 
            ' Msum=', msum[mm], ' MsumCorr=', msum[mm]/frac[mm] )
-         msum[mm] *= 1.0/frac[mm]   # Correct here for data-capture
+       msum[mm] *= 1.0/frac[mm]   # Correct here for data-capture
+       valid_month[mm] = True
      else:
         # need all months to get valid seasonal
-         if in_season[mm] : ValidSeason = False  # Invalid if any one month wrong!?
+         #if in_season[mm] : ValidSeason = False  # Invalid if any one month wrong!?
          if dbg and in_season[mm]: 
-            print('VM'+mtxt+' Invalid month,season ', mm, nsum[mm] )
+            print('VM'+mtxt+' Invalid month,season ', mm, nsum[mm], frac[mm]  )
          msum[mm] = np.nan
 
      monthlyOut[mm] =  msum[mm]
@@ -179,12 +182,22 @@ def getSeasonalMetrics(yr, x, metric,mm1,nmm,accumulate,
   # latter by nmdays
 
   monthlyDC[0]  =  int(0.5+100.0*nValidDays/nActiveDays )
-  if ValidSeason: 
-        monthlyOut[0]  = np.sum( msum[ in_season ]  )
-        if  not accumulate :
-          monthlyOut[0]  /= nActiveDays
+
+  nValidMonths = np.sum(valid_month) # np.isfinite(msum[in_season]))
+  nMaxValidMonths = np.sum(in_season)
+
+  #if np.isfinite( np.sum( msum[ in_season ] ) ): #  ValidSeason: 
+  if nValidMonths/nActiveMonths > 0.8 or nValidDays > 340 : #  np.isfinite( np.sum( msum[ in_season ] ) ): #  ValidSeason: 
+      monthlyOut[0]  = np.nansum( msum[ in_season ]  )
+      if  not accumulate :
+        monthlyOut[0]  /= nActiveDays
+      if dbg: print(dtxt+'ValidSeason', nActiveDays, accumulate, monthlyOut[0] )
+      if dbg: print(dtxt+'MAX:', nValidDays, nActiveDays, nValidMonths, nActiveMonths, nMaxValidMonths )
   else:
-        monthlyOut[0]  = np.nan
+      if dbg: print(dtxt+'INValidSeason', nActiveDays, accumulate, monthlyOut[0] )
+      if dbg: print(dtxt+'msums:', msum ) 
+      if dbg: print(dtxt+'MAX:', nValidDays, nActiveDays, nValidMonths, nActiveMonths, nMaxValidMonths )
+      monthlyOut[0]  = np.nan
 
 #  with np.errstate(all='ignore'):
 #        mdivs = np.divide( msum, nsum )   # gives inf for /0.0

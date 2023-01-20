@@ -105,7 +105,7 @@ def settzo3(o3,hh1=0,hh2=23,tz=None,dbg=None):
   o3used = []
   hnew=0
   #print('settzo3', len(o3) )
-  sys.exit('NEEDS CHECK. Only returns short array')
+  #sys.exit('NEEDS CHECK. Only returns short array')
   for h in range(hh1,hh2+1):
      if h > 23: h = h - 24  # we allow wrap-around
      o3used.append( o3[h] )
@@ -246,14 +246,15 @@ accumulated= {'Dmean':False,  'Dmax':False, 'M7':False, 'M12':False,
 
 first_metrics_call = True
 
-#def get_metrics(o3,metrics=defmetrics,dbg=False):
 def get_metrics(o3,keys=defmetrics.keys(),tz=None,dbg=False):
-  #if first_metrics_call:
+  dtxt='DBGget_metrics:'
   results = {}                      # Initialise results
-  #TESTING o3valid = o3.copy() was tuple?
   o3valid = np.array(o3)
+  if dbg: print(dtxt+'In:', o3valid )
   if tz is not None:
     o3valid = settzo3(o3valid,tz=tz)
+    if dbg: print(dtxt+'TZ:', o3valid )
+  #sys.exit(dtxt+'HERE')
   #print('get-met', len(o3), len(o3valid))
   for n in range(len(o3)):
     if o3[n] < 0.0: o3valid[n] = np.nan
