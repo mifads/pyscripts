@@ -1,25 +1,34 @@
 #!/usr/bin/env python3
 """
+Feb 2023  update:  use argparse to change labels. STILL VERY MESSY; needs clean start
 June 2021 update. Res files look like:
 SO2_in_Air ugS/m3
-------------------------------------------------------------------------------
+
   Period CDays   Ns    Np   pc<30% pc<50%        Obs      Mod     Bias  Rmse  Corr   IOA
   YEARLY   274   57    57    (58%)  (86%)       0.30     0.33       8%  0.23  0.64  0.78
   JANFEB    -    60    60    (48%)  (80%)       0.36     0.47      32%  0.40  0.62  0.74
 so no need for r-Y,r-YD etc"""
 
+import argparse
 from glob import glob
+import os
 import sys
 import re
 
-#for arg in sys.argv: print(arg)
+#------------------ arguments  ----------------------------------------------
 
-season='YEARLY'
-if sys.argv[1] == '-s':
-  season=sys.argv[2]  # e.g. 'JANFEB'
-  runs=sys.argv[3:]
-else:
-  runs=sys.argv[1:]
+#parser=argparse.ArgumentParser(usage=__doc__) also works, but text at start
+parser=argparse.ArgumentParser(epilog=__doc__,
+   formatter_class=argparse.RawDescriptionHelpFormatter)
+parser.add_argument('-s','--season',help='season (eg JANFEB)',default='YEARLY')
+parser.add_argument('-i','--ifiles',help='Input files',nargs='*',required=True)
+parser.add_argument('-S','--skiplabels',help='skip labels from name',nargs='*',required=False)
+args=parser.parse_args()
+
+if args.season:
+  season=args.season
+
+runs=args.ifiles
 assert len(runs)>0,'No runs specified!'
 
 #yearly =3 # offsets from poll name
@@ -74,28 +83,11 @@ fmt='%-30.46s %-8s %4s' + '%8s'*6  + '     %-20s'  # April 2022, with season
 line = '-' * (40+5+8*6)
 
 for np, p in enumerate(polls):  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';'):
-  #print(fmt % ( p, 'Ns', 'bias', 'r-Y', 'r-YD', 'ioa-Y', 'ioa-YD' ) )
 
   for nrun, run in enumerate(runs):
-    #QQ  if ( 'BM_' in tst0 ): tst = '%s-EmChem09soa' % tst0
-    try:
-      tst=run.split('.')[-3]   # "%s/Res.%s.%s.%s" % ( idir, tst, grid, year)
-    except:
-      #tst=run.split('_')[1]   # Res_%s-xx.%s" % ( idir, tst, grid, year)
-      r=re.search('Res_(\w+)', run ) # Stops at '-' in e.g h500-outluers_condays
-      #NMR tst=r.groups()[0]
-      tst=run.replace('Res_','').replace('-outliers_comday','')  # A2019 FIX!!
-      tst=tst.replace('Res_','').replace('_h500_outliers_comday','')  # A2019 FIX!!
-      tst=tst[:-5] # removes e.g. _2016
-      #print( "XRUN :", run, tst, tst[:-5])
- 
-    nmrsplit=tst.split('_')
-    #tst=nmrsplit[1]
-    #tst=tst.replace('Res_','').replace('_h500_outliers_comday','')  # A2019 FIX!!
-    #print( "XRUN2 :", run, tst)
-    #sys.exit()
 
-    #print("TST ", tst, ":", run)
+    tst = os.path.basename(run).replace('Res_','')
+
     Ns = '-' 
     bias = '-' 
     mod  = '-' 
@@ -108,15 +100,12 @@ for np, p in enumerate(polls):  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.sp
        t = f.read()
        tt=t.split('\n')
        f.close()
-       #print('FPP', p, tt.index(p))
       
        try:  # species may not always exist in file
          for ii in range(8):
-           #row = tt[yearly + tt.index(p)]
            row = tt[ii + tt.index(p)]
-           #sys.exit()
+
            if row.split()[0] == season:
-             #print('ROW',row.split()[0], season)
              ioa = row.split()[-1]
              r2  = row.split()[-2]
              rmse = row.split()[-3]
@@ -132,17 +121,17 @@ for np, p in enumerate(polls):  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.sp
           
              Ns   = row.split()[-10]
              break
-#TMPpy           row = tt[yearday + tt.index(p)]
-#           dioa = row.split()[-1]
-#          dr2  = row.split()[-2]
        except:
            pass
     except:
        pass
 
     if nrun==0: # header line
-      #A2022print(fmt % ( p, season, 'Ns', 'obs', 'mod', 'bias', 'rmse', 'r2', 'ioa', '' ) )
       print(fmt % ( 'Run', season, 'Ns', 'obs', 'mod', 'bias', 'rmse', 'r2', 'ioa', p ) )
+
+    if args.skiplabels:
+      for skip in args.skiplabels:
+        tst = tst.replace(skip,'')
     print(fmt % ( tst, ':',  Ns, obs, mod, bias, rmse, r2, ioa , p ) )
 
   print( line )
