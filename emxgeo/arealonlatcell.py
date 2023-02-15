@@ -185,14 +185,14 @@ if __name__ == '__main__' :
 # https://stackoverflow.com/questions/28372223/python-call-function-from-string#28372280
 # and *val from https://note.nkmk.me/en/python-argument-expand/
 
-clat=60.0; dLat=dLon=dll= 30.0/60
-clat=60.0; dLat=dLon=dll=1.0
-functions = dict( km2_areaLonLatCell=(clat,dLat,dLon), km2_areaLatCell=(clat,dll), 
-                  km2_areaLonLatCellX=(clat,dLat,dLon), km2_AreaLonLatCell=(clat,dll),
-                  km2_area_of_wgs84pixel=(clat,dll),  km2_area_wgs84cell=(clat,dll) )
-for key, args in functions.items():
-  print( 'AREA FUNC %15s %12.3e km2 ' % ( key,  locals()[key](*args) ) )
-
-x=globArea_km2()
-globArea_comp()
-
+  clat=60.0; dLat=dLon=dll= 30.0/60
+  clat=60.0; dLat=dLon=dll=1.0
+  functions = dict( km2_areaLonLatCell=(clat,dLat,dLon), km2_areaLatCell=(clat,dll), 
+                    km2_areaLonLatCellX=(clat,dLat,dLon), km2_AreaLonLatCell=(clat,dll),
+                    km2_area_of_wgs84pixel=(clat,dll),  km2_area_wgs84cell=(clat,dll) )
+  for key, args in functions.items():
+    print( 'AREA FUNC %15s %12.3e km2 ' % ( key,  locals()[key](*args) ) )
+  
+  x=globArea_km2()
+  globArea_comp()
+  
