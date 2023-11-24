@@ -48,13 +48,16 @@ parser.add_argument('-O','--odir',help='output directory',default='.')
 parser.add_argument('-p','--plot',help='plot on screen?\n(Optional)',action='store_true')
 parser.add_argument('-L','--labels',help='labels, e.g. -L"rv4.15 rv4.15a rv4.15b"\n(Optional)',required=False)
 parser.add_argument('-n','--nonegs',help='skip neg values',required=False,action='store_true')
+parser.add_argument('-s','--skip',help='skip files with wrong number months',action='store_false')
 parser.add_argument('-t','--title',help='title',required=False)
 parser.add_argument('-V','--verbose',help='extra info',action='store_true')
 parser.add_argument('-y','--year',help='year',required=True)
 args=parser.parse_args()
-dtxt='CdfComp'
+dtxt='CdfComp:'
 dbg=False
 if args.verbose: dbg=True
+if dbg: print(dtxt+'ARGS', args)
+skip_wrongmonths = args.skip
 if dbg: print(dtxt+'ARGS', args)
 
 if args.domain:
@@ -80,12 +83,12 @@ for n, ifile in enumerate(args.ifiles):
      sys.exit('File not found! ' + f)
 
    tmpc= f.split('/')
-   print(f, '=>fTERMS ', n, tmpc)
+   print( '=>  fTERMS ', n, tmpc)
    if len(tmpc)>2:
       case[f]= tmpc[-3].replace('.%s'%args.year,'')  # rv4.2012 from rv4.2012/Base/Base_month.nc
    else:
      case[f]= tmpc[0]  #  CAMS_IPOA fro CAMS_IPOA/CAMS_IPOA_month.nc
-     print('CASE', case[f], len(tmpc), tmpc )
+   print('CASE', case[f], len(tmpc), tmpc )
 
    cases.append(case[f])
    ifiles.append(f)  # with full path name to .nc
@@ -123,12 +126,14 @@ for c in labels:
   print('%s' %  header )
 print('FINAL %s' %  header )
 print('FINAL LEN' ,  len(header) )
-tab.write('%s\n' %  header )
+#tab.write('%s\n' %  header )
 tab.write(header+"\n")
 months=list(range(1,13))
 colours = 'red orange yellow blue green'.split()
 
+nmonthly_last = -999
 for var in args.varkeys:
+   #if dbg: print(' VAR ', var )
    for key in keys:
        #if dbg: print(' VAR, KEY ', var, key )
        if not var in key:
@@ -171,14 +176,30 @@ for var in args.varkeys:
              #  for j, i in zip(jj,ii): # in case of repeated max
              #   print('MAXLOC', key, j, i, vals[:,j,i] )
           
-             monthly = np.nanmean(vals,axis=(1,2))
-             if dbg: print('TMPV monthly ', monthly, len(monthly))
+             monthly = np.nanmean(vals,axis=(1,2))  # domain mean vals: (12, 359, 719)
+             if dbg: print('TMPV monthly ',  monthly, len(monthly))
            else:
              print(' KEY NOT FOUND ', key, case[ifile])
              continue
 
-           if( len(monthly) ==1 ): # Just have one value, e.g. annual
-             tmpvals[nf] =  monthly[0]
+           nmonthly = len(monthly)
+           if nmonthly_last < 0:
+              nmonthly_last = nmonthly
+           else:
+            if ( nmonthly != nmonthly_last )  and skip_wrongmonths:
+              print('SKIPPING ',labels[nf],
+               'Inconsistent lengths! %d %d' % ( nmonthly_last, nmonthly )) 
+              continue
+            else:
+              assert nmonthly==nmonthly_last,'Inconsistent lengths! %d %d' % (
+                          nmonthly_last, nmonthly )
+
+           if( nmonthly ==1 ): # Just have one value, e.g. annual
+             try:
+               tmpvals[nf] =  monthly[0]
+             except:
+               print('MONTHL ERR?', nf, ifile,nmonthly, monthly )
+               sys.exit('MONTHL ERR?' )
              #plt.bar(tmpx,tmpvals,label=labels[nf],color='C0')
              plt.bar(tmpx,tmpvals,label=labels[nf],color=colours[nf])
              left=0.0   # Start in Jan.
