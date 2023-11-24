@@ -126,6 +126,8 @@ for np, p in enumerate(polls):  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.sp
     except:
        pass
 
+    if Ns == '-': continue
+    #DSTMP if int(Ns) < 20: continue
     if nrun==0: # header line
       print(fmt % ( 'Run', season, 'Ns', 'obs', 'mod', 'bias', 'rmse', 'r2', 'ioa', p ) )
 
