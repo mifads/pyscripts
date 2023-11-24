@@ -79,7 +79,7 @@ fmt='%-40.36s %4s' + '%8s'*5
 fmt='%-50.46s %4s' + '%8s'*5
 fmt='%-50.46s %4s' + '%8s'*6   # June 2021
 fmt='%-50.46s %-8s %4s' + '%8s'*6  + '     %-20s'  # April 2022, with season
-fmt='%-30.46s %-8s %4s' + '%8s'*6  + '     %-20s'  # April 2022, with season
+fmt='%-40.46s %-8s %4s' + '%8s'*6  + '     %-20s'  # April 2022, with season
 line = '-' * (40+5+8*6)
 
 for np, p in enumerate(polls):  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';'):
