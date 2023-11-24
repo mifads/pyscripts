@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-""" Jan2022, May 2021: Use fbio = 1 for GNFR C to get get fake ECres for CAMS50 """
+""" Jan2022, May 2021: Use fbio = 1 for GNFR C to get get fake ECres for CAMS50
+    Jun2022. Adapt to CAMS-REG-v5.1 """
 # Adapted from 2021 camsmakePMsums.py
 # Adapted from 2020 camsmakePMsums.py
 # Adapted from RdCAMS50nov2019.py
@@ -7,7 +8,7 @@
 # with more flexible read of bioshare for comp with Agnes (Mar 2020)
 import collections
 import numpy as np
-import pandas as pd # mar2020 as genfromtxt didn't have encoding
+#import pandas as pd # mar2020 as genfromtxt didn't have encoding
 import sys
 # Dave's
 #import emxemis.maccEmepCodes as macc2emep
@@ -36,7 +37,7 @@ euSum='EUR'  # exists in cams_emep_codes as country 999
 #Year;ISO3;GNFR_Sector;EC_fine;OC_fine;SO4_fine;Na_fine;OthMin_fine
 
 #tnoInputs='../EurodeltaCarb_2020agnes/TNO_Inputs/' # for share
-tnoInputsShare='../TNO_Inputs/' # for share
+tnoInputsShare='/home/davids/Work/D_Emis/TNO_Emis/TNO_Inputs/' # for bio share, for 2015 only
 tnoInputs='/home/davids/lustre/storeB/project/fou/kl/emep/Emissions/CAMS50_U4_emissions/'
 tnoInputs='/home/davids/CAMS50_U4_emissions/'
 #tnoInputs='/home/davids/MDISKS/Nebula/MG/work/2022_CAMS2_40_U5_emissions/'
@@ -44,6 +45,10 @@ tnoInputs='/home/davids/Work/D_Emis/TNO_Emis/2022_CAMS2_40_U5_emissions/'
 tnoSplits= tnoInputs + 'PM_split_for_CAMS-REG-AP_v5_1_with_Ref2_0_1_year2018_DT_20220102.xlsx'
 tnoEmis= tnoInputs+ 'CAMS-REG-v5_1_with_Ref2_0_1_year2018_DT.csv'
 outlabel = 'xgnfrRef%s_yr2018_cams50_jan2022'
+# July 2023 Ref2:
+tnoInputs='/home/davids/MDISKS/Nebula/MG/work/CAMS2_40/VRA2021_emissions/'
+refNums = [ 'v6_1_1_Ref2_v2_1' ]    # messy labels...
+
 
 def write_emissums(splits,emisdict,fbio,outlabel,dbg=False):
 
@@ -167,18 +172,24 @@ def write_emissums(splits,emisdict,fbio,outlabel,dbg=False):
 #----------------------------------------------------------------------------
 
 #for refNum in [ 1, 2 ]:
-for refNum in [  '2_0_1' ]:
+for refNum in refNums: 
+
+  elabel    ='CAMS-REG-AP_%s_year2021' % refNum    # => e.g. CAMS-REG-AP_v6_1_1_Ref2_v2_1_year2021.csv
+  tnoEmis   = tnoInputs+ elabel + '.csv'  #'CAMS-REG-AP_v6_1_1_Ref2_v2_1_year2021.csv'
+  outlabel  = 'gnfr_%s' % elabel
+  print('OUTS: ', tnoEmis, outlabel)
 
   # 1) Splits =>  s['EC']['NOR']['C']['fine']
+
+  if 'Ref2' in refNum:
+     tnoSplits = tnoInputs + 'CAMS-REG-v6_PM_split_Ref2.xlsx'
+  else:
+     tnoSplits = tnoInputs + 'CAMS-REG-v6_PM_split.xlsx'
+
   splits= camsreadPMsplits.getPMsplit( tnoSplits) #JAN2022 Inputs + \
-#JAN2022     'PM_split_for_CAMS-REG-AP_v4_2_REF2_1_2017.xlsx')
-#2020:    'PM_split_for_CAMS-REG-AP_v2_2_1_rev_20190326_REF%d_2015.xlsx' % refNum)
 
   # 2)  Emissions => e['CO']['NOR']['A:P'],  e['snap2']['PM2_5']['NOR']
   e=camsInfo.readCams( tnoEmis, wanted_poll='PM' ) # JAN2022 + \
-#2022:      'CAMS-REG-AP_v4_2_emissions_year2017_REF2.1.csv', wanted_poll='PM')
-#2020:    'CAMS-REG-AP_v2.2.1_2015_REF%d.csv' % refNum, wanted_poll='PM')
-  #sys.exit()
 
   # 3) bioshares, => f[iso3][size]
   # for small combustion and PM2_5 or PM10. 
@@ -200,6 +211,6 @@ for refNum in [  '2_0_1' ]:
         fbio[cc][size] = 1.0
 
     #JAN2022 outlabel = 'gnfrRef%s_yr2017_cams50_fakeECres_may2021' % refNum
-    xoutlabel = outlabel % refNum
-    f=write_emissums(splits,e,fbio,xoutlabel,dbg=False)
+    #JULY 2023 xoutlabel = outlabel % refNum
+    f=write_emissums(splits,e,fbio,outlabel,dbg=False)
 
