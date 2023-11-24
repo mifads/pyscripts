@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# https://colorcet.holoviz.org/getting_started/index.html
+import colorcet as cc
 #plotEmep + http://worksofscience.net/matplotlib/colorbar
 # From plotCordex3.py with different projection which was from plotrca....
 import matplotlib.pyplot as plt
@@ -48,6 +50,7 @@ parser.add_option( '--cmap' , help="cmap, eg --cmap hot,jet_r",
                       #default='Set3', dest='cmap', action='store',nargs=1)
                      #default='YlOrRd', dest='cmap', action='store',nargs=1)
 parser.add_option( '--coast' ,help="Colour of coast",default='r')
+parser.add_option( '--scale' ,help="Scale factor",default=1.0)
 parser.add_option( '--skipcbar' ,help="No colourbar",dest='skipcbar')
 #FAILED parser.add_option( '--mercator' ,help="mercator proj",dest='mercator')
 parser.add_option( '--extent', help="extent (LonL,LonR,LatS,LatN), eg --extent -15.0,40.0,35.0,65.0",
@@ -57,7 +60,7 @@ parser.add_option( '--levels', help="levels, eg --levels 10,20,40,60",
 #                         default="30,70,99,101,149,160.5,170,180",
                       dest='levels', action='store',nargs=1)
 parser.add_option( '--over' , help="over, eg --over 0.75 or yellow",
-                      default='0.45', # darkish gret
+                      default='0.25', # darkish grey
                       dest='over', action='store',nargs=1)
 parser.add_option( '--under' , help="under, eg --under 0.25 or cyan",
                       default='0.75', # light grey
@@ -138,10 +141,14 @@ if( ndim == 1):
     else:
       sys.exit('Not coded yet for time variable > 0')
 
+# scale:
+vals = float(opts.scale) * vals
+
+
 
 #Svals=ecdf.variables[var][0,:,:]  
 
-print("LONG LAT", dimx, dimy , ndim, lons[0], lats[0] ) # vals.max())
+print("LONG LAT", var, dimx, dimy , ndim, lons[0], lats[0] ) # vals.max())
 print("LONG LAT min max", dimx, dimy , ndim, vals.shape, vals.min(), vals.max())
 
 
@@ -230,7 +237,9 @@ else:
   # see also https://stackoverflow.com/questions/48613920/use-of-extend-in-a-pcolormesh-plot-with-discrete-colorbar
   cmap = plt.cm.get_cmap(opts.cmap, len(v) )
   cmap.set_over('0.25')
-  cmap.set_under('0.75')
+  #cmap.set_under('0.75')
+  cmap.set_under(opts.over)
+  cmap.set_under(opts.under)
   norm = mpl.colors.BoundaryNorm(v, cmap.N)
   print("LENGTH ", Nv, len(v), cmap.N)
 
