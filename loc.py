@@ -29,14 +29,11 @@ else:
   wanted = sys.argv[1:]
   notwanted = []
 
-xwanted =wanted.copy()
 xres =res.copy()
 if anycase:
-  wanted = []; res = []
-  for w in xwanted:
-    wanted.append( w.lower() )
-  for r in xres:
-    res.append( r.lower() )
+  wanted = [ w.lower() for w in wanted ]
+  notwanted = [ w.lower() for w in notwanted ]
+  #res =    [ w.lower() for w in res ]
    
 #print('AA',wanted)
 
@@ -56,6 +53,7 @@ for r in xres:
          #print('TESTP ', xtxt, i, matches )
 
   for i in notwanted:
+     #print('XX', i, xtxt)
      if i in xtxt:
          matches=False
 
