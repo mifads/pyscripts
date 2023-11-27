@@ -20,6 +20,7 @@ try:
 except:
   print('Stats: NOT FOUND statsmodels')
   ImportStats=False
+  sys.exit()
 
 def getBias(x,y):
     sumBias=0.0
@@ -95,13 +96,13 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
 #vlimit=300.0
 #f=alt<vlimit
   plt.clf()
-  #OCT21 plt.subplot(111)
+
   # fig, ax allows ax.transAxes for better label poistion
   # see stackoverflow.com/questions/62856272/position-font-relative-to-axis-using-ax-text-matplotlib
   fig, ax = plt.subplots()
   #  x = np.log(x)
   #  y = np.log(y)
-  #OCT21 fig=plt.scatter(x,y,color='b')
+
   ax.scatter(x,y,color=col_valid)   # Start with same colour for all
   if loglog is True:
     t= ax.xticks()
@@ -119,16 +120,15 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   if addxy>0.0:
       maxv += addxy
   if title: # Hard-coded position so far, top-left
-    ax.title(title, fontsize=labelsize)
-    #NEBULA had: plt.title(title, fontsize=labelsize)
+    ax.set_title(title, fontsize=labelsize)
   if label: # Hard-coded position so far, top-left
     ax.text(labelx,labely,label, fontsize=labelsize,transform=ax.transAxes)
   print('XYLAB', maxv, minv, labelx*maxv, labely*maxv, v, xlabel,label)
-  #plt.gca().set_aspect('equal')
   ax.set_aspect('equal')
     
 
 ###########################################################################
+  # Regression stats:
   [m,c]=np.polyfit(x,y,1)
   r=np.corrcoef(x,y)
 ###########################################################################
@@ -136,7 +136,7 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   skipL = np.full(len(x),True,dtype=bool)
   skip = [] 
   if skipOutliers:
-     try:
+     #try:
        regression= ols("data ~x",data=dict(data=y,x=x)).fit()
        test = regression.outlier_test()  # Find outliers 
        #DS outliers = ((x[i],y[i]) for i,t in enumerate(test.icol(2)) if t < 0.5)
@@ -150,18 +150,19 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
        #print(dtxt+'SKIPi,n=', len(skip), skipL )
        ax.scatter(x[skipL],y[skipL],color=col_outlier)
        #sys.exit()
-     except: # where stats not implemented Test own outliers
-       g = []
-       for i in range(0,len(x)):
-         g.append( geom.distancePoint2line( x[i],y[i], m, -1.0, c ) )
-         print('GEOM', i, x[i], y[i], pcodes[i], geom.distancePoint2line( x[i],y[i], m, -1.0, c ))
-       print('MAXGEOM', max( g ))
-       for i in range(0,len(x)):
-         if g[i] > 0.5* max(g):
-             skipi[i] = 1
-             skip.append(i)
 
-     print('Outliers: ', skip)
+#     except: # where stats not implemented Test own outliers
+#       g = []
+#       for i in range(0,len(x)):
+#         g.append( geom.distancePoint2line( x[i],y[i], m, -1.0, c ) )
+#         print('GEOM', i, x[i], y[i], pcodes[i], geom.distancePoint2line( x[i],y[i], m, -1.0, c ))
+#       print('MAXGEOM', max( g ))
+#       for i in range(0,len(x)):
+#         if g[i] > 0.5* max(g):
+#             skipi[i] = 1
+#             skip.append(i)
+
+       print('Outliers: ', skip)
      # Figure #
      #DS figure = smgraphics.regressionplots.plot_fit(regression, 1)
      # Add line #
@@ -182,26 +183,21 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
       print(dtxt, n, skipi[n], pcodes[n], x[n], y[n])
       ax.text(x[n],y[n],label,color=col,fontsize=10)
 
-#J8  v=plt.axis() #J8  maxv=max(v)
-
 #### 1:1 line  ############################################################
 
   print('MAXv ', maxv, minv)
 
-  #lin=(0,maxv) # 1:1 line
   lin=(minv,maxv) # 1:1 line
   ax.plot(lin,lin,'g--')
 
 #### regression line - all data ###########################################
   #[m,c]=np.polyfit(x,y,1) #r=np.corrcoef(x,y)
 
-  #BUG fit=( c, c+m*lin[1] )
   fit=( c+m*lin[0], c+m*lin[1] )
   if skipOutliers:
     ax.plot(lin,fit,'r--')
   elif regline_wanted:
     ax.plot(lin,fit,'k--')
-  #plt.plot(lin,fit,'c--')
 
 ###########################################################################
   # Data without outliers
@@ -218,7 +214,6 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
   if skipOutliers:
     [mn,cn]=np.polyfit(xn,yn,1)
     rn=np.corrcoef(xn,yn)
-    #BUG: fitn=( cn, cn+mn*lin[1] )
     fitn=( cn+mn*lin[0], cn+mn*lin[1] )
     ax.plot(lin,fitn,'b--') # non outliers in blue
     print('SKIPFIT ', mn, cn, lin[0], lin[1], fitn )
@@ -257,30 +252,19 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
      if statsxy is not None:
        xpos = minv + statsxy[0]*vspan
      print('TTTTT', m, c, maxv, minv, vpos, vspan, xpos)
-     #plt.text(xpos,vpos,regline,color=col,fontsize=12)
-     #plt.figtext(labelx,labely-0.05,regline,color=col,fontsize=12)
      print('XYSTAT', maxv, minv, labelx*maxv, labely*maxv, v, xlabel,label)
      # Switch to using ax.transAxes
      #tips from https://stackoverflow.com/questions/62856272/position-font-relative-to-axis-using-ax-text-matplotlib
      dvpos = 0.05 # ax coords 0-1
-     #NMR ax.text(labelx,labely-dvpos,regline,color=col,fontsize=12,transform=ax.transAxes)
-     #NMR ax.text(labelx,labely-2*dvpos,corrtxt,color=col,fontsize=12,transform=ax.transAxes)
      print('XPOS VPOS VVV AA', xpos, vpos, dvpos, minv, maxv, vspan )
      print('STATSXY', statsxy)
-     #VVV ax.text(xpos,vpos-dvpos,regline,color=col,fontsize=12,transform=ax.transAxes)
-     #AUG22 plt.figtext(0.01,0.95,regline,color=col,fontsize=12,transform=ax.transAxes)
-     #AUG22 plt.figtext(0.01,0.90,corrtxt,color=col,fontsize=12,transform=ax.transAxes)
      plt.figtext(statsxy[0],statsxy[1],regline,color=col_outlier,fontsize=12,transform=ax.transAxes)
      plt.figtext(statsxy[0],statsxy[1]-0.05,corrtxt,color=col_outlier,fontsize=12,transform=ax.transAxes)
-     #vpos -= dvpos
-     #plt.text(xpos,vpos,corrtxt,color=col,fontsize=12)
 
   if skipOutliers: # Now text for non-outliers in black
      vpos -= dvpos
-     #NMR ax.text(xpos,vpos,'y= %4.2f x + %6.1f'%( mn, cn),color='k',fontsize=12)
      plt.figtext(0.01,0.85,'y= %4.2f x + %6.1f'%( mn, cn),color=col_valid,fontsize=12,transform=ax.transAxes)
      vpos -= dvpos
-     #NMR ax.text(xpos,vpos,'Corr.= %6.2f'%rn[0,1],color='k',fontsize=12)
      corrtxt  = r'Corr.= %6.2f'%rn[0,1]
      if addNME:
        nme = getNME(xn,yn)
@@ -289,8 +273,6 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
      if addBias:
        bias = getBias(xn,yn)
        print("Bias = " , bias) 
-       #corrtxt += ',  Bias= %.1f'%bias
-       #corrtxt += ',  Bias= %.1f %s'%( bias, r"$\mu$g/m$^3$")
        corrtxt += ',  Bias= %.1f %s'%( bias, biasUnits )
      plt.figtext(0.01,0.80,corrtxt,color=col_valid,fontsize=12,transform=ax.transAxes)
   if minxy is not None:
@@ -301,9 +283,6 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
     vpos=minv+0.90*vspan   #  vertical position  for text below, was 0.22
     xpos = minv + 0.01*vspan
     ax.text(xpos,vpos,txt,color='k',fontsize=12)
-  #plt.xbound(0,2*maxv)
-  #plt.axis('scaled')
-  #plt.axis('equal')
 
   plt.tight_layout()
   if ofile:
@@ -330,28 +309,81 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
 #P.savefig('CompU%d_%s_%s_%s.png' % (maxalt, year, rv, grid) )
 #P.savefig('CompU%d_%s_%s_%s.eps' % (maxalt, year, rv, grid) )
 
+# =========================================================================== !
 if __name__ == '__main__':
-  x = [ 1.0, 2.0, 3.3, 3.9, 5.2, 5.3 ]
-  y = [ 1.2, 2.2, 2.7, 3.5, 5.2, 2.2 ]
-  c = [ 'AT92', 'AA', 'CCC', 'DDD', 'EEE', 'OUT' ]
-  #p=emepscatplot(x,y,'Testx','Testy')
-  #maxalt=300   # Max altitude of stations
-  #aot   = r'AOT40$_\mathrm{f}$'
+  import argparse
+  import os
+  import xarray as xr
 
-  #p=emepscatplot(x,y,'Testx','Testy',addStats=True,dbg=True)
-  #p=emepscatplot(x,y,'Testx','Testy',label='LABEL',addStats=True,dbg=True)
+  #------------------ arguments  ----------------------------------------------
+  
+  #parser=argparse.ArgumentParser(usage=__doc__) also works, but text at start
+  parser=argparse.ArgumentParser(epilog=__doc__,
+     formatter_class=argparse.RawDescriptionHelpFormatter)
+  parser.add_argument('-v','--varkey',help='varname',required=False) # True)
+  parser.add_argument('-d','--demo',help='Shows example plots',action='store_true')
+  #parser.add_argument('-i','--ifiles',help='Input files',nargs='*',required=False) # True)
+  parser.add_argument('-i','--ifiles',help='Input files',nargs=2,required=False) # True)
+  parser.add_argument('-m','--maskvar',help='mask variable',nargs=1,required=False) # True)
+  parser.add_argument('-o','--ofile',help='output file',required=False)
+  parser.add_argument('-p','--plot',help='plot on screen?\n(Optional)',action='store_true')
+  parser.add_argument('-L','--labels',help='labels, e.g. -L"rv4.15 rv4.15a"\n(Optional)',nargs=2,required=False)
+  parser.add_argument('-t','--title',help='title',required=False)
+  args=parser.parse_args()
+  print('ARGS ', args)
+  if args.labels:
+    xlab, ylab = args.labels
+  else:
+    xlab, ylab = 'x-vals', 'y-vals'
 
- # Illustrate some styles
+#------------------ arguments  ----------------------------------------------
 
-  #for style in 'bmh ggplot seaborn-colorblind seaborn-deep'.split():
-  for style in 'ggplot'.split():
-    print('TESTING STYLE', style)
-    p=emepscatplot(x,y,'Testx','Testy',label=style,plotstyle=style,addStats=True,dbg=True)
-    p=emepscatplot(x,y,'Testx','Testy',label=style,plotstyle=style,addStats=True,dbg=True) #FAILS:,minv=3.0)
-    #p=emepscatplot(x,y,'Testx','TestLog',label=style,plotstyle=style,addStats=True,loglog=True,dbg=True,minv=3.0)
-#    p= emeploglogplot(x,y,'Testx','Testy',txt=None,pcodes=None)
-    p= emeploglogplot(x,y,'Testx','Testy',txt=None,pcodes=c)
-#    p.show()
+  if args.demo:
 
-  #p=emepscatplot(x,y,'Testx','Testy',addStats=True,pcodes=c,ofile='TestPlots.png')
+    x = [ 0.009996590476190477,0.011191434070061063,0.012558233597911746,0.0072396302425059515,0.026974358974358976 ]
+    y = [ 0.010964822955429554,0.009696880355477333,0.010967271402478218,0.007331404369324446,0.003907112404704094 ]
+    c= [ s[:3]+s[4:6] for s in 'CZ0003R,DE0002R,DE0007R,DE0009R,FR0015R'.split(',')  ]
+      
+  
+   # Illustrate some styles
+  
+    #for style in 'bmh ggplot seaborn-colorblind seaborn-deep'.split():
+    for style in 'ggplot'.split():
+
+      print('TESTING STYLE', style)
+
+      p=emepscatplot(x,y,'Obs.','Mod.',pcodes=c,label='nC7H16',labely=0.1,
+           plotstyle=style,addStats=False,dbg=True,skipOutliers=False,ofile='Demo_allpoints.png')
+      p=emepscatplot(x,y,'Obs.','Mod.',pcodes=c,label='nC7H16',labely=0.1,
+           plotstyle=style,addStats=True,dbg=True,skipOutliers=True,ofile='Demo_excpoints.png')
+
+      #p=emepscatplot(x,y,'Testx','TestLog',label=style,plotstyle=style,addStats=True,loglog=True,dbg=True,minv=3.0)
+      #p= emeploglogplot(x,y,'Testx','Testy',txt=None,pcodes=None)
+      #p= emeploglogplot(x,y,'Testx','Testy',txt=None,pcodes=c)
+      #p.show()
+  
+  
+  elif args.ifiles:
+    v = args.varkey
+    assert args.varkey,'NEED varkey (-v) also!'
+    assert v,'NEED v (-v) also!'
+    print('Files', args.ifiles)
+    n=0
+    vals=dict()
+    for ifile in args.ifiles:
+      assert os.path.isfile(ifile),"FILE %s doesn't exist" % ifile
+      ds=xr.open_dataset(ifile)
+      assert v in ds.keys(),'No %s in %s'% ( v, ifile )
+#      if n==0 and args.maskvar:
+#        mask=ds[args.maskvar].values[:,:].flatten()
+     
+      print('KEY found ', v )
+      vals[n]=ds[v].values[0,:,:].flatten()
+      print(n, len(vals[n]), np.shape(vals[n]) )
+      n += 1
+    for style in 'ggplot'.split():
+      ofile= args.ofile
+      p=emepscatplot(vals[0],vals[1],xlab,ylab,title=v,plotstyle=style,addStats=True,ofile=ofile) #,dbg=True)
+
+      
 
