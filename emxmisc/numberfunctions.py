@@ -26,6 +26,10 @@ def nicefloat(x):
       converts eg 0.09999999999787 to 0.1 """
   return float('%12.6f' % x)
 
+def is_int(x):
+  import numpy as np
+  return isinstance(x,np.integer) or isinstance(x,int)
+
 def to_precision(x, p):
     """
     returns a string representation of x formatted with a precision of p
@@ -102,3 +106,4 @@ if __name__ == '__main__':
   print( nicefloat(mytest) )
   print( nicefloat(-mytest) )
   print( to_precision(-mytest,12) )
+  print('IS INT? 1.0, 1', is_int(1.0) , is_int(1) )
