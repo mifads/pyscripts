@@ -4,10 +4,8 @@
   create_cdf - new and neater
   createCDF  - deprecated
 """
-#N18 from datetime import datetime
-#N18 import dateutil.parser
-import netCDF4 as nc
 import numpy as np
+import pandas as pd # for cdf dates
 import time             # Just for creation date
 import sys
 import xarray as xr
@@ -17,17 +15,24 @@ import emxcdf.cdftimes as cdft
     xarray and _FillValue are very complex and confusing!!! See
       https://github.com/mmartini-usgs/MartiniStuff/wiki/Xarray-things-to-know
 """
+
 def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
+  dtxt='dbg:'+outfile
   xrdatasets = []
 
   for a in xrarrays:
       varname = a['varname']
       if '_FillValue' in a['attrs']:
-          del a['attrs']['_FillValue']
+          if dbg: print(dtxt+'FILL', varname)
+          #del a['attrs']['_FillValue']
+          #Nov 2023
+          a['attrs']['_FillValue'] = None   # NB: None is 2022 update
       field = xr.DataArray(a['data'],
                            dims=a['dims'],
                            coords=a['coords'],
                            attrs=a['attrs'])
+      if dbg: print(dtxt+'FIELD', varname)
+      #if dbg: print(dtxt+'FIELD', field)
       xrdatasets.append(xr.Dataset({varname: field}))
 
   outxr = xr.merge(xrdatasets)
@@ -35,30 +40,45 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
   outxr.lon.attrs = {
         'long_name': 'longitude',
         'units': 'degrees_east',
+        '_FillValue': False,       # 2023-11-24 None won't work here!
         'standard_name': 'longitude'
   }
   outxr.lat.attrs = {
         'long_name': 'latitude',
         'units': 'degrees_north',
+        '_FillValue': False,
         'standard_name': 'latitude'
   }
-  if 'time' in outxr.keys():
-    outxr.time.attrs = { 'dtype': 'f4', }
+
+  #if 'time' in outxr.keys():
+  #  outxr.time.attrs = { 'dtype': 'float', '_FillValue': False, }
+  #  if dbg: print(dtxt+'TIMEKEYS', outxr.time.attrs)
+  #  sys.exit('WRNG?')
 
   for key, val in globattrs.items():
     outxr.attrs[key] = val
+    if dbg: print(dtxt+'VAL', key)
 
   # compression settings:
 
   encoding=dict()
   data_comp = dict(zlib=True, complevel=5, shuffle=True,  # _FillValue=np.nan,
                      dtype='float32')
+  #Nov 2023
+  data_comp = dict(zlib=True, complevel=5, shuffle=True, _FillValue=np.nan,
+                     dtype='float32')
+  data_comp = dict(zlib=True, complevel=5, shuffle=True, _FillValue=None,
+                     dtype='float32')
 
   for var in outxr.coords:
       if 'time' in var:
+        if dbg: print(dtxt+'TIMECOORDS', outxr.time.attrs)
         encoding[var] = {'dtype': 'f4'} # f4 works better than float for ncview
-#      print('COORDS encoding', var, encoding[var] )
+        encoding[var] = {'dtype': 'f4','units':'days since 1900-01-01','_FillValue':None}
+
+        print('COORDS encoding', var, encoding[var] )
 #      encoding[var] = {'_FillValue': None}
+#  sys.exit()
 
   if sigfigs > 0:
       data_comp['least_significant_digit'] = np.int32(sigfigs)
@@ -66,7 +86,6 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
 
   for var in outxr.data_vars:
       encoding[var] = data_comp
-      encoding[var]['_FillValue'] = None
       if dbg: print('OUTXR vars ', var, data_comp)
 
   print('XRmake', outfile)
@@ -175,6 +194,7 @@ if __name__ == '__main__':
 
   import matplotlib.pyplot as plt
   from collections import OrderedDict as odict
+
   lons = np.linspace(-179.5,179.5,360)
   lats = np.linspace(-89.5,89.5,180)
   data = np.zeros([180,360],dtype=float)
@@ -192,12 +212,9 @@ if __name__ == '__main__':
       attrs = {'note':'test xx','sector':3,'NOTE':'test att'},
      coords={'lat':lats,'lon':lons},data=data ) )
 
-  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR2.nc')
+#TMP  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='tstcdf_scalar2d.nc')
 
-  #FAILS:
-  #xrtestFill =  create_nfcdf(xrarrays,globattrs={'AA':'AA'},outfile='fill_ntestXR2.nc',skip_fillValues=True)
-
-  # 2. Example of multiple scalar fields
+  # 2. Example of 2d + crude time
   # nb order of variable names has to match data order
 
   data3 = np.zeros([3,180,360],dtype=float)
@@ -205,13 +222,14 @@ if __name__ == '__main__':
        data3[n,:,:] = data[:,:]*(n**2+1)
   times = [ 0, 1, 2 ]
 
-  # Better date handling:
   xrarrays = []
   xrarrays.append( dict(varname='xr3d', dims=['time', 'lat','lon'],
      attrs = {'note':'test xx','NOTE':'test att'},
      coords={'time':times, 'lat':lats,'lon':lons},data=data3 ) )
 
-  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR3d.nc')
+#TMP  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='tstcdf_scalar2dt.nc')
+
+
   #nctimes= [ cdft.days_since_1900(1997,mm,15) for mm in range(1,4)  ]
   # Better date handling:
   #import datetime as dt
@@ -219,7 +237,13 @@ if __name__ == '__main__':
   #https://stackoverflow.com/questions/55107623/create-netcdf-file-with-xarray-define-variable-data-types
   # or pandas:
 
-  import pandas as pd # for cdf dates
+  # Date handling with pandas
+  # will output with time:units = "hours since 2012-01-01 00:00:00" ; time:calendar = "proleptic_gregorian" ;
+
+  # BUT: note that date_range is tricky for e.g. mid-month, see e.g. 
+  # https://stackoverflow.com/questions/34915828/pandas-date-range-to-generate-monthly-data-at-beginning-of-the-month#34915951
+  # https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html
+
   nctimes=pd.date_range("%d-01-01" % 2012,freq="3H",periods=3)
   #t0=dt.datetime(2012,1,1)
   # with nctimes
@@ -228,7 +252,38 @@ if __name__ == '__main__':
      attrs = {'note':'test xx','NOTE':'test att'},
      coords={'time':nctimes, 'lat':lats,'lon':lons},data=data3 ) )
   # timeVar NOT USED ******
-  xrtest =  create_xrcdf(xrarrays,globattrs={'BB':'BB'},outfile='bbtestXR3dnc.nc',timeVar='hours_since:2012-01-01 00:00:00') #days_since_1990')
+#TMP  xrtest =  create_xrcdf(xrarrays,globattrs={'BB':'BB'},outfile='tstcdf_2dnct.nc',timeVar='hours_since:2012-01-01 00:00:00') #days_since_1990')
+
+  # Nov2023 - testing set15th_month
+  # rel to 2011-01-01 though
+  #nctimes= cdft.set15th_month_ref1900(2011)
+
+  nctimes= cdft.set15th_month(2011)
+
+  xrarrays = []
+  xrarrays.append( dict(varname='xr3d', dims=['time', 'lat','lon'],
+     attrs = {'note':'test xx','NOTE':'test att'},
+     coords={'time':nctimes[:3], 'lat':lats,'lon':lons},data=data3 ) )
+  # timeVar NOT USED ******
+  xrtest =  create_xrcdf(xrarrays,globattrs={'BB':'BB'},outfile='tstcdf_2dpdt.nc',dbg=True) #days_since_1990')
+  xrtest =  create_xrcdf(xrarrays,globattrs={'BB':'BB'},outfile='tstcdf_2dpdt6fig.nc',sigfigs=6,dbg=True) #days_since_1990')
+
+  ############
+  sys.exit()
+  ############
+
+
+
+  # Nov2023 - testing
+  nctimes= [ cdft.days_since_1900(2015,12,dd) for dd in [ 1,2,3] ]
+  print('NCTIMES ', nctimes)
+  xrarrays = []
+  xrarrays.append( dict(varname='xr3d', dims=['time', 'lat','lon'],
+     attrs = {'note':'test xx','NOTE':'test att'},
+     coords={'time':nctimes, 'lat':lats,'lon':lons},data=data3 ) )
+  xrtest =  create_xrcdf(xrarrays,globattrs={'BB':'BB'},outfile='bbtestXR3dnc_nov2023.nc',timeVar='days since 1900-1-1 0:0:0',dbg=True) #days_since_1990')
+
+  sys.exit()
 
   # DIRECT TEST:
   ds=xr.Dataset(
@@ -244,7 +299,7 @@ if __name__ == '__main__':
   #def ncreate_cdf(variables,lons,lats,nctimes,data):
 
 
-  sys.exit()
+  #NOV2023 sys.exit()
   #xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR3dnc.nc',timeVar='hours_since_2012-01-01')
 
   xrarrays = []
@@ -257,7 +312,10 @@ if __name__ == '__main__':
   xrarrays.append( dict(varname='xr3d', dims=['time', 'lat','lon'],
      attrs = {'note':'test xx','NOTE':'test att'},
      coords={'time':nctimes, 'lat':lats,'lon':lons},data=data3 ) )
-  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR3dnc2.nc',timeVar='days_since_1990')
+  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='ntestXR3dnc2.nc',timeVar='days_since_1990',dbg=True)
+
+
+  #NOV2023
   sys.exit()
 
 
@@ -275,8 +333,8 @@ if __name__ == '__main__':
   variables['Var3']= dict(units='m s-1',data=data3[2,:,:])
 
   # older code for comp
-  xcreate_cdf(variables,'tmp_create_cdf3.nc','f4',lons,lats,
-             txt='Demo of 3 variables',dbg=False)
+  #NOV2023 xcreate_cdf(variables,'tmp_create_cdf3.nc','f4',lons,lats,
+  #NOV2023            txt='Demo of 3 variables',dbg=False)
   # newer code with optional times
   create_cdf(variables,'tmp_create_cdfNOTIM.nc','f4',lons,lats,dbg=True)
   nctimes= [ cdft.days_since_1900(1887,12,15,dbg=True) ]
