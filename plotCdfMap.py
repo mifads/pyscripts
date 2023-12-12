@@ -44,7 +44,7 @@ parser.add_option( '-b' ,help="add country b, 'gray' is okayorders",dest='border
                       default=False,action='store_true')
 parser.add_option( '--mercator', help="mercator proj", dest='mercator', default=False,action='store_true')
 parser.add_option( '--mesh', help="use pcolormesh", dest='mesh', default=False,action='store_true')
-parser.add_option( '--bullets' ,help="add bullets",nargs=1)
+parser.add_option( '--bullets' ,help="add bullets.Set z-value in 3rd column; if neg, transparent",nargs=1)
 parser.add_option( '--cmap' , help="cmap, eg --cmap hot,jet_r",
                       default='jet', dest='cmap', action='store',nargs=1)
                       #default='Set3', dest='cmap', action='store',nargs=1)
@@ -274,15 +274,26 @@ if opts.bullets is None:
 else:
   assert opts.levels is not None, 'Needs --levels with bullets'
   b=np.loadtxt( opts.bullets ,comments="#")
-  bx=b[:,0]
-  by=b[:,1]
-  bz=b[:,2]
+  plotb = True # plots z values, otherwise transparent
+  if b.ndim > 1:
+    bx=b[:,0]
+    by=b[:,1]
+    bz=b[:,2]
+    if np.max(bz)<0: plotb = False  #
+  else:
+    bx=b[0]
+    by=b[1]
+    bz=b[2]
+    if bz<0: plotb = False  #
 # Might need transform=crs.Geodetic() or transform=crs.PlateCarree()
 # see mkSiteNamedMap.py
-  B=ax1.scatter(bx,by,s=136,c=bz,marker='^',edgecolor='k',
+  if plotb:
+    B=ax1.scatter(bx,by,s=136,c=bz,marker='^',edgecolor='k',
+            cmap=cmap,norm=norm,transform=proj)
+  else:
+    # see https://stackoverflow.com/questions/23596575/plotting-with-a-transparent-marker-but-non-transparent-edge
+    B=ax1.scatter(bx,by,s=136,marker='^',facecolor='None',edgecolor='w',linewidth=2,
           cmap=cmap,norm=norm,transform=proj)
-#  else:
-#      print "Skips colorbar"
 
 if opts.title:
   print("TITLE", opts.title)
