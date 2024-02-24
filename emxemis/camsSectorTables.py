@@ -73,7 +73,7 @@ def tnoAPmapping():
 
 if __name__ == '__main__':
 
-  mapping, names =  getCams2emep(cams3p1_table,dbg=True)
+  mapping, names =  getCams2emep(dbg=True)
   print('SHIPPING? ', mapping['G'], names['G'] )
   tnoAP_to_19 = tnoAPmapping()
   ap= tnoAP_to_19['A:P'] # Returns A2
