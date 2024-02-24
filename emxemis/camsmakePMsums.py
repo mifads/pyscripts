@@ -8,7 +8,6 @@
 # with more flexible read of bioshare for comp with Agnes (Mar 2020)
 import collections
 import numpy as np
-#import pandas as pd # mar2020 as genfromtxt didn't have encoding
 import sys
 # Dave's
 #import emxemis.maccEmepCodes as macc2emep
