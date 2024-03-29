@@ -19,13 +19,15 @@ def blankRemove(str):
 
 #---------------------------------------------------------------------------- 
 def multiwrite(a,fmt):
-  """ formats an array of numbers with string fmt """
-  txt=''
-  for num in a:
-    #io.write(fmt % num)
-    txt  += (fmt % num)
-  return txt
+  """ formats an array into a text string ""
+  return "".join( fmt%num for num in a )
 
+#def multiwrite(a,fmt):
+#  """ formats an array of numbers with string fmt """
+#  txt=''
+#  for num in a:
+#    txt  += (fmt % num)
+#  return txt
 #---------------------------------------------------------------------------- 
 if __name__ == '__main__':
   strings = ( "Bratt's Lake" , "LÃ¼ckendorf", "Ã„htÃ¤ri", "mace  head" )
