@@ -17,8 +17,11 @@ refdate_dt = dateutil.parser.parse(refdate)
 # Nov 2023 update. midmonth_year():
 # https://practicaldatascience.co.uk/data-science/how-to-pandas-date-range-to-create-date-ranges
 
-def set15th_month(year):
-  dt1st = pd.date_range("%s-01-01" % year,"%s-12-01" % year, freq="MS") # => 1st of month
+def set15th_month(year1,year2=None):
+  if year2==None: year2=year1
+  
+  dt1st = pd.date_range("%s-01-01" % year1,"%s-12-01" % year2, freq="MS")
+    # => 1st of month
   return [ j+pd.Timedelta('14d') for j in dt1st ]  # gives 15th
 
 def set15th_month_ref1900(year):
@@ -61,3 +64,5 @@ if __name__ == '__main__':
 
   print( set15th_month(2012) )
   print( set15th_month_ref1900(2012) )
+  print('=========== N2 years ==============')
+  print( set15th_month(2017,2018) )
