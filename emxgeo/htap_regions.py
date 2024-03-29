@@ -42,8 +42,8 @@ regLL=dict(
 
 
 
-def getRegionMasks(reg):
-  print(regions[reg])
+def getRegionMasks(reg,dbg=False):
+  if dbg: print(regions[reg])
   if reg == 'GLOB':
     out=np.full_like(codes,1)
   else:
