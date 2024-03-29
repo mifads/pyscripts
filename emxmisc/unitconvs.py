@@ -33,3 +33,7 @@ if __name__ == '__main__':
   x= 1.0
   print( 'Scalar 1 ppb O3 STP = ', ppb2ugm3(x,48.0) )
   print( 'Scalar 1 ppb O3 20 dev = ', ppb2ugm3(x,48.0,T=293.15) )
+  print( 'Scalar 1 ppb O3 25 dev = ', ppb2ugm3(x,48.0,T=298.15) )
+  c=12.0; h=1.0
+  print( 'Scalar 1 ppb C2H2 20 dev = ', ppb2ugm3(x,2*c+2.0,T=293.15) )
+  print( 'Scalar 1  ug C2H2 20 dev = ', ugm32ppb(x,2*c+2.0,T=293.15) )
