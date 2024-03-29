@@ -32,7 +32,7 @@ def astro_conv2d(vals,stddev_x=0.5,stddev_y=0.25,dbg=False):
   img_zerod = vals.copy()
   img_zerod[np.isnan(vals)] = 0
   
-  kernel = Gaussian2DKernel(x_stddev=0.5,y_stddev=0.25,mode='center') # DS TEST 1)
+  kernel = Gaussian2DKernel(x_stddev=stddev_x,y_stddev=stddev_x,mode='center') # DS TEST 1)
   # Convolution: scipy's direct convolution mode spreads out NaNs (see
   # panel 2 in link)
 
@@ -69,10 +69,22 @@ def astro_conv2d(vals,stddev_x=0.5,stddev_y=0.25,dbg=False):
 
 if __name__ == '__main__':
   y=np.ones(12)
+  z=np.ones(12)
   y[11] = 20.0
+  z[9] = 20.0
   print('Orig:', sf.multiwrite( y, '%8.3f'   )  )
   print('Def.:',  sf.multiwrite( astro_conv1d(y, [0.2, 0.6, 0.2]) , '%8.3f'   )  )
+  print('70%.:',  sf.multiwrite( astro_conv1d(y, [0.15, 0.7, 0.15]) , '%8.3f'   )  )
+  print('50%.:',  sf.multiwrite( astro_conv1d(y, [0.25, 0.5, 0.25]) , '%8.3f'   )  )
   print('nowr:',  sf.multiwrite( astro_conv1d(y, [0.2, 0.6, 0.2],boundary=None) , '%8.3f'   ), '   =Weird!'  )
-  for std in [ 0.2, 0.5, 0.8, 1, 2 ]:
+  for std in [ 0.2, 0.3, 0.4, 0.5, 0.8, 1, 2 ]:
     print( '%4.1f:' % std, sf.multiwrite( astro_conv1d(y,std) , '%8.3f'   )  )
+
+  # test sums?
+  yc=astro_conv1d(y,0.8)
+  zc=astro_conv1d(z,0.8)
+  print( 'y0.8:', sf.multiwrite( yc , '%8.3f'   )  )
+  print( 'z0.8:', sf.multiwrite( zc , '%8.3f'   )  )
+  print( 's0.8:', sf.multiwrite( yc+zc , '%8.3f'   )  )
+
 
