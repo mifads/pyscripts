@@ -47,7 +47,7 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
                            dims=a['dims'],
                            coords=a['coords'],
                            attrs=a['attrs'])
-      if dbg: print(dtxt+'FIELD', varname, np.shape(a['data']) )
+      if dbg: print(dtxt+'FIELD', varname, np.shape(a['data']), np.max(a['data'])  )
       #if dbg: print(dtxt+'FIELD', field)
       xrdatasets.append(xr.Dataset({varname: field}))
 
@@ -99,7 +99,7 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
 #          'long_name':"time at middle of month", 
 
 
-      print('COORDS encoding', var, encoding[var] )
+      if dbg: print('COORDS encoding', var, encoding[var] )
 #      encoding[var] = {'_FillValue': None}
 #  sys.exit()
 
@@ -111,7 +111,7 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
       encoding[var] = data_comp
       if dbg: print('OUTXR vars ', var, data_comp)
 
-  print('XRmake', outfile)
+  if dbg: print('XRmake', outfile)
   try:
     outxr.to_netcdf(outfile, format='netCDF4',encoding=encoding)
   except:
