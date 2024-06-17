@@ -21,7 +21,7 @@ with open(ifile) as myFile:
       print('DATA found at line:', num)
       break
 
-ds=np.genfromtxt('test.csv',delimiter=',',skip_header=skip_rows)
+ds=np.genfromtxt(ifile,delimiter=',',skip_header=skip_rows)
 
 nrow,ncol = np.shape(ds)
 
@@ -40,8 +40,8 @@ for nsec in range(19):
     #print( nsec, new[nsec,:4], np.sum(new[nsec,:]) )
   else:
     new[nsec,-1] = 100.0
-  print(' 0,%3d, %s' % ( nsec+1, sf.multiwrite(new[nsec,:],'%11.3f')))
-  f.write(' 0,%3d%s\n' % ( nsec+1, sf.multiwrite(new[nsec,:],',%11.3f')))
+  print(' 0,%3d, %s' % ( nsec+1, sf.multiwrite(new[nsec,:],'%9.3f')))
+  f.write(' 0,%3d%s\n' % ( nsec+1, sf.multiwrite(new[nsec,:],',%9.3f')))
 
 f.close()
 
