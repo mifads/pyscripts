@@ -5,6 +5,7 @@
   createCDF  - deprecated
 """
 import numpy as np
+import os
 import pandas as pd # for cdf dates
 import time             # Just for creation date
 import sys
@@ -15,13 +16,28 @@ import emxcdf.cdftimes as cdft
     xarray and _FillValue are very complex and confusing!!! See
       https://github.com/mmartini-usgs/MartiniStuff/wiki/Xarray-things-to-know
 """
+dtxt='xrcdf:'
+
+def check_xrcdf(xrtest, xrenc, xrfile):
+  if xrtest=='OK':
+    print('XRTEST SUCCESS: '+xrfile, xrtest)
+  else:
+    print('XRTEST FAIL: '+xrfile, xrenc)
+    sys.exit('FAIL'+xrfile)
 
 def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
-  dtxt='dbg:'+outfile
+  #dbg =True  # TMP
+  dtxt='dbg:xrcdf:'
+  if dbg: print(dtxt+outfile)
   xrdatasets = []
 
   for a in xrarrays:
       varname = a['varname']
+      if dbg:
+        print(dtxt+'XRARRAY='+varname)
+        print(dtxt+'ATTR=', a['attrs'])
+        print(dtxt+'KEYS=', a.keys())
+      
       if '_FillValue' in a['attrs']:
           if dbg: print(dtxt+'FILL', varname)
           #del a['attrs']['_FillValue']
@@ -31,7 +47,7 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
                            dims=a['dims'],
                            coords=a['coords'],
                            attrs=a['attrs'])
-      if dbg: print(dtxt+'FIELD', varname)
+      if dbg: print(dtxt+'FIELD', varname, np.shape(a['data']) )
       #if dbg: print(dtxt+'FIELD', field)
       xrdatasets.append(xr.Dataset({varname: field}))
 
@@ -71,12 +87,19 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
                      dtype='float32')
 
   for var in outxr.coords:
+      encoding[var] = {'dtype': 'f4'} # f4 works better than float for ncview
+      encoding[var] = {'dtype': 'f4', '_FillValue':None}
       if 'time' in var:
-        if dbg: print(dtxt+'TIMECOORDS', outxr.time.attrs)
-        encoding[var] = {'dtype': 'f4'} # f4 works better than float for ncview
-        encoding[var] = {'dtype': 'f4','units':'days since 1900-01-01','_FillValue':None}
+        if dbg: print(dtxt+'TIMEOUT', var, outfile)
+        #ORIG:
+        encoding[var] = {'dtype': 'f4', '_FillValue':None}
+       #DEC2023: works only if pandas time range
+        encoding[var] = {'dtype': 'f4', 'units':'days since 1900-01-01', '_FillValue':None}
+#          'standard_name':'time',
+#          'long_name':"time at middle of month", 
 
-        print('COORDS encoding', var, encoding[var] )
+
+      print('COORDS encoding', var, encoding[var] )
 #      encoding[var] = {'_FillValue': None}
 #  sys.exit()
 
@@ -89,8 +112,13 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
       if dbg: print('OUTXR vars ', var, data_comp)
 
   print('XRmake', outfile)
-  outxr.to_netcdf(outfile, format='netCDF4',encoding=encoding)
+  try:
+    outxr.to_netcdf(outfile, format='netCDF4',encoding=encoding)
+  except:
+    print(dtxt+' OUTCDF FAILED', outfile)
+    return outxr, encoding, os.path.basename(outfile)
   outxr.close()
+  return 'OK', encoding, os.path.basename(outfile)  # just for status report
 
 
 def create_fvcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sigfigs=-1,dbg=False):
@@ -223,11 +251,17 @@ if __name__ == '__main__':
   times = [ 0, 1, 2 ]
 
   xrarrays = []
-  xrarrays.append( dict(varname='xr3d', dims=['time', 'lat','lon'],
+  #Jan2024 - change to month, since "time" now expects pandas time
+  #xrarrays.append( dict(varname='xr3d', dims=['time', 'lat','lon'],
+  #   attrs = {'note':'test xx','NOTE':'test att'},
+  #   coords={'time':times, 'lat':lats,'lon':lons},data=data3 ) )
+  xrarrays.append( dict(varname='xr3d', dims=['month', 'lat','lon'],
      attrs = {'note':'test xx','NOTE':'test att'},
-     coords={'time':times, 'lat':lats,'lon':lons},data=data3 ) )
+     coords={'month':times, 'lat':lats,'lon':lons},data=data3 ) )
 
-#TMP  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='tstcdf_scalar2dt.nc')
+#TMP
+  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='tstcdf_scalar2dt.nc')
+  sys.exit()   #  JAN 2024
 
 
   #nctimes= [ cdft.days_since_1900(1997,mm,15) for mm in range(1,4)  ]
@@ -265,8 +299,11 @@ if __name__ == '__main__':
      attrs = {'note':'test xx','NOTE':'test att'},
      coords={'time':nctimes[:3], 'lat':lats,'lon':lons},data=data3 ) )
   # timeVar NOT USED ******
-  xrtest =  create_xrcdf(xrarrays,globattrs={'BB':'BB'},outfile='tstcdf_2dpdt.nc',dbg=True) #days_since_1990')
-  xrtest =  create_xrcdf(xrarrays,globattrs={'BB':'BB'},outfile='tstcdf_2dpdt6fig.nc',sigfigs=6,dbg=True) #days_since_1990')
+  xrtest, xrenc, xrfile =  create_xrcdf(xrarrays,globattrs={'BB':'BB'},outfile='tstcdf_2dpdt.nc',dbg=True) #days_since_1990')
+  check_xrcdf(xrtest, xrenc, xrfile)
+
+  xrtest, xrenc, xrfile =  create_xrcdf(xrarrays,globattrs={'BB':'BB'},outfile='tstcdf_2dpdt6fig.nc',sigfigs=6,dbg=True) #days_since_1990')
+  check_xrcdf(xrtest, xrenc, xrfile)
 
   ############
   sys.exit()
