@@ -28,6 +28,10 @@ def set15th_month_ref1900(year):
   dt1st = pd.date_range("%s-01-01" % year,"%s-12-01" % year, freq="MS") # => 1st of month
   return [ j+pd.Timedelta('14d') - refdate_dt  for j in dt1st ]  # gives 15th
 
+def sethoursofday(yy,mm,dd):
+  return pd.date_range('%s-%2.2d-%2.2d 00:00:00'% ( yy,mm,dd),
+                       '%s-%2.2d-%2.2d 23:00:00'% ( yy,mm,dd), freq='H')
+
 #def mid_month(year):
 #  dt1st = pd.date_range("%s-01-01" % year,"%s-12-01" % year, freq="MS") # => 1st of month
 #  return [ j+pd.Timedelta('14d') for j in dt1st ]  # gives 15th
@@ -66,3 +70,4 @@ if __name__ == '__main__':
   print( set15th_month_ref1900(2012) )
   print('=========== N2 years ==============')
   print( set15th_month(2017,2018) )
+  print( sethoursofday(2017,2,2) )
