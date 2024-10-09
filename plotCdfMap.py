@@ -40,7 +40,7 @@ parser.add_option( '-o' ,help="Output file name", default="Screen")
 parser.add_option( '-t' ,help="Title",dest='title')
 parser.add_option( '-v' ,help="Variable name",dest='var')
 
-parser.add_option( '-b' ,help="add country b, 'gray' is okayorders",dest='borders', 
+parser.add_option( '-b' ,'--borders',help="add country b, 'gray' is okayorders",dest='borders', 
                       default=False,action='store_true')
 parser.add_option( '--mercator', help="mercator proj", dest='mercator', default=False,action='store_true')
 parser.add_option( '--mesh', help="use pcolormesh", dest='mesh', default=False,action='store_true')
@@ -210,8 +210,6 @@ if opts.borders:
 if opts.levels is None:
   Nv=8
   cmap=plt.cm.get_cmap(opts.cmap,Nv)
-  #NN colours=[ cmap(i/(1.0*Nv)) for i in range(Nv) ]
-  #
   #M=plt.contourf(xi,yi,zT,cmap=cmap,extend='both')
   #CRDX hhh=plt.contourf(rlon,rlat,vals,cmap=cmap,extend='both') # Ens,transform=proj)
   #NOV30 hhh=ax1.contourf(lons,lats,vals,cmap=cmap,extend='both') # Ens,transform=proj)
@@ -235,13 +233,20 @@ else:
   print(" VV ", vv, Nv)
 
   # see also https://stackoverflow.com/questions/48613920/use-of-extend-in-a-pcolormesh-plot-with-discrete-colorbar
-  cmap = plt.cm.get_cmap(opts.cmap, len(v) )
+  if opts.cmap=='nmr':
+    from matplotlib.colors import ListedColormap, BoundaryNorm # for hetero, from Zhuyun
+    colors = ['#CCDEEB', '#96CCEB', '#66B7F3', '#62C298', '#76E854','#EAEB30', '#E4CC2F', '#EA952A','#F74B37', '#C52C2C']
+    cmap = ListedColormap(colors)
+    #norm = BoundaryNorm(v, cmap.N)
+  else:
+    cmap = plt.cm.get_cmap(opts.cmap, len(v) )
   cmap.set_over('0.25')
-  #cmap.set_under('0.75')
+    #cmap.set_under('0.75')
   cmap.set_under(opts.over)
   cmap.set_under(opts.under)
   norm = mpl.colors.BoundaryNorm(v, cmap.N)
   print("LENGTH ", Nv, len(v), cmap.N)
+
 
   #colours=[ cmap(i/(1.0*Nv)) for i in range(Nv) ]
   #hhh=ax1.pcolormesh(lons,lats,vals,v,cmap=cmap,norm=norm,boundaries=vv,extend='both',transform=ccrs.PlateCarree())
@@ -267,7 +272,12 @@ if opts.skipcbar is None:
      plt.colorbar(hhh,cax=ax_cb)
 
   else:
+     #pre Dec 2023:
      cbar=plt.colorbar(hhh,cax=ax_cb,ticks=v,extend='both')
+     #https://matplotlib.org/stable/users/explain/colors/colorbar_only.html
+     #https://matplotlib.org/stable/users/explain/colors/colorbar_only.html
+     #cbar=plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
+     #      cax=ax_cb,ticks=v,extend='both')
 
 if opts.bullets is None:
   pass
