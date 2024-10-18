@@ -19,8 +19,11 @@ def blankRemove(str):
 
 #---------------------------------------------------------------------------- 
 def multiwrite(a,fmt):
-  """ formats an array into a text string ""
-  return "".join( fmt%num for num in a )
+ """ formats an array into a text string, with new f format using tips from
+      https://realpython.com/how-to-python-f-string-format-float """
+  fmt = fmt.replace('%','') # from old style to new f format
+  return "".join( f'{num:{fmt}}' for num in a )
+#OLD  return "".join( fmt%num for num in a )
 
 #---------------------------------------------------------------------------- 
 if __name__ == '__main__':
