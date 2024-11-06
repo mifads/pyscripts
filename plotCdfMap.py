@@ -4,6 +4,7 @@ import colorcet as cc
 #plotEmep + http://worksofscience.net/matplotlib/colorbar
 # From plotCordex3.py with different projection which was from plotrca....
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors  # Oct2024
 #DEC1: from https://stackoverflow.com/questions/30030328/correct-placement-of-colorbar-relative-to-geo-axes-cartopy#30077745
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 #DEC1 from  matplotlib.gridspec import GridSpec #see http://worksofscience.net/matplotlib/colorbar
@@ -38,6 +39,7 @@ parser=optparse.OptionParser()
 parser.add_option( '-i' ,help="Input file name, map-data")
 parser.add_option( '-o' ,help="Output file name", default="Screen")
 parser.add_option( '-t' ,help="Title",dest='title')
+parser.add_option( '--tf' ,help="title fontsize (default=18)",dest='titlefontsize')
 parser.add_option( '-v' ,help="Variable name",dest='var')
 
 parser.add_option( '-b' ,'--borders',help="add country b, 'gray' is okayorders",dest='borders', 
@@ -237,9 +239,13 @@ else:
     from matplotlib.colors import ListedColormap, BoundaryNorm # for hetero, from Zhuyun
     colors = ['#CCDEEB', '#96CCEB', '#66B7F3', '#62C298', '#76E854','#EAEB30', '#E4CC2F', '#EA952A','#F74B37', '#C52C2C']
     cmap = ListedColormap(colors)
-    #norm = BoundaryNorm(v, cmap.N)
   else:
-    cmap = plt.cm.get_cmap(opts.cmap, len(v) )
+    cmap_tst = plt.cm.get_cmap(opts.cmap, len(v) )
+    print('OCT2024 TEST HERE', cmap_tst)
+    #Oct2024 https://stackoverflow.com/questions/61897393/unevenly-irregularly-spaced-data-for-colorbar-with-evenly-spaced-colors#61900508
+    colors=cmap_tst(np.linspace(0,1,len(v)-1))
+    cmap, norm = mcolors.from_levels_and_colors(v, colors)
+   
   cmap.set_over('0.25')
     #cmap.set_under('0.75')
   cmap.set_under(opts.over)
@@ -325,7 +331,9 @@ if opts.title:
   # see Cartopy_-_Basic_Maps_Scatter_Map_Bubble_Map_and_Connection_Map_eb.pdf
   #ax1.text(xtitle,ytitle,opts.title,horizontalalignment='left',fontsize=18,transform=ccrs.Geodetic()) ## Important
   #WORKS:ax1.text(xtitle,ytitle,opts.title,horizontalalignment='center',verticalalignment='bottom',fontsize=18,transform=ccrs.Geodetic()) ## Important
-  ax1.text(xtitle,ytitle,opts.title,horizontalalignment='center',verticalalignment='bottom',fontsize=18,transform=ccrs.PlateCarree()) ## Important
+  fontsize = 18
+  if opts.titlefontsize: fontsize=opts.titlefontsize
+  ax1.text(xtitle,ytitle,opts.title,horizontalalignment='center',verticalalignment='bottom',fontsize=fontsize,transform=ccrs.PlateCarree()) ## Important
   #OR? ax1.text(xtitle,ytitle,opts.title,horizontalalignment='left',fontsize=18,transform=ccrs.PlateCarree()) ## Important
   #NOmerc plt.text(xtitle,ytitle,opts.title,horizontalalignment='left',fontsize=18,transform=ccrs.PlateCarree()) ## Important
 
