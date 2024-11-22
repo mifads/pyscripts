@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # https://colorcet.holoviz.org/getting_started/index.html
-import colorcet as cc
+#NOT USED import colorcet as cc
 #plotEmep + http://worksofscience.net/matplotlib/colorbar
 # From plotCordex3.py with different projection which was from plotrca....
 import matplotlib.pyplot as plt
