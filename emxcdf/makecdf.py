@@ -217,6 +217,13 @@ def create_fvcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sig
   outxr.to_netcdf(outfile, format='netCDF4',encoding=encoding)
   outxr.close()
 
+def fastcdf(lons,lats,data,var='VAR',txt='TXT',ofile='fastcdf.nc'):
+  xrarrays = []
+  xrarrays.append( dict(varname=var, dims=['lat','lon'],
+      attrs = {'note':'fastcdf'+txt,'NOTE':'test att'},
+     coords={'lat':lats,'lon':lons},data=data ) )
+  xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile=ofile)
+
 
 if __name__ == '__main__':
 
@@ -229,6 +236,8 @@ if __name__ == '__main__':
   for j in range(180): #len(lats)): # 150,170):  # upper 
     for i in range(360): #len(lons)): # 30,60):  # left 
        data[j,i] = lats[j] # j*1000.0 + i
+
+  x= fastcdf(lons,lats,data,'VAR','TXT','fast.nc')
 
   # 1. Example of simple scalar field
 
