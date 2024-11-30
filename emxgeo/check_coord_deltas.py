@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import numpy as np
 """ checks for uniform coord deltas """
 
 def check_coord_deltas(coords,stop_if_variable=True):
