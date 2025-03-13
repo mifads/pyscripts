@@ -38,7 +38,7 @@ def getOlsonCodes(idir,oDepWanted=False):
 if __name__ == '__main__':
   import os
   tdir='/lustre/storeB/users/davids/Data_Geo/OLSON_MAP'
-  if 'ppi' not in  os.uname():
+  if 'ppi' not in  os.uname().nodename:
     tdir = '/home/davids' + tdir
 
   #o92, oDep = getOlsonCodes()
