@@ -21,13 +21,13 @@ if '-i' in  sys.argv:
   anycase = True
   sys.argv.remove('-i')
 
+notwanted = [ 'ImapMail', '.thunderbird' ]
 if '-x' in sys.argv:
   ix=sys.argv.index('-x')
   wanted = sys.argv[1:ix]
-  notwanted = sys.argv[ix+1:]
+  notwanted += sys.argv[ix+1:]
 else:
   wanted = sys.argv[1:]
-  notwanted = []
 
 xres =res.copy()
 if anycase:
@@ -35,7 +35,6 @@ if anycase:
   notwanted = [ w.lower() for w in notwanted ]
   #res =    [ w.lower() for w in res ]
    
-#print('AA',wanted)
 
 for r in xres:
   #rtxt = r.decode('utf-8')
