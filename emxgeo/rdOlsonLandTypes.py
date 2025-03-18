@@ -49,20 +49,24 @@ def getOlsonData(tdir,lcnum):
   olson['lats'] = ds.lat.values
   return olson
 #-----------------------------------------------------------------------------
-def getOlsonDesert4emep(tdir):
+def getOlsonDesert4emep(tdir,dxy='0.25'):
   """
     We use just 8=Base desert. Also have 11=semi desert, 50=sand desert,
     51,52=semi desert xxx, 69=Alpine desert, 
   """
-  #ds=xr.open_dataset(tdir+'/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc')
-  #desert = ds.LANDTYPE08.values[0,:,:]  # 8 = Bare desert
-  #lons=ds.lon.values
-  #lats=ds.lat.values
-  desert = getOlsonData(tdir,8)['vals']
-  #print('LATS', lats[0], lats[-1]) # LATS -89.875 89.875
+
+  desert = getOlsonData(tdir,8)
+
   dy = 0.25  # Olson data
   j60N = int( (60.0+90)/dy )
-  desert[j60N:,:] = 0.0
+  desert['vals'][j60N:,:] = 0.0
+
+  if dxy == '0.5':
+    import emxmisc.grid_coarsen as gc
+    desert['vals'] = gc.coarsen(desert['vals'],dx=2,dy=2)
+    desert['lons'] = gc.coarsen(desert['lons'],dx=2)
+    desert['lats'] = gc.coarsen(desert['lats'],dx=2)
+
   return desert
 
 #def mapOlsonLCtoGrid(lons,lats,lc):
@@ -82,7 +86,9 @@ if __name__ == '__main__':
 
   #o92, oDep = getOlsonCodes()
 
-  de =  getOlsonDesert4emep(tdir)
-  plot.plotmap(de,'OlsonDe')
+  de =  getOlsonDesert4emep(tdir,'0.5')
+  print( 'DE', de['vals'].shape )
+  plot.plotmap(de['vals'],'OlsonDe')
+
   #de2 =  getOlsonData(tdir,8)
   #plot.plotmap(de2['vals'],'OlsonDe')
