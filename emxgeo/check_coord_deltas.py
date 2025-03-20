@@ -11,3 +11,5 @@ def check_coord_deltas(coords,stop_if_variable=True,tol=0.0001):
   assert ok,f'VARIABLE coords! {maxdc} {mindc}'
   return np.mean(dc) #, mindc, maxdc
 
+def coords_equal(dx,dy,tol=0.0001):
+  return np.abs(dx-dy) < tol 
