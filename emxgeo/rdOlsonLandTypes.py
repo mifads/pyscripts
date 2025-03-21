@@ -47,6 +47,7 @@ def getOlsonData(tdir,lcnum):
   olson['txt']  = o92[lcnum]
   olson['lons'] = ds.lon.values
   olson['lats'] = ds.lat.values
+  ds.close()
   return olson
 #-----------------------------------------------------------------------------
 def getOlsonDesert4emep(tdir,dxy='0.25'):
@@ -79,7 +80,7 @@ if __name__ == '__main__':
 
   tdir='/lustre/storeB/users/davids/Data_Geo/OLSON_MAP'
   if not os.path.exists(tdir):
-    tdir= tdir.replace('B','A')
+    tdir= tdir.replace('storeB','storeA')
   if 'ppi' not in  os.uname().nodename:
     tdir = '/home/davids' + tdir
   assert os.path.exists(tdir),'NO INPUT DIR:'+tdir
