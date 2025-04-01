@@ -31,6 +31,7 @@ def getOlsonCodes(idir,oDepWanted=False):
   if oDepWanted: olsonDep = dict()
   for n, row in ds.iterrows():
     nname= '_'.join( c for c in row.LCname.split() )
+    nname=nname.replace(',','')
     olsonO92[int(row.O92)] = nname
     if oDepWanted: olsonDep[int(row.Dep)] = nname
   if oDepWanted:
@@ -83,6 +84,8 @@ if __name__ == '__main__':
     tdir= tdir.replace('storeB','storeA')
   if 'ppi' not in  os.uname().nodename:
     tdir = '/home/davids' + tdir
+  if not os.path.exists(tdir):
+    tdir= '/home/davids/Work/LANDUSE/OLSON_MAPS'
   assert os.path.exists(tdir),'NO INPUT DIR:'+tdir
 
   #o92, oDep = getOlsonCodes()
