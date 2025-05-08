@@ -27,6 +27,8 @@ def getKoeppenGeigerBeck(tdir,groupsWanted=[],plotsWanted=False,dbg=False):
   dy = crd.check_coord_deltas(kgb['lats'])
   lat0=kgb['lats'][0]-0.5*dy
   lon0=kgb['lons'][0]-0.5*dx
+  kgb['dx'] = dx
+  kgb['dy'] = dy
   print(f'KGLONS {lon0} {kgb['lons'][0]} {kgb['lons'][-1]} {dx} {len(kgb['lons'])}')
   print(f'KGLATS {lat0} {kgb['lats'][0]} {kgb['lats'][-1]} {dy} {len(kgb['lats'])}')
   for var in ds.keys():
