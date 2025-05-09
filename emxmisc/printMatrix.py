@@ -2,7 +2,7 @@
 import numpy as np
 import emxgeo.check_coord_deltas as cc
 
-""" with nj=2 print_xymatrix prints out 5x5 matrix of points surrounding
+""" with nij=2 print_xymatrix prints out 5x5 matrix of points surrounding
      xp,yp. Usually used for map plots. Assues z[y,x] order """
 
 #-----------------------------------------------------------------------------
@@ -12,7 +12,7 @@ def find_index(crds,crd):
   return int( (crd-crd0)/dc )
 
 #-----------------------------------------------------------------------------
-def print_xymatrix(txt,xp,yp,x,y,z,nj=2,dbg=False):
+def print_xymatrix(txt,xp,yp,x,y,z,nij=2,dbg=False):
   dtxt='print_xymat:'
 
   dx=cc.check_coord_deltas(x)
@@ -27,10 +27,10 @@ def print_xymatrix(txt,xp,yp,x,y,z,nj=2,dbg=False):
   if dbg:
     print('XMAT', x)
     print('YMAT', y)
-  i1 = max(i-2, 0)
-  i2 = min(i+2, len(x))
-  j1 = max(j-nj,0)
-  j2 = min(j+nj+1,len(y))
+  i1 = max(i-nij, 0)
+  i2 = min(i+nij, len(x))
+  j1 = max(j-nij,0)
+  j2 = min(j+nij+1,len(y))
   print(f'{txt:10s}',end='')
   for ix in range(i1,i2):
     print(f'{x[ix]:10.2f}',end='')
@@ -53,6 +53,6 @@ if __name__ == '__main__':
   z[iy,ix] = 88.0
   print(f'Input: IX {ix} IY {iy}   {lons[ix]} {lats[iy]} {z[iy,ix]}')
 
-  print_xymatrix('Test88',xlon,xlat,lons,lats,z,nj=2)
+  print_xymatrix('Test88',xlon,xlat,lons,lats,z,nij=2)
   
 
