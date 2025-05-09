@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import numpy as np
 import emxgeo.check_coord_deltas as cc
 
 """ with nj=2 print_xymatrix prints out 5x5 matrix of points surrounding
