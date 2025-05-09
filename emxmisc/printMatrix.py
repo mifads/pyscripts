@@ -17,7 +17,7 @@ def print_xymatrix(txt,xp,yp,x,y,z,nj=2,dbg=False):
 
   dx=cc.check_coord_deltas(x)
   dy=cc.check_coord_deltas(y)
-  nx, ny = z.shape
+  ny, nx = z.shape
   assert nx==len(x),f'{dtxt} WRONG X-DIMS: nx {nx} {len(x)}'
   assert ny==len(y),f'{dtxt} WRONG Y-DIMS: nx {ny} {len(y)}'
   print(f'GRID-{txt}: {dx:.3f}x{dy:.3f} max={np.max(z)}  IJ{z[7,13]}')
@@ -45,7 +45,7 @@ if __name__ == '__main__':
   import numpy as np
 
   lons=np.linspace(10.0,30.0,21)
-  lats=np.linspace(45.0,65.0,21)
+  lats=np.linspace(45.0,75.0,31)
   z=np.ones([len(lats),len(lons)])
   xlat = 52.0; xlon=23.0
   ix=find_index(lons,xlon)
