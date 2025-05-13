@@ -22,8 +22,9 @@ def plotmap(x,txt,plotfile=None):
   plt.clf()
 
 def plotlonlatmap(lons,lats,vals,levels,
+        title=None,
         cmap='YlOrRd',img_bounds= [-30.0, 55.0, 30.0, 65.0 ],
-        cbar_shrink=0.5,idbg=None,jdbg=None,ofile=None
+        cbar_shrink=0.5,cbar_title=None,idbg=None,jdbg=None,ofile=None
     ):
   """ maps with cartopy world also """
   import cartopy.crs as ccrs
@@ -47,7 +48,12 @@ def plotlonlatmap(lons,lats,vals,levels,
   #cbar=plt.colorbar(hhh,cax=ax_cb,ticks=v,extend='both')
   #cbar=plt.colorbar(p,ticks=levels,extend='both')
   cbar=plt.colorbar(p,extend='both',shrink=cbar_shrink)
+  
+  if cbar_title is not None:
+      cbar.ax.set_title(cbar_title)
  
+  if title is not None: plt.title(title)
+  plt.tight_layout()
   if idbg is not None:
     print(f'DBGplotlonlatmap: {lons[idbg]:.3f}E {lats[jdbg]:.3f}N  VALS{vals[jdbg,idbg]} {cm.N}')
   if ofile is None:
