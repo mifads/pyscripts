@@ -112,6 +112,36 @@ def astro_box_fill(lons,lats,vals,stddevs=[0.5,2],boxfacs=None):
    return znew
   
 #-----------------------------------------------------------------------------
+# from interp_regGrid.py
+def interp_RegGrid(x,y,z,xx,yy,method='linear'):
+  """ x,y,z are from input file to be interpolated
+     xx,yy are new coords to be interpolated to
+  """
+  import scipy.interpolate as si
+  assert x[-1]>x[0],'WRONG order x'
+  assert xx[-1]>xx[0],'WRONG order xx'
+  assert y[-1]>y[0],'WRONG order y'
+  assert yy[-1]>yy[0],'WRONG order yy'
+ interp = si.RegularGridInterpolator((x, y), z,method=method, bounds_error=False, fill_value=np.nan)
+  X, Y = np.meshgrid(xx, yy, indexing='ij')
+  return interp((X,Y))
+#-----------------------------------------------------------------------------
+def interp_coarse_to_fine(x,y,xx,yy,nfiner=5,method='linear'):
+  """ x,y,z are from input file to be interpolated
+     xx,yy are new coords to be interpolated to
+     This is just a help function 
+  """
+  nx=len(x)
+  ny=len(y)
+  xx=np.linspace(x[0],x[-1],nx*nfiner,endpoint=True)
+  yy=np.linspace(y[0],y[-1],ny*nfiner,endpoint=True)
+  finegrid=dict()
+  finegrid['lons'] = xx
+  finegrid['lats'] = yy
+  finegrid['vals'] = interp_RegGrid(x,y,z,xx,yy,method='linear'):
+  return finegrid
+#-----------------------------------------------------------------------------
+
 # from mk2025bvoc.py
 def nninterp(lons,lats,vals,method='nearest',demo=False):
   from scipy.interpolate import griddata
@@ -199,21 +229,29 @@ if __name__ == '__main__':
    xrarrays = []
    months=list(range(1,13))
 
-   for method in 'box_fill box_fill2 box_fill3 astro_box_fill astro_box_fill2 astro_box_fill3'.split():
+   #for method in 'nninterp nninterpU box_fill box_fill2 box_fill3 astro_box_fill astro_box_fill2 astro_box_fill3'.split():
+   for method in 'nninterp nninterpU'.split():
       znew = np.zeros([12,len(lats),len(lons)])
       for mm in range(12):
         vals=ds.Norm_C3_Crop.values[mm,:,:]
         print('VALS 22', vals[2,2] )
+        valsUnfilled = vals.copy()
         vals = fill_arctics(lons,lats,vals)
-        print('NVALS 22', vals[2,2] )
+        print('NVALS 22', vals[2,2], valsUnfilled[2,2] )
 
         if method == 'box_fill':
           print(f'{method}FILL {lons.shape} {lats.shape} {vals.shape}') 
           znew[mm,:,:]  = box_fill(lons,lats,vals)
-        if method == 'box_fill2':
+        elif method == 'box_fill2':
           znew[mm,:,:]  = box_fill(lons,lats,vals,facs=[2,3,5,6])
-        if method == 'box_fill3':
+        elif method == 'box_fill3':
           znew[mm,:,:]  = box_fill(lons,lats,vals,facs=[3,3,2,10])
+        elif method == 'nninterp':
+          znew[mm,:,:] = nninterp(lons,lats,vals)
+          print('UVALSA 22', vals[2,2], valsUnfilled[2,2], znew[mm,2,2] )
+        elif method == 'nninterpU':
+          znew[mm,:,:] = nninterp(lons,lats,valsUnfilled)
+          print('UVALSU 22', vals[2,2], valsUnfilled[2,2], znew[mm,2,2] )
         elif method == 'astro':
           znew[mm,:,:]  = astro_fill(vals)
         elif method == 'astro_box_fill':
@@ -224,7 +262,7 @@ if __name__ == '__main__':
           znew[mm,:,:]  = astro_box_fill(lons,lats,vals,boxfacs=[3,3,2,10])
         elif method == 'ndimage_fill':
             znew[mm,:,:] =ndimage_fill(vals,~mask)
-        print('DBGXR ',method, mm,  np.nanmax(vals), np.nanmax(znew[mm,:,:]), vals[jxs,500], znew[mm,jxs,500] )
+        print('DBGXR ',method, mm,  np.nanmax(vals), np.nanmax(znew[mm,:,:]), vals[jxs,500], znew[mm,jxs,500], vals[2,2] )
       
          #maxznew = np.max(znew,axis
          #znew = np.where(np.isfinite(znew),znew/np
