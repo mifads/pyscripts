@@ -10,6 +10,15 @@ import sys
 # Plate Carree - +proj=eqc +ellps=WGS84   EPSG 32662 (WGS84 Plate Carrée):
 # WGS84  wgs84=pyproj.Proj("+init=EPSG:4326") 
 
+"""
+CONTAINS:
+ lonlat_toPlateCarree(lons,lats,dbg=False):
+ plateCarree_tolonlat(x,y):
+ lonlat2xy(lon,lat,ptest='ps50'):
+ xy2lonlat(x,y,ptest='ps50'):
+"""
+
+# ------------------------------------------------------------------------------
 def lonlat_toPlateCarree(lons,lats,dbg=False):
 
   transformer2pc = pp.Transformer.from_crs("EPSG:4326", "EPSG:32662",always_xy=True)
@@ -26,12 +35,37 @@ def lonlat_toPlateCarree(lons,lats,dbg=False):
 #    print(f'P2:{n} {lon:.4f} {lat:.4f} {xlon[n]:.4f} {xlat[n]:.4f}')
       n += 1
   return x, y
+# ------------------------------------------------------------------------------
 
 def plateCarree_tolonlat(x,y):
   transformer2pc = pp.Transformer.from_crs("EPSG:32662","EPSG:4326",always_xy=True)
   lons, lats = transformer2pc.transform(x,y)
   return lons, lats
 
+# ------------------------------------------------------------------------------
+"""
+# To and from EMEP 50 km grid coords (new=official)
+# earth radius is 6370/50=127.4
+"""
+from pyproj import Proj
+ps50=Proj( ellps='sphere', R=127.4, proj='stere', lat_0=90, lon_0=-32, lat_ts=60, x_0=8., y_0=110.)
+#try2 used k=0.933013 instead of lat_0. This number comes from ncdump on test .nc file
+#try2=Proj( ellps='sphere', R=127.4, proj='stere', k=0.933013, lat_0=90, lon_0=-32, x_0=8., y_0=110.)
+
+
+# ------------------------------------------------------------------------------
+def lonlat2xy(lon,lat,ptest='ps50'):
+ """ Convert lon, lat to EMEP 50km x, y (official) coords """
+ if ptest=='ps50': return ps50(lon,lat)
+ else: sys.exit(f"{ptest} projection not code")
+
+# ------------------------------------------------------------------------------
+def xy2lonlat(x,y,ptest='ps50'):
+ """ Convert EMEP 50km x, y (official) coords to lon, lat """
+ if ptest=='ps50': return ps50(x,y,inverse=True)
+ else: sys.exit(f"{ptest} projection not code")
+
+# ------------------------------------------------------------------------------
 if __name__ == '__main__':
   lats = [-72.9, -71.9, -74.9, -74.3, -77.5, -77.4, -71.7, -65.9, -65.7,
           -66.6, -66.9, -69.8, -70.0, -71.0, -77.3, -77.9, -74.7]
@@ -44,6 +78,19 @@ if __name__ == '__main__':
   for lon, lat in zip(lons,lats):
     print(f'P1:{n} {lon:.4f} {lat:.4f} {x1[n]:.4f} {y1[n]:.4f} {lon1[n]:.4f} {lat1[n]:.4f}')
     n += 1
+
+  pstest = False
+  if pstest:
+    # Test 50km PS file:
+    idir='/lustre/storeB/users/davids/Data_Geo/EMEP_files'
+    ps=xr.open_dataset(f'{idir}/AnnualNdep_PS50x_EECCA2005_2009.nc')
+
+    lon2d=ps.lon.values      # from 2-D lon/lat arrays in nc
+    lat2d=ps.lat.values
+    i=59; j=12               # PS coords, location in Spain    
+    lon,lat = xy2lonlat(i,j)
+    ii,jj = lonlat2xy(lon,lat)
+    print(f"{i} {j} {lon2d[j-1,i-1]:.3f} {lat2d[j-1,i-1]:.3f} TOLL: {lon:.3f} {lat:.3f} FROM LL: {ii} {jj}" )
 
 
 
