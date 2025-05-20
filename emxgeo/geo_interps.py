@@ -122,7 +122,7 @@ def interp_RegGrid(x,y,z,xx,yy,method='linear'):
   assert xx[-1]>xx[0],'WRONG order xx'
   assert y[-1]>y[0],'WRONG order y'
   assert yy[-1]>yy[0],'WRONG order yy'
- interp = si.RegularGridInterpolator((x, y), z,method=method, bounds_error=False, fill_value=np.nan)
+  interp = si.RegularGridInterpolator((x, y), z,method=method, bounds_error=False, fill_value=np.nan)
   X, Y = np.meshgrid(xx, yy, indexing='ij')
   return interp((X,Y))
 #-----------------------------------------------------------------------------
