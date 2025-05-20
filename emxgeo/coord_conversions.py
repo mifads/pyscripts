@@ -48,22 +48,27 @@ def plateCarree_tolonlat(x,y):
 # earth radius is 6370/50=127.4
 """
 from pyproj import Proj
-ps50=Proj( ellps='sphere', R=127.4, proj='stere', lat_0=90, lon_0=-32, lat_ts=60, x_0=8., y_0=110.)
+polar=dict()
+polar[50]=Proj( ellps='sphere', R=127.4, proj='stere', lat_0=90, lon_0=-32, lat_ts=60, x_0=8., y_0=110.)
+polar[5]=Proj( ellps='sphere', R=127.4, proj='stere', lat_0=90, lon_0=-32, lat_ts=60, x_0=75.5, y_0=1095.5)
+
 #try2 used k=0.933013 instead of lat_0. This number comes from ncdump on test .nc file
 #try2=Proj( ellps='sphere', R=127.4, proj='stere', k=0.933013, lat_0=90, lon_0=-32, x_0=8., y_0=110.)
 
 
 # ------------------------------------------------------------------------------
-def lonlat2xy(lon,lat,ptest='ps50'):
+def lonlat2xy(lon,lat,pstere=50):
  """ Convert lon, lat to EMEP 50km x, y (official) coords """
- if ptest=='ps50': return ps50(lon,lat)
- else: sys.exit(f"{ptest} projection not code")
+ if  pstere==50: return polar[50](lon,lat)
+ elif pstere==5: return polar[5](lon,lat)
+ else: sys.exit(f"{polar} projection not code")
 
 # ------------------------------------------------------------------------------
-def xy2lonlat(x,y,ptest='ps50'):
+def xy2lonlat(x,y,pstere=50):
  """ Convert EMEP 50km x, y (official) coords to lon, lat """
- if ptest=='ps50': return ps50(x,y,inverse=True)
- else: sys.exit(f"{ptest} projection not code")
+ if  pstere==50: return polar[50](x,y,inverse=True)
+ elif pstere==5: return polar[5](x,y,inverse=True)
+ else: sys.exit(f"{polar} projection not code")
 
 # ------------------------------------------------------------------------------
 if __name__ == '__main__':
@@ -79,18 +84,33 @@ if __name__ == '__main__':
     print(f'P1:{n} {lon:.4f} {lat:.4f} {x1[n]:.4f} {y1[n]:.4f} {lon1[n]:.4f} {lat1[n]:.4f}')
     n += 1
 
-  pstest = False
+  pstest = None
+  pstest = 5
   if pstest:
     # Test 50km PS file:
-    idir='/lustre/storeB/users/davids/Data_Geo/EMEP_files'
-    ps=xr.open_dataset(f'{idir}/AnnualNdep_PS50x_EECCA2005_2009.nc')
+    import os
+    import xarray as xr
+    tdir='/lustre/storeB/users/davids/Data_Geo'
+    if not os.path.exists(tdir):
+      tdir= '/home/davids/Work/LANDUSE'
+    idir=f'{tdir}/EMEP_files'
 
+    if pstest==50:
+      ifile = f'{idir}/AnnualNdep_PS50x_EECCA2005_2009.nc'
+      i=59; j=12               # PS coords, location in Spain    
+    else:
+      i=589; j=126             # PS coords, also Spain    
+      ifile = f'{idir}/Landuse_PS_5km_LC.nc'
+
+    print(f'POLAR STEREO {pstest}km:')
+    ps=xr.open_dataset(ifile)
     lon2d=ps.lon.values      # from 2-D lon/lat arrays in nc
     lat2d=ps.lat.values
-    i=59; j=12               # PS coords, location in Spain    
-    lon,lat = xy2lonlat(i,j)
-    ii,jj = lonlat2xy(lon,lat)
-    print(f"{i} {j} {lon2d[j-1,i-1]:.3f} {lat2d[j-1,i-1]:.3f} TOLL: {lon:.3f} {lat:.3f} FROM LL: {ii} {jj}" )
+
+    lon,lat = xy2lonlat(i,j,pstest)
+
+    ii,jj = lonlat2xy(lon,lat,pstest)
+    print(f"{i} {j} PS{pstest}km {lon2d[j-1,i-1]:.3f} {lat2d[j-1,i-1]:.3f} TOLL: {lon:.3f} {lat:.3f} FROM LL: {ii} {jj}" )
 
 
 
