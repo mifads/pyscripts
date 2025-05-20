@@ -138,7 +138,7 @@ def interp_coarse_to_fine(x,y,xx,yy,nfiner=5,method='linear'):
   finegrid=dict()
   finegrid['lons'] = xx
   finegrid['lats'] = yy
-  finegrid['vals'] = interp_RegGrid(x,y,z,xx,yy,method='linear'):
+  finegrid['vals'] = interp_RegGrid(x,y,z,xx,yy,method='linear')
   return finegrid
 #-----------------------------------------------------------------------------
 
