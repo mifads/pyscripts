@@ -8,6 +8,19 @@ import emxplots.plotmap as pmap
 import emxcdf.makecdf as cdf
 import sys
 
+"""
+def ndimage_fill(data, invalid=None):
+def fill_arctics(lons,lats,vals):
+def box_fill(lons,lats,vals,facs=[10,2,3,3]):  #  0.5*10*6*12=360 30,60,120]):
+def astro_fill(vals, stddevs = [ 0.5, 1, 2, 5, 10] ):
+def astro_box_fill(lons,lats,vals,stddevs=[0.5,2],boxfacs=None):
+def interp_RegGrid(x,y,z,xx,yy,method='linear'):
+def interp_coarse_to_fine(x,y,xx,yy,nfiner=5,method='linear'):
+def nninterp(lons,lats,vals,method='nearest',demo=False):
+def NNinterp(lonsdata,mask):
+def scat_interp(x,y,z,xi,yi,mask=None,method='linear'):
+"""
+
 
 # some debug x-sections
 i1=332; i2=406; jxs=286 # Eur
@@ -22,6 +35,21 @@ xsec= np.linspace(i1,i2,i2-i1+1)
 
    #F fig, axs = plt.subplots(nrowsvals=4,ncols=1,sharex=True) #,sharey=True) #,heightratios=)
    #F axf = axs.flat
+
+#-----------------------------------------------------------------------------
+def scat_interp(x,y,z,xi,yi,mask=None,method='linear'):
+  """
+  From https://earthscience.stackexchange.com/questions/12057/how-to-interpolate-scattered-data-to-a-regular-grid-in-python
+  x,y,z are point data
+  xi, yi are grid data coords, e.g. lons, lats
+  mask has shape of xi, yi
+  """
+  from scipy.interpolate import griddata
+  X, Y = np.meshgrid(xi,yi)
+  z = griddata((x, y), z, (X, Y), method=method)
+  if mask is not None:
+    z[mask] = np.nan
+  return z
 
 #-----------------------------------------------------------------------------
 # https://stackoverflow.com/questions/5551286/filling-gaps-in-a-numpy-array/9262129#9262129
@@ -47,8 +75,9 @@ def fill_arctics(lons,lats,vals):
 
 #-----------------------------------------------------------------------------
 def box_fill(lons,lats,vals,facs=[10,2,3,3]):  #  0.5*10*6*12=360 30,60,120]):
-  """ the raw data here have 0.5x0.5 deg
-      start with 10x5 deg boxes, then ....
+  """
+   The raw data here have 0.5 x 0.5 deg
+      start with 10 x 5 deg boxes, then ....
       CONSIDER 3*3*2*10
                2*3*6*5
   """
@@ -230,7 +259,7 @@ if __name__ == '__main__':
    months=list(range(1,13))
 
    #for method in 'nninterp nninterpU box_fill box_fill2 box_fill3 astro_box_fill astro_box_fill2 astro_box_fill3'.split():
-   for method in 'nninterp nninterpU'.split():
+   for method in 'scat_interp nninterp nninterpU'.split():
       znew = np.zeros([12,len(lats),len(lons)])
       for mm in range(12):
         vals=ds.Norm_C3_Crop.values[mm,:,:]
@@ -239,6 +268,15 @@ if __name__ == '__main__':
         vals = fill_arctics(lons,lats,vals)
         print('NVALS 22', vals[2,2], valsUnfilled[2,2] )
 
+        if method == 'scat_interp':
+           x=[];y=[];z=[]
+           for j,lat in enumerate(lats):
+             for i,lon in enumerate(lons):
+               if valsUnfilled[j,i] > 0.:
+                 x.append(lon)
+                 y.append(lat)
+                 z.append(valsUnfilled[j,i])
+           znew[mm,:,:] = scat_interp(x,y,z,lons,lats,mask=None,method='linear')
         if method == 'box_fill':
           print(f'{method}FILL {lons.shape} {lats.shape} {vals.shape}') 
           znew[mm,:,:]  = box_fill(lons,lats,vals)
