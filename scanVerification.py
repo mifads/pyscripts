@@ -20,9 +20,10 @@ import re
 #parser=argparse.ArgumentParser(usage=__doc__) also works, but text at start
 parser=argparse.ArgumentParser(epilog=__doc__,
    formatter_class=argparse.RawDescriptionHelpFormatter)
+parser.add_argument('-t','--texsetup',help='put poll on new line',action='store_true')
 parser.add_argument('-s','--season',help='season (eg JANFEB)',default='YEARLY')
 parser.add_argument('-i','--ifiles',help='Input files',nargs='*',required=True)
-parser.add_argument('-S','--skiplabels',help='skip labels from name',nargs='*',required=False)
+parser.add_argument('-L','--skiplabels',help='skip labels from name',nargs='*',required=False)
 args=parser.parse_args()
 
 if args.season:
@@ -44,26 +45,29 @@ NH3+NH4_air+aerosol  ugN/m3
 '''.strip().split('\n')
 
 polls='''
-Ozone_daily_max ppb
-Ozone_daily_mean ppb
-SO2_in_Air ugS/m3
-Sulfate_in_Air ugS/m3
 NO_in_Air ugN/m3
 NO2_in_Air ugN/m3
-HNO3_in_Air ugN/m3
-NO3-_in_Air ugN/m3
 Sum_of_HNO3,_NO3-_in_air ugN/m3
-NH4+_in_Air ug/m3
+HNO3_in_Air ugN/m3
 NH3+NH4+_in_Air ugN/m3
 Ammonia_in_Air ugN/m3
-NO3_coarse ug/m3
+NH4+_in_Air ug/m3
+SO2_in_Air ugS/m3
+Sulfate_in_Air ug/m3
+Sulfate_in_Air,_sea_salt_incl. ug/m3
+Ozone_daily_max ppb
+Ozone_daily_mean ppb
 PM10 ug/m3
 PM25 ug/m3
+NO3-_in_Air ugN/m3
+NO3_coarse ug/m3
 EC_in_PM10 ugC/m3
 EC_in_PM2.5 ugC/m3
 OC_in_PM10 ugC/m3
 OC_in_PM2.5 ugC/m3
 Na+_in_air ug/m3
+Na+_in_PM10 ug/m3
+Na+_in_PM2.5 ug/m3
 SO4_wet_dep. mgS/m2
 Nitrate_wet_dep. mgN/m
 Ammonium_wet_dep. mgN/m2
@@ -80,7 +84,20 @@ fmt='%-50.46s %4s' + '%8s'*5
 fmt='%-50.46s %4s' + '%8s'*6   # June 2021
 fmt='%-50.46s %-8s %4s' + '%8s'*6  + '     %-20s'  # April 2022, with season
 fmt='%-40.46s %-8s %4s' + '%8s'*6  + '     %-20s'  # April 2022, with season
+fmt='%-10s %-8s %4s' + '%8s'*6  + '     %-20s'  # August 2024, short labels
 line = '-' * (40+5+8*6)
+if args.texsetup:
+  fmt='%-10s %-8s %4s' + '%8s'*5  + '     %-20s'  # August 2024, short labels
+  header="""\\begin{table}
+   \\begin{small}
+   \\caption{EVALUATION %s \\label{tab:Verif}}
+   \\begin{tabular}{p{5cm}lccccccc}
+   \\hline
+  """ % season
+  line='%'+line
+  print(header)
+  print(line)
+
 
 for np, p in enumerate(polls):  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.split(';'):
 
@@ -128,16 +145,51 @@ for np, p in enumerate(polls):  #  'Ozone_daily_max ppb;Ozone_daily_mean ppb'.sp
 
     if Ns == '-': continue
     #DSTMP if int(Ns) < 20: continue
-    if nrun==0: # header line
-      print(fmt % ( 'Run', season, 'Ns', 'obs', 'mod', 'bias', 'rmse', 'r2', 'ioa', p ) )
+    if np == 0 and  nrun == 0: # header line
+      if args.texsetup is not None: # Skip season
+        print( ' & '.join([ 'Poll', 'Run', 'Ns', 'obs', 'mod', 'bias', 'rmse', 'r2', 'ioa' ] ), '\\\\')
+      else:
+        print(fmt % ( 'Run', season, 'Ns', 'obs', 'mod', 'bias', 'rmse', 'r2', 'ioa', p ) )
 
     if args.skiplabels:
       for skip in args.skiplabels:
         tst = tst.replace(skip,'')
-    print(fmt % ( tst, ':',  Ns, obs, mod, bias, rmse, r2, ioa , p ) )
+    if args.texsetup is not None:
+      #print(fmt % ( tst, ':',  Ns, obs, mod, bias, rmse, r2, ioa  ) )
+      tst = tst.replace('_','\_')
+      bias = bias.replace('%','\%')
+      #pp=p.replace(' ',':')   # mk.textab would add &
+      pp=p
+      pp = pp.replace('Sum_of_HNO3,_NO3-','tNO3')
+      pp = pp.replace('NH3+NH4+','tNHx')
+      pp = pp.replace('Sulfate_in_Air,','Sulfate_in_Air, ')
+      pp = pp.replace('_','-',-1)
+      fields=pp.split()
+      newpp='\\\\'.join(fields)
+#      print('POLL', newpp)
+#:w sys.exit()
+    # https://tex.stackexchange.com/questions/443712/vertical-alignment-in-multirow-environment
+      pp='\\multirow{%d}{*}{\\makecell{%s}}' % ( len(runs), newpp )
+      if nrun>0: pp=' '
+      fields=[ pp, tst,   Ns, obs, mod, bias, rmse, r2, ioa ]
+      print(' & '.join(fields), '\\\\' )
 
-  print( line )
+    else:
+      print(fmt % ( tst, ':',  Ns, obs, mod, bias, rmse, r2, ioa , p ) )
 
+  if args.texsetup is not None:
+    print('\\hline')
+  else:
+    print( line )
+
+if args.texsetup is not None:
+  footer="""
+   \\hline
+   \\end{tabular}
+   \\end{small}
+  \\end{table}
+  """
+  print(footer)
 #    la, lo, he = map(float, l.split("\n")[2].split(","))
 #    print la, lo, he
 

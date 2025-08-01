@@ -88,6 +88,8 @@ if opts.i is None:
 
 print("OPTS ALL  ", opts)
 
+nmrcolors = ['#CCDEEB', '#96CCEB', '#66B7F3', '#62C298', '#76E854','#EAEB30', '#E4CC2F', '#EA952A','#F74B37', '#C52C2C']
+
  
 
 #-----------------------------------------------------
@@ -210,8 +212,12 @@ if opts.borders:
 
 #----------- colors --------------------
 if opts.levels is None:
-  Nv=8
-  cmap=plt.cm.get_cmap(opts.cmap,Nv)
+  if opts.cmap=='nmr':
+    from matplotlib.colors import ListedColormap, BoundaryNorm # for hetero, from Zhuyun
+    cmap = ListedColormap(nmrcolors)
+  else:
+    Nv=8
+    cmap=plt.cm.get_cmap(opts.cmap,Nv)
   #M=plt.contourf(xi,yi,zT,cmap=cmap,extend='both')
   #CRDX hhh=plt.contourf(rlon,rlat,vals,cmap=cmap,extend='both') # Ens,transform=proj)
   #NOV30 hhh=ax1.contourf(lons,lats,vals,cmap=cmap,extend='both') # Ens,transform=proj)
@@ -237,8 +243,7 @@ else:
   # see also https://stackoverflow.com/questions/48613920/use-of-extend-in-a-pcolormesh-plot-with-discrete-colorbar
   if opts.cmap=='nmr':
     from matplotlib.colors import ListedColormap, BoundaryNorm # for hetero, from Zhuyun
-    colors = ['#CCDEEB', '#96CCEB', '#66B7F3', '#62C298', '#76E854','#EAEB30', '#E4CC2F', '#EA952A','#F74B37', '#C52C2C']
-    cmap = ListedColormap(colors)
+    cmap = ListedColormap(nmrcolors)
   else:
     cmap_tst = plt.cm.get_cmap(opts.cmap, len(v) )
     print('OCT2024 TEST HERE', cmap_tst)
