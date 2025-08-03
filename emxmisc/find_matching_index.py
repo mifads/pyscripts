@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
   y=np.array([ -30., -14., -2., -0.1, 1, 2., 5, 10. ])
 
-  for x in [ -14., 5.  ]:
+  for x in [ -14., -7,  5.  ]:
     print(f'CHECK MATCH: {x} in {y} => ')
     idx=find_matching_index(x,y,dbg=False)
     if idx>=0:
