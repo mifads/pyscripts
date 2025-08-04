@@ -74,7 +74,7 @@ def fill_arctics(lons,lats,vals):
   return vals
 
 #-----------------------------------------------------------------------------
-def box_fill(lons,lats,vals,facs=[10,2,3,3]):  #  0.5*10*6*12=360 30,60,120]):
+def box_fill(lons,lats,vals,facs=[10,2,3,3],dbg=False):  #  0.5*10*6*12=360 30,60,120]):
   """
    The raw data here have 0.5 x 0.5 deg
       start with 10 x 5 deg boxes, then ....
@@ -87,7 +87,7 @@ def box_fill(lons,lats,vals,facs=[10,2,3,3]):  #  0.5*10*6*12=360 30,60,120]):
   nlons=lons.copy()
   nlats=lats.copy()
   assert np.prod(facs) == 180,f'box_fill should reach 180. Has {np.prod(facs)}'
-  print(f'INBF {nlons.shape} {nlats.shape} {nvals.shape} {xnew[2,2]}') 
+  if dbg: print(f'INBF {nlons.shape} {nlats.shape} {nvals.shape} {xnew[2,2]}') 
 
   cumfdx = 1; cumfdy = 1
   for nf, f in enumerate(facs): # factors of 360, 720
@@ -117,7 +117,7 @@ def box_fill(lons,lats,vals,facs=[10,2,3,3]):  #  0.5*10*6*12=360 30,60,120]):
     nlats = gc.coarsen(nlats,dx=fdy)
     if len(nlons) > 1:
       ndx=nlons[1]-nlons[0]
-    #print(f'BOXUT {nf} {f} {fdx} {fdy} {ndx} {nlons.shape} {nlats.shape} {xnew[2,2]}')
+    if dbg: print(f'BOXUT {nf} {f} {fdx} {fdy} {ndx} {nlons.shape} {nlats.shape} {xnew[2,2]}')
 
   return xnew
 #-----------------------------------------------------------------------------
@@ -259,7 +259,7 @@ if __name__ == '__main__':
    months=list(range(1,13))
 
    #for method in 'nninterp nninterpU box_fill box_fill2 box_fill3 astro_box_fill astro_box_fill2 astro_box_fill3'.split():
-   for method in 'scat_interp nninterp nninterpU'.split():
+   for method in 'scat_interp nninterp nninterpU box_fill2 astro_box_fill2'.split():
       znew = np.zeros([12,len(lats),len(lons)])
       for mm in range(12):
         vals=ds.Norm_C3_Crop.values[mm,:,:]
