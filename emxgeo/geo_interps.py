@@ -82,12 +82,13 @@ def box_fill(lons,lats,vals,facs=[10,2,3,3],dbg=False):  #  0.5*10*6*12=360 30,6
                2*3*6*5
   """
   import emxmisc.grid_coarsen as gc
+  dtxt='BoxFill:'
   xnew=vals.copy()
   nvals=vals.copy()
   nlons=lons.copy()
   nlats=lats.copy()
   assert np.prod(facs) == 180,f'box_fill should reach 180. Has {np.prod(facs)}'
-  if dbg: print(f'INBF {nlons.shape} {nlats.shape} {nvals.shape} {xnew[2,2]}') 
+  if dbg: print(dtxt+f'INBF {nlons.shape} {nlats.shape} {nvals.shape} {xnew[2,2]}') 
 
   cumfdx = 1; cumfdy = 1
   for nf, f in enumerate(facs): # factors of 360, 720
@@ -104,10 +105,10 @@ def box_fill(lons,lats,vals,facs=[10,2,3,3],dbg=False):  #  0.5*10*6*12=360 30,6
 
     for j, lat in enumerate(lats):
       jc = j//cumfdy
-      assert jc < len(nlats), f'WRONG J LEN: {j} {jc} {nlats[j]}'
+      assert jc < len(nlats), dtxt+f'WRONG J LEN: {j} {jc} {nlats[j]}'
       for i, lon in enumerate(lons):
         ic = i//cumfdx
-        assert ic < len(nlons), f'WRONG I LEN: {i} {ic} {nlons[i]}'
+        assert ic < len(nlons), dtxt+f'WRONG I LEN: {i} {ic} {nlons[i]}'
         if i==2 and j==2: print(f'IJ {ic} {jc} {xnew[j,i]} {nvals[jc,ic]}')
         if ~np.isfinite(xnew[j,i]): # transfer back to fine 
           xnew[j,i] = nvals[jc,ic]
@@ -117,7 +118,7 @@ def box_fill(lons,lats,vals,facs=[10,2,3,3],dbg=False):  #  0.5*10*6*12=360 30,6
     nlats = gc.coarsen(nlats,dx=fdy)
     if len(nlons) > 1:
       ndx=nlons[1]-nlons[0]
-    if dbg: print(f'BOXUT {nf} {f} {fdx} {fdy} {ndx} {nlons.shape} {nlats.shape} {xnew[2,2]}')
+    if dbg: print(dtxt+f'BOXUT {nf} {f} {fdx} {fdy} {ndx} {nlons.shape} {nlats.shape} {xnew[2,2]}')
 
   return xnew
 #-----------------------------------------------------------------------------
