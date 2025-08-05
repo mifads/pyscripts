@@ -109,7 +109,7 @@ def box_fill(lons,lats,vals,facs=[10,2,3,3],dbg=False):  #  0.5*10*6*12=360 30,6
       for i, lon in enumerate(lons):
         ic = i//cumfdx
         assert ic < len(nlons), dtxt+f'WRONG I LEN: {i} {ic} {nlons[i]}'
-        if i==2 and j==2: print(f'IJ {ic} {jc} {xnew[j,i]} {nvals[jc,ic]}')
+        if dbg and i==2 and j==2: print(f'IJ {ic} {jc} {xnew[j,i]} {nvals[jc,ic]}')
         if ~np.isfinite(xnew[j,i]): # transfer back to fine 
           xnew[j,i] = nvals[jc,ic]
 
