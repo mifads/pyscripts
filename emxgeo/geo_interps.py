@@ -74,7 +74,7 @@ def fill_arctics(lons,lats,vals):
   return vals
 
 #-----------------------------------------------------------------------------
-def box_fill(lons,lats,vals,facs=[10,2,3,3],dbg=False):  #  0.5*10*6*12=360 30,60,120]):
+def box_fill(lons,lats,vals,facs=[10,2,3,3],dbgij=None):  #  0.5*10*6*12=360 30,60,120]):
   """
    The raw data here have 0.5 x 0.5 deg
       start with 10 x 5 deg boxes, then ....
@@ -88,7 +88,12 @@ def box_fill(lons,lats,vals,facs=[10,2,3,3],dbg=False):  #  0.5*10*6*12=360 30,6
   nlons=lons.copy()
   nlats=lats.copy()
   assert np.prod(facs) == 180,f'box_fill should reach 180. Has {np.prod(facs)}'
-  if dbg: print(dtxt+f'INBF {nlons.shape} {nlats.shape} {nvals.shape} {xnew[2,2]}') 
+  dbg=False
+  if dbgij is not None:
+     dbg=True
+     idbg, jdbg = dbgij
+     print(dtxt+f'INBF {nlons.shape} {nlats.shape} {nvals.shape} {xnew[jdbg,idbg]}') 
+     print(dtxt+f'IJBF {lons[idbg]} {lats[jdbg]} {nvals[jdbg,idbg]}') 
 
   cumfdx = 1; cumfdy = 1
   for nf, f in enumerate(facs): # factors of 360, 720
@@ -118,7 +123,8 @@ def box_fill(lons,lats,vals,facs=[10,2,3,3],dbg=False):  #  0.5*10*6*12=360 30,6
     nlats = gc.coarsen(nlats,dx=fdy)
     if len(nlons) > 1:
       ndx=nlons[1]-nlons[0]
-    if dbg: print(dtxt+f'BOXUT {nf} {f} {fdx} {fdy} {ndx} {nlons.shape} {nlats.shape} {xnew[2,2]}')
+    if dbgij is not None: 
+       print(dtxt+f'BOXUT {nf} {f} {fdx} {fdy} {ndx} {nlons.shape} {nlats.shape} {xnew[jdbg,idbg]}')
 
   return xnew
 #-----------------------------------------------------------------------------
@@ -133,12 +139,12 @@ def astro_fill(vals, stddevs = [ 0.5, 1, 2, 5, 10] ):
    return xnew
 
 #-----------------------------------------------------------------------------
-def astro_box_fill(lons,lats,vals,stddevs=[0.5,2],boxfacs=None):
+def astro_box_fill(lons,lats,vals,stddevs=[0.5,2],boxfacs=None,dbgij=None):
    znew = astro_fill(vals,stddevs=stddevs)
    if boxfacs is None:
      znew = box_fill(lons,lats,znew)
    else:
-     znew = box_fill(lons,lats,znew,facs=boxfacs)
+     znew = box_fill(lons,lats,znew,facs=boxfacs,dbgij=dbgij)
    return znew
   
 #-----------------------------------------------------------------------------
