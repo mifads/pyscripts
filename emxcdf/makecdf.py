@@ -25,7 +25,7 @@ def check_xrcdf(xrtest, xrenc, xrfile):
     print('XRTEST FAIL: '+xrfile, xrenc)
     sys.exit('FAIL'+xrfile)
 
-def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
+def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,stop_if_error=True,dbg=False):
   #dbg =True  # TMP
   dtxt='dbg:xrcdf:'
   if dbg: print(dtxt+outfile)
@@ -87,14 +87,30 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
                      dtype='float32')
 
   for var in outxr.coords:
-      encoding[var] = {'dtype': 'f4'} # f4 works better than float for ncview
-      encoding[var] = {'dtype': 'f4', '_FillValue':None}
+      #encoding[var] = {'dtype': 'f4'} # f4 works better than float for ncview
       if 'time' in var:
+       #CF complaint: https://cfconventions.org/Data/cf-conventions/cf-conventions-1.11/cf-conventions.html#time-coordinate
         if dbg: print(dtxt+'TIMEOUT', var, outfile)
-        #ORIG:
+        #F25
+        encoding[var] = {'_FillValue':None}
+        #FAIL encoding[var] = {'dtype': 'f4','standard_name':'time', 'units':'days since 1900-1-1 0:0:0', 'decode_times':False, '_FillValue':None}
+        encoding[var] = {'standard_name':'time', 'units':'days since 1900-1-1 0:0:0', 'decode_times':False, '_FillValue':None}
+        encoding[var] = {'standard_name':'time', 'units':'days since 1900-1-1 0:0:0', '_FillValue':None}
+        encoding[var] = {'standard_name':'time', 'unit':'days since 1900-1-1 0:0:0'}
+        encoding[var] = {'_FillValue':None} # works
+        encoding[var] = {'_FillValue':None,'units':'days since 1900-1-1'} # works! PHEW!
+        #FAILS encoding[var] = {'standard_name':'time', '_FillValue':None}
+        #FAILS encoding[var] = {'standard_name':'time','_FillValue':None} # works
+        #FAILS encoding[var] = {'standard_name':'time', 'unit':'days since 1900-1-1 0:0:0', '_FillValue':None}
+
+      else:
+
         encoding[var] = {'dtype': 'f4', '_FillValue':None}
-       #DEC2023: works only if pandas time range
-        encoding[var] = {'dtype': 'f4', 'units':'days since 1900-01-01', '_FillValue':None}
+        #F25b encoding[var] = {'dtype': 'f4','decoding_times':False, 'units':'days since 1900-1-1 0:0:0', '_FillValue':None}
+        #F25failedencoding[var] = {'dtype': 'datetime64[ns]', 'units':'days since 1900-1-1 0:0:0', '_FillValue':None}
+#https://stackoverflow.com/questions/45485745/python-xarray-loses-the-units-attribute-for-time-variable?rq=3
+#FAILS        encoding[var] = {'dtype': 'f4', 'units':'days since 1900-1-1 0:0:0', 'decoding_times':False, '_FillValue':None}
+#FAILS
 #          'standard_name':'time',
 #          'long_name':"time at middle of month", 
 
@@ -113,9 +129,13 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,dbg=False):
 
   if dbg: print('XRmake', outfile)
   try:
+    #outxr.to_netcdf(outfile, format='netCDF4',decode_times=False,encoding=encoding)
     outxr.to_netcdf(outfile, format='netCDF4',encoding=encoding)
   except:
     print(dtxt+' OUTCDF FAILED', outfile)
+    print(dtxt+' OUTCDF FAIL ENC.', encoding)
+    print(dtxt+' OUTCDF FAIL ofile.', outfile)
+    if stop_if_error: sys.exit('!!!! makecdf: OUTXR fail'+outfile)
     return outxr, encoding, os.path.basename(outfile)
   outxr.close()
   return 'OK', encoding, os.path.basename(outfile)  # just for status report
@@ -220,7 +240,7 @@ def create_fvcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sig
 def fastcdf(lons,lats,data,var='VAR',txt='TXT',ofile='fastcdf.nc'):
   xrarrays = []
   xrarrays.append( dict(varname=var, dims=['lat','lon'],
-      attrs = {'note':'fastcdf'+txt,'NOTE':'test att'},
+      attrs = {'note':txt,'NOTE':'test att'},
      coords={'lat':lats,'lon':lons},data=data ) )
   xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile=ofile)
 
@@ -270,7 +290,7 @@ if __name__ == '__main__':
 
 #TMP
   xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile='tstcdf_scalar2dt.nc')
-  sys.exit()   #  JAN 2024
+  #sys.exit()   #  JAN 2024, gives month = 0,1,2 - all ok
 
 
   #nctimes= [ cdft.days_since_1900(1997,mm,15) for mm in range(1,4)  ]
@@ -315,6 +335,9 @@ if __name__ == '__main__':
   check_xrcdf(xrtest, xrenc, xrfile)
 
   ############
+  # All ok, gives float time(time) ;
+  #              time:units = "days since 1900-01-01" ;
+  #              time:calendar = "proleptic_gregorian" ;
   sys.exit()
   ############
 
