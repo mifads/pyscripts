@@ -21,7 +21,7 @@ def NNinterp(lonsdata,mask):
 def scat_interp(x,y,z,xi,yi,mask=None,method='linear'):
 """
 
-
+dtxt='geo_interp:'
 # some debug x-sections
 i1=332; i2=406; jxs=286 # Eur
 i1=250; i2=406; jxs=286; area_txt = 'NW-Eur' # Eur
@@ -92,7 +92,8 @@ def box_fill(lons,lats,vals,facs=[10,2,3,3],dbgij=None):  #  0.5*10*6*12=360 30,
   if dbgij is not None:
      dbg=True
      idbg, jdbg = dbgij
-     print(dtxt+f'INBF {nlons.shape} {nlats.shape} {nvals.shape} {xnew[jdbg,idbg]}') 
+     print(dtxt+f'INBF {idbg} {jdbg} {nlons[idbg]} {nlats[jdbg]} {nlons.shape}'
+                f'{nlats.shape} {nvals.shape} {xnew[jdbg,idbg]}') 
      print(dtxt+f'IJBF {lons[idbg]} {lats[jdbg]} {nvals[jdbg,idbg]}') 
 
   cumfdx = 1; cumfdy = 1
@@ -104,9 +105,8 @@ def box_fill(lons,lats,vals,facs=[10,2,3,3],dbgij=None):  #  0.5*10*6*12=360 30,
     ndx=nlons[1]-nlons[0]
     ndy=nlats[1]-nlats[0]
     nvals = gc.coarsen(nvals,dx=fdx,dy=fdy)
-    jS1 = 56; jS2 = 65  # S and N of Antacrtic box
+    #jS1 = 56; jS2 = 65  # S and N of Antacrtic box
     #print(f'\nZONEB {nf:2d} {f:2d} fdy:{fdy:2d} ndy:{ndy:.1f} cum:{cumfdy:3d} {lats[cumfdy]:.2f} {lats[jS1]:.2f} {lats[jS2]:.2f}')
-    #sys.exit()
 
     for j, lat in enumerate(lats):
       jc = j//cumfdy
@@ -114,9 +114,10 @@ def box_fill(lons,lats,vals,facs=[10,2,3,3],dbgij=None):  #  0.5*10*6*12=360 30,
       for i, lon in enumerate(lons):
         ic = i//cumfdx
         assert ic < len(nlons), dtxt+f'WRONG I LEN: {i} {ic} {nlons[i]}'
-        if dbg and i==2 and j==2: print(f'IJ {ic} {jc} {xnew[j,i]} {nvals[jc,ic]}')
+        if dbg and i==idbg and j==idbg: print(f'{dtxt}IJ {ic} {jc} {xnew[j,i]} {nvals[jc,ic]} fin?{np.isfinite(xnew[j,i])}')
         if ~np.isfinite(xnew[j,i]): # transfer back to fine 
           xnew[j,i] = nvals[jc,ic]
+          if dbg and i==idbg and j==idbg: print(f'{dtxt}XN {ic} {jc} {xnew[j,i]} {nvals[jc,ic]}')
 
     # Put new values into coarser array, before restarts
     nlons = gc.coarsen(nlons,dx=fdx)
@@ -128,23 +129,53 @@ def box_fill(lons,lats,vals,facs=[10,2,3,3],dbgij=None):  #  0.5*10*6*12=360 30,
 
   return xnew
 #-----------------------------------------------------------------------------
+def printMat(txt,x,i,j,dij=3):
+   for jj in range(j-dij,j+dij+1):
+     print(f'{txt}: ',end='')
+     for ii in range(i-dij,i+dij+1):
+        print(f'{x[j,i]:8.5f}',end='')
+     print('')
+#-----------------------------------------------------------------------------
+
 def astro_fill(vals, stddevs = [ 0.5, 1, 2, 5, 10] ):
    """ keep as fine-scale as possible, but increase std to fill world """
    import emxmisc.astropy_convolve as ap
    xnew = vals.copy()
 
+   dbg=False; i=425;j=232
+   if dbg: print(f'ABFastA: {vals[j,i]} {np.max(vals[j-5:j+6,i-5:i+6])}')
+
    for std in stddevs: #  [ 0.5, 1, 2, 5, 10 ]: # orig was 10
+     if dbg: pmap.plotmap(vals[j-20:j+21,i-20:i+21],f'{dtxt}_{__name__}_{std:.1f}',
+             plotfile=f'plot{dtxt}{int(10*std):02d}AAA.png')
      znew=ap.astro_conv2d(vals[:,:],stddev_x=std,stddev_y=0.5*std,dbg=False)
+     if dbg:
+       pmap.plotmap(znew[j-20:j+21,i-20:i+21],f'bbbb{std:.1f}',plotfile=f'plot{int(10*std):02d}BBB.png')
+       printMat(f'ABFMATzz{std}',znew,i,j,dij=8)
      xnew= np.where(np.isfinite(xnew),xnew,znew)
+     if dbg:
+       pmap.plotmap(xnew[j-20:j+21,i-20:i+21],f'cccc{std:.1f}',plotfile=f'plot{int(10*std):02d}CCC.png')
+       printMat(f'ABFMATxx{std}',xnew,i,j,dij=16)
+       print(f'ABFastX: {std} {xnew[j,i]} {np.max(xnew[j-5:j+6,i-5:i+6])} --------------------')
    return xnew
 
 #-----------------------------------------------------------------------------
 def astro_box_fill(lons,lats,vals,stddevs=[0.5,2],boxfacs=None,dbgij=None):
+   dtxt='AstBoxFill:'
+   dbg =  dbgij is not None
+   if dbg:
+     i, j = dbgij
+     print(f'{dtxt} ABFPreA: {vals[j,i]}')
    znew = astro_fill(vals,stddevs=stddevs)
+   if dbg: print(f'{dtxt} ABFPosA: {znew[j,i]} {np.mean(znew)}')
    if boxfacs is None:
      znew = box_fill(lons,lats,znew)
+     if dbg: print(f'{dtxt} ABFPosB: {znew[j,i]} {np.mean(znew)}')
    else:
      znew = box_fill(lons,lats,znew,facs=boxfacs,dbgij=dbgij)
+     if dbg:
+       print(f'{dtxt} ABFPosC:  {i} {j} {znew[j,i]} {np.mean(znew)}')
+       pmap.plotmap(znew[j-20:j+21,i-20:i+21],'dddd',plotfile=f'plotgeo_{dtxt}C.png')
    return znew
   
 #-----------------------------------------------------------------------------
@@ -239,13 +270,7 @@ def NNinterp(lonsdata,mask):
 
 if __name__ == '__main__':
 
-   method='fill'
-   method='Rbf'
-   method='astro'  # 'Rbf'
-   method='astro_box_fill'
-   method='box_fill'
-   method='ndimage_fill'
-   
+  
    ds=xr.open_dataset('emepd_YuanPFT.nc')
    lons=ds.lon.values
    lats=ds.lat.values # from N ro S so far
