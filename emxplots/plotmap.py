@@ -62,7 +62,7 @@ def plotlonlatmap(lons,lats,vals,levels,
     plt.savefig(ofile)
   plt.clf()
 
-def plot_map_pts(x,y,z,col='r',title='',ofile=None):
+def plot_map_pts(x,y,z,col='r',title='',img_bounds=[-15.0,60.0,30.0,75.0],ofile=None):
 
   import cartopy.crs as ccrs
 
@@ -75,6 +75,7 @@ def plot_map_pts(x,y,z,col='r',title='',ofile=None):
 
   ax.stock_img()
   ax.coastlines()
+  ax.set_extent(img_bounds,crs=ccrs.PlateCarree())
 
   ax.scatter(x,y,z,color=col)
   if len(title)>0:
