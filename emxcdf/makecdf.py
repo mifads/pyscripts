@@ -30,6 +30,7 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,stop_if_error=
   dtxt='dbg:xrcdf:'
   if dbg: print(dtxt+outfile)
   xrdatasets = []
+  assert len(xrarrays) >0, 'create_xrcdf:NO XRDATA!'
 
   for a in xrarrays:
       varname = a['varname']
@@ -237,7 +238,7 @@ def create_fvcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sig
   outxr.to_netcdf(outfile, format='netCDF4',encoding=encoding)
   outxr.close()
 
-def fastcdf(lons,lats,data,var='VAR',txt='TXT',ofile='fastcdf.nc'):
+def fastcdf(lons,lats,data,var='VAR',txt='TXT',ofile='tstcdf_fastcdf.nc'):
   xrarrays = []
   xrarrays.append( dict(varname=var, dims=['lat','lon'],
       attrs = {'note':txt,'NOTE':'test att'},
