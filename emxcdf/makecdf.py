@@ -238,10 +238,11 @@ def create_fvcdf(xrarrays,globattrs,outfile,timeVar='',skip_fillValues=False,sig
   outxr.to_netcdf(outfile, format='netCDF4',encoding=encoding)
   outxr.close()
 
-def fastcdf(lons,lats,data,var='VAR',txt='TXT',ofile='tstcdf_fastcdf.nc'):
+def fastcdf(lons,lats,data,var='VAR',txt='SKIP',ofile='tstcdf_fastcdf.nc',attrs={'note':'from fastcdf'}):
+  if txt != "SKIP":  # older system
+    attrs['deprecated txt'] = txt
   xrarrays = []
-  xrarrays.append( dict(varname=var, dims=['lat','lon'],
-      attrs = {'note':txt,'NOTE':'test att'},
+  xrarrays.append( dict(varname=var, dims=['lat','lon'], attrs = attrs,
      coords={'lat':lats,'lon':lons},data=data ) )
   xrtest =  create_xrcdf(xrarrays,globattrs={'AA':'AA'},outfile=ofile)
 
@@ -258,7 +259,8 @@ if __name__ == '__main__':
     for i in range(360): #len(lons)): # 30,60):  # left 
        data[j,i] = lats[j] # j*1000.0 + i
 
-  x= fastcdf(lons,lats,data,'VAR','TXT','fast.nc')
+  x1 = fastcdf(lons,lats,data,'VAR','Simplest','fast1.nc')
+  x2 = fastcdf(lons,lats,data,'VAR','withAttrs','fast2.nc',attrs=dict(projection='lon lat'))
 
   # 1. Example of simple scalar field
 
