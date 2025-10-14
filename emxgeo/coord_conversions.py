@@ -3,6 +3,7 @@
 import numpy as np
 import pyproj as pp
 import sys
+
 # https://pyproj4.github.io/pyproj/stable/examples.html
 # https://pyproj4.github.io/pyproj/stable/gotchas.html#upgrading-to-pyproj-2-from-pyproj-1
 #https://stackoverflow.com/questions/26452972/coordinates-conversion-with-pyproj
@@ -12,11 +13,20 @@ import sys
 
 """
 CONTAINS:
+ efi2wgs
  lonlat_toPlateCarree(lons,lats,dbg=False):
  plateCarree_tolonlat(x,y):
  lonlat2xy(lon,lat,ptest='ps50'):
  xy2lonlat(x,y,ptest='ps50'):
 """
+
+# ------------------------------------------------------------------------------
+def efi2wgs84lonlat(x,y,epsg=3035):
+ """ Used for converting e.g. EU-Forest ETRS89-LAEA data to lon, lat """
+ efi   = pp.Transformer.from_crs(f'EPSG:{epsg}','EPSG:4326',always_xy=True)
+ lon, lat = efi.transform(x,y)
+ return lon, lat 
+
 
 # ------------------------------------------------------------------------------
 def lonlat_toPlateCarree(lons,lats,dbg=False):
