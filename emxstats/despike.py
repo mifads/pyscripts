@@ -6,17 +6,22 @@ import pandas as pd
 import sys
 import timeit as ti
 """
-  Tried various systems, but 
+  Removes spikes from data-series
+  Tried various systems, but  the check4spikes_bn seemed to work best
 """
 
 
 def check4spikes_bn(b):
-  b3 = np.append([ b[-1] ],b) 
-  b3 = np.append(b3, b[0] ) 
-  b3 = np.append(b3, b[1] ) 
-  b=bn.move_median(b3,window=3,min_count=3)
+  """ we wrap a little first, so that spikes on 1st and last
+      entries can be handled
+      examples for b = [ 0, 1, 10, 2, 3 ]
+  """
+  b3 = np.append([ b[-1] ],b)   # =>  [ 3, 0, 1, 10, 2, 3 ]
+  b3 = np.append(b3, b[0] )     # =>  [ 3, 0, 1, 10, 2, 3, 0 ]
+  b3 = np.append(b3, b[1] )     # =>  [ 3, 0, 1, 10, 2, 3, 0, 1 ]
+  b=bn.move_median(b3,window=3,min_count=3)  # [nan, nan,  1.,  1., 2., 3., 2.,  1.]
   #print('B3ut', b[:6], b3[:5] )
-  return b[2:-1]
+  return b[2:-1]                # => [1., 1., 2., 3., 2.]
 
 def check4spikes_pd(x):
   x3 = np.append([ x[-1] ],x) 
@@ -94,7 +99,7 @@ if __name__ == '__main__':
   t1=ti.default_timer()
   print(f'B  {t1-t0:12.8f}')
   
-  sys.exit()
+  #sys.exit()
   dy=0.000001
   plt.plot(x,label='In')
   plt.plot(p-dy,label='PD')
