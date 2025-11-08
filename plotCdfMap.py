@@ -54,6 +54,7 @@ parser.add_option( '--cmap' , help="cmap, eg --cmap hot,jet_r",
 parser.add_option( '--coast' ,help="Colour of coast",default='r')
 parser.add_option( '--scale' ,help="Scale factor",default=1.0)
 parser.add_option( '--skipcbar' ,help="No colourbar",dest='skipcbar')
+parser.add_option( '--unlog10' ,help="For log10 scales. Use 10**x in colorbar",dest='unlog10',action='store_true')
 #FAILED parser.add_option( '--mercator' ,help="mercator proj",dest='mercator')
 parser.add_option( '--extent', help="extent (LonL,LonR,LatS,LatN), eg --extent -15.0,40.0,35.0,65.0",
                       default="-15.0,40.0,35.0,65.0",
@@ -289,6 +290,11 @@ if opts.skipcbar is None:
      #https://matplotlib.org/stable/users/explain/colors/colorbar_only.html
      #cbar=plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
      #      cax=ax_cb,ticks=v,extend='both')
+     if opts.unlog10 is not None:
+       newlabels = [ f"{10.0**vv:.1e}" for vv in v ]
+       print(f' DBG CBAR   {v} {len(v)} {newlabels}') 
+       #sys.exit()
+       cbar.set_ticklabels(newlabels)
 
 if opts.bullets is None:
   pass
