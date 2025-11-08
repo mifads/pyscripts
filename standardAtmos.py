@@ -34,6 +34,9 @@ if __name__ == '__main__':
   print('EC lowest ', dP_2_dZ(Ps-pEC))
   print('EM lowest ', dP_2_dZ(Ps-p20))
 
+  for p in [ 1013, 925, 850, 750, 500 ]: # hPa
+    print(f'{p:4d} {StandardAtmos_kPa_2_km(0.1*p):.2f}')
+
 
 #x=np.loadtxt('/home/davids/VERSION_CONTROL/svn/EMEP_Reports/Report2018/table.txt')
 #k=x[:,0]
