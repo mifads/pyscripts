@@ -40,6 +40,7 @@ parser.add_option( '-i' ,help="Input file name, map-data")
 parser.add_option( '-o' ,help="Output file name", default="Screen")
 parser.add_option( '-t' ,help="Title",dest='title')
 parser.add_option( '--tf' ,help="title fontsize (default=18)",dest='titlefontsize')
+parser.add_option( '--tstep' ,help="time-step",dest='tstep')
 parser.add_option( '-v' ,help="Variable name",dest='var')
 
 parser.add_option( '-b' ,'--borders',help="add country b, 'gray' is okayorders",dest='borders', 
@@ -55,6 +56,7 @@ parser.add_option( '--coast' ,help="Colour of coast",default='r')
 parser.add_option( '--scale' ,help="Scale factor",default=1.0)
 parser.add_option( '--skipcbar' ,help="No colourbar",dest='skipcbar')
 parser.add_option( '--unlog10' ,help="For log10 scales. Use 10**x in colorbar",dest='unlog10',action='store_true')
+parser.add_option( '--log10' ,help="For log10 scales.",dest='log10',action='store_true')
 #FAILED parser.add_option( '--mercator' ,help="mercator proj",dest='mercator')
 parser.add_option( '--extent', help="extent (LonL,LonR,LatS,LatN), eg --extent -15.0,40.0,35.0,65.0",
                       default="-15.0,40.0,35.0,65.0",
@@ -141,13 +143,17 @@ if( ndim == 1):
     if ( 'time' in ecdf.dimensions ) :
       ntim= len(ecdf.variables['time'])
     print("EEE ", ntim, eee.shape[0] )
-    if ntim == 1:
-      vals=ecdf.variables[var][0,:,:]  
+    if opts.tstep: 
+       vals=ecdf.variables[var][opts.tstep,:,:]  
+    elif ntim == 1:
+        vals=ecdf.variables[var][0,:,:]  
     else:
       sys.exit('Not coded yet for time variable > 0')
 
 # scale:
 vals = float(opts.scale) * vals
+if opts.log10:
+  vals = np.log10(vals)
 
 
 
