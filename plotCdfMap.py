@@ -40,7 +40,7 @@ parser.add_option( '-i' ,help="Input file name, map-data")
 parser.add_option( '-o' ,help="Output file name", default="Screen")
 parser.add_option( '-t' ,help="Title",dest='title')
 parser.add_option( '--tf' ,help="title fontsize (default=18)",dest='titlefontsize')
-parser.add_option( '--tstep' ,help="time-step",dest='tstep')
+parser.add_option( '--tstep' ,help="time-step (python indexing",dest='tstep')
 parser.add_option( '-v' ,help="Variable name",dest='var')
 
 parser.add_option( '-b' ,'--borders',help="add country b, 'gray' is okayorders",dest='borders', 
