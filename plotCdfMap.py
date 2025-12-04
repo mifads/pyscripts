@@ -46,7 +46,7 @@ parser.add_option( '-v' ,help="Variable name",dest='var')
 parser.add_option( '-b' ,'--borders',help="add country b, 'gray' is okayorders",dest='borders', 
                       default=False,action='store_true')
 parser.add_option( '--mercator', help="mercator proj", dest='mercator', default=False,action='store_true')
-parser.add_option( '--mesh', help="use pcolormesh", dest='mesh', default=False,action='store_true')
+parser.add_option( '--mesh', help="use pcolormesh", dest='mesh', default=True,action='store_true')
 parser.add_option( '--bullets' ,help="add bullets.Set z-value in 3rd column; if neg, transparent",nargs=1)
 parser.add_option( '--cmap' , help="cmap, eg --cmap hot,jet_r",
                       default='jet', dest='cmap', action='store',nargs=1)
