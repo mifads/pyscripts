@@ -51,12 +51,12 @@ class EmepFileClass(object):
     self.dimy=dimy
     self.ntime=int ( ntime )    # 1 so far, for fullrun
 
-    self.x0=np.NaN  # will be left edge
-    self.y0=np.NaN  # will be bottom edge
-    self.xmax=np.NaN  # will be left edge
-    self.ymax=np.NaN  # will be bottom edge
-    self.dx=np.NaN  # will be left edge
-    self.dy=np.NaN  # will be bottom edge
+    self.x0=np.nan  # will be left edge
+    self.y0=np.nan  # will be bottom edge
+    self.xmax=np.nan  # will be left edge
+    self.ymax=np.nan  # will be bottom edge
+    self.dx=np.nan  # will be left edge
+    self.dy=np.nan  # will be bottom edge
     self.times=[]
     self.xcoords=[]
     self.ycoords=[]
@@ -506,7 +506,7 @@ def get_vals(xPtin,yPtin,EmepCdf,minmax=False,dbg=False):
                                 EmepCdf.xmax, EmepCdf.ymax)
        return None, None, None
   
-#  err = np.array( [ np.NaN ] )
+#  err = np.array( [ np.nan ] )
 #  if xPt > EmepCdf.xmax or yPt > EmepCdf.ymax:
 #    print("OUTSIDE GRID ", xPt, yPt, EmepCdf.xmax, EmepCdf.ymax )
 #    return  err, err, err
@@ -522,7 +522,7 @@ def get_vals(xPtin,yPtin,EmepCdf,minmax=False,dbg=False):
     x, y = IrregRelXy(xPt, yPt, EmepCdf.xcoords,EmepCdf.ycoords) 
   if x < 0 or y < 0:
     print(dtxt+"OUTSIDE GRID ", xPt, yPt, x, y)
-    err = np.array( [ np.NaN ] )   # just to get array, not scalar
+    err = np.array( [ np.nan ] )   # just to get array, not scalar
     return  err, err, err
 
   if dbg:
