@@ -99,7 +99,9 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,stop_if_error=
         encoding[var] = {'standard_name':'time', 'units':'days since 1900-1-1 0:0:0', '_FillValue':None}
         encoding[var] = {'standard_name':'time', 'unit':'days since 1900-1-1 0:0:0'}
         encoding[var] = {'_FillValue':None} # works
-        encoding[var] = {'_FillValue':None,'units':'days since 1900-1-1'} # works! PHEW!
+
+        encoding[var] = {'_FillValue':None,'units':'days since 1900-1-1','dtype':'float64'} # works! PHEW!
+
         #FAILS encoding[var] = {'standard_name':'time', '_FillValue':None}
         #FAILS encoding[var] = {'standard_name':'time','_FillValue':None} # works
         #FAILS encoding[var] = {'standard_name':'time', 'unit':'days since 1900-1-1 0:0:0', '_FillValue':None}
