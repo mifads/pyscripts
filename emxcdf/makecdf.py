@@ -128,6 +128,7 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,stop_if_error=
 
   for var in outxr.data_vars:
       encoding[var] = data_comp
+      if 'time' in var: encoding[var] = {'_FillValue':None,'units':'days since 1900-1-1','dtype':'float64'} # works! PHEW! APR-10
       if dbg: print('OUTXR vars ', var, data_comp)
 
   if dbg: print('XRmake', outfile)
