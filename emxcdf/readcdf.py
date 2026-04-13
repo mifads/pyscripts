@@ -88,6 +88,7 @@ class EmepFileClass(object):
      print((me+"xmax, ymax  ", f.xmax, f.ymax))
      try:
        print((me+"min max vals", f.vals.min(), f.vals.max()))
+       print((me+"nanmin nanmax vals", f.vals.nanmin(), f.vals.nanmax()))
      except:
        print(me+"min max vals NOT SET YET")
      print(("="*78))
@@ -481,6 +482,7 @@ def get_vals(xPtin,yPtin,EmepCdf,minmax=False,dbg=False):
     print(dtxt+'ERROR! needs scalar x,y; got array:', type(xPt) )
     sys.exit()
 
+  print('TYPE EmepCdf ', type(EmepCdf) )
   print(dtxt+'TEST? proj, xPt, yPt ', EmepCdf.proj, xPt, yPt, 
            'xrange:', EmepCdf.xcoords[0],EmepCdf.xcoords[-1],
            'yrange:', EmepCdf.ycoords[0],EmepCdf.ycoords[-1])
@@ -531,7 +533,7 @@ def get_vals(xPtin,yPtin,EmepCdf,minmax=False,dbg=False):
     print(dtxt+"max XCRD YCRD ", EmepCdf.xcoords.max(), EmepCdf.ycoords.max())
     print(dtxt+"xPt, yPt    ", xPt, yPt)   #, " DLON ", xcoords[1]-xcoords[0]
     print(dtxt+"xxx XCRD YCRD ", x, y)   #, " DLON ", xcoords[1]-xcoords[0]
-    EmepCdf.printme()
+    #EmepCdf.printme()
 
   iL=int(x) # left
   iR=iL+1

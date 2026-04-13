@@ -61,7 +61,7 @@ def emeploglogplot(x,y,xlabel,ylabel,txt=None,pcodes=None): #,label=None,
 
 def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
     title=None,
-    plotstyle='seaborn',
+    plotstyle='seaborn-v0_8', #  see https://github.com/matplotlib/matplotlib/issues/24256 or plt.style.available
     labelx=0.1,labely=0.9,labelsize=16,
     addxy=0.0,  # Increases maxv to e.g. cope with label  overwrites
     minxy=None,  # lower  value limit for plots
@@ -95,11 +95,18 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
      print( 'INTO emepscatplot p,x,y: ', p, x[i], y[i] )
 #vlimit=300.0
 #f=alt<vlimit
-  plt.clf()
+  #J28 plt.clf()
+  plt.close()
+
+  #J28
+  f=np.logical_and(np.isfinite(x), np.isfinite(y))
+  x=x[f]
+  y=y[f]
 
   # fig, ax allows ax.transAxes for better label poistion
   # see stackoverflow.com/questions/62856272/position-font-relative-to-axis-using-ax-text-matplotlib
   fig, ax = plt.subplots()
+  fig.figsize=(100,40) # inches
   #  x = np.log(x)
   #  y = np.log(y)
 
@@ -128,9 +135,12 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
     
 
 ###########################################################################
-  # Regression stats:
+  # Regression stats: # J28 VERSIONS
+  #f=np.logical_and(np.isfinite(x), np.isfinite(y))
   [m,c]=np.polyfit(x,y,1)
   r=np.corrcoef(x,y)
+  #if 'PMC' in title: print('J28', r, x, y)
+  #  sys.exit()
 ###########################################################################
   skipi = np.zeros(len(x),dtype='int')
   skipL = np.full(len(x),True,dtype=bool)
@@ -258,8 +268,10 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
      dvpos = 0.05 # ax coords 0-1
      print('XPOS VPOS VVV AA', xpos, vpos, dvpos, minv, maxv, vspan )
      print('STATSXY', statsxy)
-     plt.figtext(statsxy[0],statsxy[1],regline,color=col_outlier,fontsize=12,transform=ax.transAxes)
-     plt.figtext(statsxy[0],statsxy[1]-0.05,corrtxt,color=col_outlier,fontsize=12,transform=ax.transAxes)
+     #J28 plt.figtext(statsxy[0],statsxy[1],regline,color=col_outlier,fontsize=12,transform=ax.transAxes)
+     #¤J28 plt.figtext(statsxy[0],statsxy[1]-0.05,corrtxt,color=col_outlier,fontsize=12,transform=ax.transAxes)
+     plt.figtext(statsxy[0],statsxy[1],regline,color='k',fontsize=12,transform=ax.transAxes)
+     plt.figtext(statsxy[0],statsxy[1]-0.05,corrtxt,color='k',fontsize=11,transform=ax.transAxes)
 
   if skipOutliers: # Now text for non-outliers in black
      vpos -= dvpos
@@ -274,6 +286,7 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
        bias = getBias(xn,yn)
        print("Bias = " , bias) 
        corrtxt += ',  Bias= %.1f %s'%( bias, biasUnits )
+     #DSplt.figtext(0.01,0.80,corrtxt,color=col_valid,fontsize=12,transform=ax.transAxes)
      plt.figtext(0.01,0.80,corrtxt,color=col_valid,fontsize=12,transform=ax.transAxes)
   if minxy is not None:
     minv=minxy
@@ -292,10 +305,14 @@ def emepscatplot(x,y,xlabel,ylabel,txt=None,pcodes=None,label=None,
     print(dtxt+'SHOWS ', plotstyle)
     plt.show()
   
+  # END emepscatplot
+  #J28 plt.clf()
+  plt.close()
   if skipOutliers:
      return  mn, cn, rn[0,1]   # Stats
   else:
      return  m, c, r[0,1]   # Stats
+
 
 #maxv=24000
 #P.axis([0,maxv,0,maxv])
