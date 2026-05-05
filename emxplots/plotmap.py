@@ -23,7 +23,8 @@ def plotmap(x,txt,plotfile=None):
 
 def plotlonlatmap(lons,lats,vals,levels,
         title=None,
-        cmap='YlOrRd',img_bounds= [-30.0, 55.0, 30.0, 65.0 ],
+        cmap='nmr', 
+        img_bounds= [-30.0, 55.0, 30.0, 65.0 ],
         cbar_shrink=0.5,cbar_title=None,idbg=None,jdbg=None,ofile=None
     ):
   """ maps with cartopy world also """
@@ -32,8 +33,10 @@ def plotlonlatmap(lons,lats,vals,levels,
   nmrcolors = ['#CCDEEB', '#96CCEB', '#66B7F3', '#62C298', '#76E854','#EAEB30',
      '#E4CC2F', '#EA952A','#F74B37', '#C52C2C']
  
-  cm = plt.colormaps[cmap]
-  cm = ListedColormap(nmrcolors)
+  if cmap == 'nmr':
+    cm = ListedColormap(nmrcolors)
+  else:
+    cm = plt.colormaps[cmap]
   cm.set_under('0.75')
   cm.set_over('0.25')
   norm = BoundaryNorm(levels, ncolors=cm.N, clip=False)
@@ -44,6 +47,7 @@ def plotlonlatmap(lons,lats,vals,levels,
   ax1.coastlines(resolution='10m') # 10, 50, 110
   ax1.gridlines()
   #cmap = ListedColormap(nmrcolors)
+  print('DBGCM', cmap, cm)
   p=ax1.pcolormesh(lons,lats,vals,cmap=cm,norm=norm,transform=ccrs.PlateCarree())
   #cbar=plt.colorbar(hhh,cax=ax_cb,ticks=v,extend='both')
   #cbar=plt.colorbar(p,ticks=levels,extend='both')
