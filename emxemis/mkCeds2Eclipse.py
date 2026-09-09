@@ -12,6 +12,7 @@ from emxmisc.auto_dicts import Vividict as vdict  # Used since defautdict gave K
 import emxemis.readCedsEmis as readCedsEmis  # get_ceds_emis for tot, dom and road. Use def years
 
 odir='Femis_CEDtoEclipse_June022'
+odir='Femis_CEDtoEclipse_Sep2022'
 os.makedirs(odir,exist_ok=True)
 
 Historical=True

@@ -114,6 +114,8 @@ with open("plots.tex", "w") as ltx:
 \usepackage[export]{adjustbox}
 % Hints from https://www.baeldung.com/cs/latex-subfigures
 \usepackage{subfig}  % easier than subcaption 
+\usepackage{caption}  %  allows caption* - no number
+\usepackage{times}
 \pagestyle{empty}
 
 \begin{document}

@@ -2,7 +2,7 @@
 # From: http://badc.nerc.ac.uk/help/coordinates/cell-surf-area.html
 #See also (for polygon areas)
 #https://stackoverflow.com/questions/4681737/how-to-calculate-the-area-of-a-polygon-on-the-earths-surface-using-python
-# Note, earlier version used simpler R=6371, later uses 
+# Note, earlier version used simpler R=6371, later uses more complex
 import math
 from math import pi, log, sqrt,atanh
 from numpy import pi,sin, sqrt
@@ -202,9 +202,9 @@ if __name__ == '__main__' :
     for key, args in functions.items():
       print( f'AREA FUNC {clat:.3f} {key:<15s} {locals()[key](*args):14.5f} km2'  ) # % ( clat, key, locals()[key](*args) ) )
 
-  for n, ref in enumerate(refs):
-    clat = 0.25 + n*0.5
-    print( f'REF {clat:6.3f}  {km2_area_of_wgs84pixel(clat,dll):12.5f}  {ref:12.5f}')
+  #for n, ref in enumerate(refs):
+  #  clat = 0.25 + n*0.5
+  #  print( f'REF {clat:6.3f}  {km2_area_of_wgs84pixel(clat,dll):12.5f}  {ref:12.5f}')
 
   
   x=globArea_km2()

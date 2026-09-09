@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#TEST
 
 # defaults, rv5.0
 sectors_def=dict()

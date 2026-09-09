@@ -6,7 +6,7 @@ mts="APIN BPIN D3CAR DLIM CAMPH MYRC ATERP BPHE SABI PCYM OCIM ATHU TRPO GTERP".
 ifile="/home/davids/Work/EU_Projects/CAMAERA/BVOC_Update/Jesse/beld6_efac_with_ag_yn.csv"
 df = pd.read_csv(ifile,comment="#",sep=",")
 # LC, var, unit, EF
-vegs=ds.LC.unique()
+vegs=df.LC.unique()
 
 for veg in vegs:
 

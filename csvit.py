@@ -6,8 +6,8 @@ import sys
 import re
 
 print(sys.argv)
-if sys.argv[1] != '<':
-  sys.exit('ERROR!! Need to use <')
+#if sys.argv[1] != '<':
+#  sys.exit(f'ERROR!! {sys.argv[1]} Need to use <')
 
 for line in sys.stdin:
     line = line.strip()

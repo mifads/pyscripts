@@ -48,11 +48,11 @@ cctab = ce.get_emepcodes() # cctab['ALB']['cc'] = '1', has 'EUR' also.
 #..
 
 camstab  = cs.camstab() #  keys: emepsec (=1-19), name, tnosec,  snap
-camssecs = camstab['tnosec']
+splitSecs = camstab['tnosec']
 tnoAP_to_19 = cs.tnoAPmapping()  #  e.g. tnoAP_to_19['A:P'] Returns A2
 print('keys ', tnoAP_to_19.keys())  # A:A, A:P, ...
 print('vals ', tnoAP_to_19.values()) # A1, A2 .
-print('cams ', camssecs) # tab['tnosec']) # A B C .. A1 .F1..
+print('cams ', splitSecs) # tab['tnosec']) # A B C .. A1 .F1..
 
 #-----------------------------------------------------------------------------
 # Get emissions (needed to produce weighted F)
@@ -65,17 +65,29 @@ print('cams ', camssecs) # tab['tnosec']) # A B C .. A1 .F1..
 efile='/home/davids/MDISKS/Nebula/MG/work/CAMS2_40/U5_emissions/CAMS-REG-v5_1_with_Ref2_0_1_year2018_DT.csv'
 efile='/home/davids/Work/D_Emis/TNO_Emis/2022_CAMS2_40_U5_emissions/CAMS-REG-v5_1_with_Ref2_0_1_year2018_DT.csv'
 emisfile="CAMS-REG-v5_1_with_Ref2_0_1_year2018_DT (CAMS2_40_U5)"
+
+# July 2023
+edir='/home/davids/MDISKS/Nebula/MG/work/CAMS2_40/VRA2021_emissions/'  # edir used later also
+edir='/home/davids/Work/D_Emis/TNO_Emis/CAMS2_40/VRA2021_emissions/'  # edir used later also
+elabel='CAMS-REG-AP_v6_1_1_Ref2_v2_1_year2021'
+efile=edir+'%s.csv' % elabel
+emisfile='%s  (processed July 2023)' % elabel
+
+
+
+# MAY2023. If wanted_poll set, returned dict has no poll key.
 e=ci.readCams(efile , wanted_poll='NMVOC')   #dict_keys(['polls', 'iso3s', 'srcs', 'snap2', 'lons', 'lats', 'dx', 'dy', 'NMVOC'])
 emNMVOC = dict()
 
-for iso3 in e['NMVOC'].keys():    # iso3s has ALB..., plus EurTot 
+for iso3 in e.keys():    # iso3s has ALB..., plus EurTot 
 
-  emNMVOC[iso3] = mydictfromkeys(camssecs,0.0) # Initialise
+  emNMVOC[iso3] = mydictfromkeys(splitSecs,0.0) # Initialise
 
-  for gnfrAP in e['NMVOC']['EurTot'].keys():
+  for gnfrAP in e['EurTot'].keys():
     if gnfrAP.startswith('Sum'): continue
     ap = tnoAP_to_19[gnfrAP] # Returns A2
-    em = e['NMVOC'][iso3][gnfrAP]['sum']
+    #MAY2023 em = e['NMVOC'][iso3][gnfrAP]['sum']
+    em = e[iso3][gnfrAP]['sum']
     emNMVOC[iso3][ap] += em
     if iso3==isoDBG: print('emNMVOC:'+iso3,  gnfrAP, ap, em, emNMVOC[iso3][ap]) 
     emNMVOC[iso3]['A'] = emNMVOC[iso3]['A1'] + emNMVOC[iso3]['A2']
@@ -89,19 +101,19 @@ idir='/home/davids/Work/EMEP_Projects/emepgit/emepecosx/chem/utils/EmChem_conver
 
 vspecMap = ad.Vividict()  # will produce eg vspecMap['A']['v01']['CH3OH']. Misses A1,A2,F,M
 
-for gnfrCode in camssecs: # A, B, C ... F4
-  ifile=idir + 'EC19_Matrix.CAMS-REG-v3_1_2_Sector%s.csv' % gnfrCode
-  if gnfrCode=='K': ifile=idir + 'EC19_Matrix.CAMS-REG-v3_1_2_Sector%s.csv' % 'L' # K was missing
+for splitSec in splitSecs: # A, B, C ... F4
+  ifile=idir + 'EC19_Matrix.CAMS-REG-v3_1_2_Sector%s.csv' % splitSec
+  if splitSec=='K': ifile=idir + 'EC19_Matrix.CAMS-REG-v3_1_2_Sector%s.csv' % 'L' # K was missing
   if os.path.isfile(ifile):
     m =pd.read_csv(ifile,sep='\s+')
     headers =  list(m.keys())
     emepSpecs= headers[2:]
-    if gnfrCode=='A':
-      emepUsed = emepSpecs.copy()
+    if splitSec=='A':
+      emepPolls = emepSpecs.copy()
         #  will be converted to other
-      emepUsed.remove('APINENE')
-      emepUsed.remove('C5H8')
-    print('GNFR NOW ', gnfrCode)
+      emepPolls.remove('APINENE')
+      emepPolls.remove('C5H8')
+    print('GNFR NOW ', splitSec)
 
   # merge with vocMap[iso3][gnfr] = vals  # e.g. vocMap['UZB']['A'] = [.... ]
   # m.head(3):
@@ -112,28 +124,28 @@ for gnfrCode in camssecs: # A, B, C ... F4
 
     for nrow in range(len(m)): # m.iterrows():
       vspec = m['CAMS'][nrow]  # v01, ... v25
-      vspecMap[gnfrCode][vspec] = mydictfromkeys(emepSpecs,0.0) # Initialise
+      vspecMap[splitSec][vspec] = mydictfromkeys(emepSpecs,0.0) # Initialise
       #if vspec=='v11':
-      #print('GNFR VSPEC ', gnfrCode, vspec, type(vspec))
+      #print('GNFR VSPEC ', splitSec, vspec, type(vspec))
       for espec in emepSpecs:
         frac  = m[espec][nrow] # row[col]  #  CH3OH ...
-        if gnfrCode == 'G' and vspec=='v01':
-            print('GNFR  vspec frac ', gnfrCode, vspec, espec, frac)
+        if splitSec == 'G' and vspec=='v01':
+            print('GNFR  vspec frac ', splitSec, vspec, espec, frac)
         if espec == 'APINENE':
          # Crude fix to assign the trace (<1%) amounts of APINENE
          # to 50% C2H4 and UNREAC, and 100% C5H8 to c2h4:
          # This keeps the anthropogenic and biogenic SOA separate
-         vspecMap[gnfrCode][vspec]['C2H4']    += (0.5*frac)
-         vspecMap[gnfrCode][vspec]['UNREAC']  += (0.5*frac)
+         vspecMap[splitSec][vspec]['C2H4']    += (0.5*frac)
+         vspecMap[splitSec][vspec]['UNREAC']  += (0.5*frac)
         elif espec == 'C5H8':
-         vspecMap[gnfrCode][vspec]['C2H4']    += frac
+         vspecMap[splitSec][vspec]['C2H4']    += frac
         else:
-         vspecMap[gnfrCode][vspec][espec] += frac 
+         vspecMap[splitSec][vspec][espec] += frac 
 
 # Collect totals in tfrac array:
 tfrac = dict()
-for gnfr in camssecs + [ 'F' , 'A1' , 'A2']:
-  tfrac[gnfr] = mydictfromkeys(emepUsed,0.0)
+for gnfr in splitSecs + [ 'F' , 'A1' , 'A2']:
+  tfrac[gnfr] = mydictfromkeys(emepPolls,0.0)
 
 # 3) Get CAMS splits and create emissplits
 #Year;ISO3;GNFR_Category;v01;v02;v03;v04;v05;v06;v07;v08;v09;v12;v13;v14;v15;v16;v17;v18;v19;v20;v21; ..v25
@@ -144,134 +156,164 @@ idir='/home/davids/Work/D_Emis/TNO_Emis/2022_CAMS2_40_U5_emissions/'
 ifile='NMVOC_split_for_CAMS-REG-v3_1_2emep.csv'
 ifile='NMVOC_split_for_CAMS-REG-v5_1.csv'
 splitfile="NMVOC_split_for_CAMS-REG-v5_1.csv"
+#July 2023
+#needed to make csv file=edir+'CAMS-REG-v6_NMVOC_split
+idir='/home/davids/Work/D_Emis/TNO_Emis/CAMS2_40/VRA2021_emissions/'
+ifile='CAMS-REG-v6_NMVOC_split.csv'
+ifile='CAMS-REG-v6_NMVOC_split.xlsx'
+splitfile="CAMS-REG-v6_NMVOC_split.csv" # ???? ifile and splitfile?
+splitfile="CAMS-REG-v6_NMVOC_split.xlsx"
+splitYear=2020  # have 2005-2020
 
 # camsSplit.head(3):
 #   Year ISO3 GNFR_Category       v01       v02       v03       v04       v05  \
 #0  2016  ALB             A  0.200000  0.000000  0.010000  0.070000  0.045000   
 #1  2016  ALB             B  0.194052  0.033605  0.102604  0.108938  0.131137
+#
+# July2023 had NaNs for zeros
 
-camsSplit =pd.read_csv(idir+ifile,delimiter=';')
-camsHeaders = camsSplit.keys()  # Year, ISO3, GNFR_, v01...
-camsCountries= camsSplit['ISO3'].unique()
-print('CAMS CC', camsCountries)
 
-#g=camsSplit['GNFR_Category']; sorted(g.unique()) =>
+#July2023 camsSplit =pd.read_csv(idir+ifile,delimiter=';')
+#camsSplit =pd.read_csv(idir+ifile,delimiter=',')
+
+df =pd.read_excel(idir+ifile,sheet_name='NMVOC_split')
+df = df[df.Year==splitYear] 
+df.fillna(0.0,inplace=True)    # had NaNs for zeros
+splitHeaders = df.keys()  # Year, ISO3, GNFR_, v01...
+splitISO3s=df['ISO3'].unique()
+print('CAMS CC', splitISO3s)
+
+#g=df['GNFR_Category']; sorted(g.unique()) =>
 # ['A', 'B', 'C', 'D', 'E', 'F1', 'F2', 'F3', 'F4', 'G', 'H', 'I', 'J', 'L']
 #   1    2    3    4    5    16    17    18    19    7   8     8   10   12
 # misses 6=traffic, 14-15 = A1,2
 
-npolls = len(emepUsed)
+npolls = len(emepPolls)
 
-for iso3 in camsCountries:
-  for gnfrCode in camssecs: # tab['tnosec']: # A B C .. A1 .F1..
-    gnfrFrac[iso3][gnfrCode] = np.zeros(npolls)
-    if iso3==isoDBG: print('INIT ', iso3, gnfrCode)
+for iso3 in splitISO3s:
+  for splitSec in splitSecs: # tab['tnosec']: # A B C .. A1 .F1..
+    gnfrFrac[iso3][splitSec] = np.zeros(npolls)
+    if iso3==isoDBG: print('INIT ', iso3, splitSec)
 
-for n in range(len(camsSplit)): # rows, A..F1..F4..L
+for n in range(len(df)): # rows, A..F1..F4..L
 
+   #print('SKIP YEAR ',n,  df.Year[n] )
+   continue
+  if not yearFound: print('USE YEAR ',n,  df.Year[n] )
+  yearFound = True
   sumv = 0.0
   sume = 0.0
-  efrac = mydictfromkeys(emepUsed,0.0) # Initialise
+  efrac = mydictfromkeys(emepPolls,0.0) # Initialise
 
-  for vspec in camsHeaders:
-    val = camsSplit[vspec][n]
+  for vspec in splitHeaders:
+    val = df[vspec][n]
     if   vspec=='Year'         : continue
     elif vspec=='ISO3'         : iso3= val
     elif vspec=='GNFR_Category':
-      gnfrCode = val
-    else: # Continuev
+      splitSec = val
+    else: # Continue
+      # July2023 had NaNs for zeros - MARCH 2024 - discovered df.fillna(0.0,inplace=True)
+      # print('VAL ', iso3, df['GNFR_Category'][n], n, val, type(val), np.isscalar(val), np.isreal(val) )
+      if iso3 not in emNMVOC.keys():
+        print('ISO3 key missing: '+iso3)
+        continue
+
       sumv += val
-      for espec in emepUsed:
-        #print('n vspec val sumv espec', n, vspec, val, sumv, espec)
-        vMap = vspecMap[gnfrCode][vspec][espec] 
-        nmvoc = emNMVOC[iso3][gnfrCode]
-        #print('VMAP ', vMap, type(vMap), np.isscalar(vMap), np.isreal(vMap) )
+      for espec in emepPolls:
+        # print('n vspec val sumv espec', n, vspec, val, sumv, espec )
+        vMap = vspecMap[splitSec][vspec][espec] 
+        nmvoc = emNMVOC[iso3][splitSec]
+        # print('VMAP ', iso3, splitSec, nmvoc, n, vMap, type(vMap), np.isscalar(vMap), np.isreal(vMap) )
         if np.isscalar(vMap):  # Weird!!! np.isreal still True for vMap={}!
          if vMap > 0:
           efracTmp      = val * vMap * nmvoc
           efrac[espec] += efracTmp
-          tfrac[gnfrCode][espec] += efracTmp
+          tfrac[splitSec][espec] += efracTmp
           sume         += efracTmp
           if iso3==isoDBG:
-               print('ESPEC %s %s %-12s %s %s'% \
-                 ( iso3, gnfrCode, espec, vspec, 
-                     sfmt([nmvoc, vMap,  efracTmp, efrac[espec], sumv, sume, tfrac[gnfrCode][espec] ]) ))
-          if gnfrCode=='G': print('GVALS-TS ', gnfrCode, iso3, tfrac[gnfrCode] )
+             print('ESPEC %s %s %-12s %s %s'% \
+                 ( iso3, splitSec, espec, vspec, 
+                     sfmt([nmvoc, vMap,  efracTmp, efrac[espec], sumv, sume, tfrac[splitSec][espec] ]) ))
+             if splitSec=='G': print('GVALS-TS ', splitSec, iso3, tfrac[splitSec] )
 
   evals = np.array( list(efrac.values()) )
   if np.sum(evals) < 1.0e-3:
-    print('EVALS ZERO ', iso3, gnfrCode, np.sum(evals))
+    print('EVALS ZERO ', iso3, splitSec, np.sum(evals))
     continue
-  print('EVALS HERE ', iso3, gnfrCode, evals)
+  if iso3==isoDBG: print('EVALS HERE ', iso3, splitSec, evals)
 
-  if gnfrCode.startswith('F'):
-    tmpvals= ne.normedVals(evals,txt='F:'+gnfrCode, dbg=False)
-    print('FCALCS START ', gnfrCode, sfmt(tmpvals))
-    if gnfrCode == 'F1':
+  if splitSec.startswith('F'):
+    tmpvals= ne.normedVals(evals,txt='F:'+splitSec, dbg=False)
+    if iso3==isoDBG: print('FCALCS START ', splitSec, sfmt(tmpvals))
+    if splitSec == 'F1':
       fvals = evals.copy() # new array for F, write out later
     else:
       fvals = np.vstack((fvals,evals))
-    if gnfrCode == 'F4':
+    if splitSec == 'F4':
       if np.sum(fvals) > 0.0:
-        fvals= ne.normedVals(fvals,txt='FCALC:'+gnfrCode, dbg=True)
+        fvals= ne.normedVals(fvals,txt='FCALC:'+splitSec, dbg=True)
         # For EurTot, we need to put back emissions:
-        for n, espec in enumerate(emepUsed):
+        for n, espec in enumerate(emepPolls):
           tfrac['F'][espec] += (fvals[n]*nmvoc)
 
-      print('FCALC END: ', gnfrCode, np.shape(fvals), tfrac['F'][espec] ) #, fvals )
+      if iso3==isoDBG: print('FCALC END: ', splitSec, np.shape(fvals), tfrac['F'][espec] ) #, fvals )
 
   if iso3==isoDBG:
-      print('EEVALS ', iso3, gnfrCode, np.shape(evals),
+      print('EEVALS ', iso3, splitSec, np.shape(evals),
         evals, np.sum(evals) )
-  #if gnfrCode == 'K': Kvals[iso3] = evals # Don't normalise
-  #if gnfrCode == 'L': Lvals[iso3] = evals
+  #if splitSec == 'K': Kvals[iso3] = evals # Don't normalise
+  #if splitSec == 'L': Lvals[iso3] = evals
   if np.sum(evals) < 1.0e-3: continue 
-  nvals= ne.normedVals(evals,txt='NNN'+gnfrCode, dbg=True)
+  nvals= ne.normedVals(evals,txt='NNN'+splitSec, dbg=True)
   assert abs(np.sum(nvals)-1.0)<1.0e-3, 'SUMV error %f'% np.sum(nvals)
   nvals *= 100.0
 
-  gnfrFrac[iso3][gnfrCode] = nvals
+  gnfrFrac[iso3][splitSec] = nvals
   if iso3==isoDBG:
-     #print('FRACSET ', iso3, gnfrCode, sfmt(nvals))
-     print('FRACSET ', iso3, gnfrCode, *nvals,sep=';') #test *
+     #print('FRACSET ', iso3, splitSec, sfmt(nvals))
+     print('FRACSET ', iso3, splitSec, *nvals,sep=';') #test *
 
-  if gnfrCode == 'A':
+  if splitSec == 'A':
     for sec in 'A1 A2'.split():
       gnfrFrac[iso3][sec] = nvals
-  elif gnfrCode == 'F4' and np.sum(fvals) > 0.0:
+  elif splitSec == 'F4' and np.sum(fvals) > 0.0:
     fvals *= 100.0
     gnfrFrac[iso3]['F'] = fvals
 
 #sys.exit()
 
 # Totals?
-#print('FVALS-X ', gnfrCode, tfrac['F'] )
+#print('FVALS-X ', splitSec, tfrac['F'] )
 tfrac['A1'] =  tfrac['A'].copy()
 tfrac['A2'] =  tfrac['A'].copy()
 for gnfr in 'M': # 'K' .split(): # No NMVOC here
-   print('CHECK KM ', gnfr,  tfrac[gnfr] )
-   tfrac[gnfr] = mydictfromkeys(emepUsed,0.0)
+   if iso3==isoDBG: print('CHECK KM ', gnfr,  tfrac[gnfr] )
+   tfrac[gnfr] = mydictfromkeys(emepPolls,0.0)
    tfrac[gnfr]['UNREAC'] = 100.0  # to fill
 
 
-# DEFAULTS?
-for gnfrCode in camstab['tnosec']: # A B C .. A1 .F1..
-  #print('FVALS-Y ', gnfrCode, tfrac['F'] )
-  evals = np.array(list(tfrac[gnfrCode].values()))
-  print('GVALS-TFR', gnfrCode, tfrac[gnfrCode] )
-  print('GVALS-NFR', gnfrCode, gnfrFrac['EurTot'][gnfrCode] )
-  print('GVALS-G ', gnfrCode, np.sum(evals), evals )
+# DEFAULTS? rename splitSec here?
+for splitSec in camstab['tnosec']: # A B C .. A1 .F1..
+  #print('FVALS-Y ', splitSec, tfrac['F'] )
+  evals = np.array(list(tfrac[splitSec].values()))
+  if iso3==isoDBG:
+    print('GVALS-TFR', splitSec, tfrac[splitSec] )
+    print('GVALS-NFR', splitSec, gnfrFrac['EurTot'][splitSec] )
+    print('GVALS-G ', splitSec, np.sum(evals), evals )
   if np.sum(evals) > 0:
-    evals= 100 * ne.normedVals(evals,txt='EER'+gnfrCode)
+    evals= 100 * ne.normedVals(evals,txt='EER'+splitSec)
   else:
-    sys.exit('ARGH'+gnfrCode)
-  gnfrFrac['EurTot'][gnfrCode] = evals
-  print('KKKEUR', gnfrCode, gnfrFrac['EurTot'][gnfrCode])
+    sys.exit('ARGH'+splitSec)
+  gnfrFrac['EurTot'][splitSec] = evals
+  if iso3==isoDBG: print('KKKEUR', splitSec, gnfrFrac['EurTot'][splitSec])
 
 # Snap sectors
 
 for iso3 in gnfrFrac.keys():
- #for gnfrCode in gnfr[iso3].keys()
+ #for splitSec in gnfr[iso3].keys()
+  if iso3 not in emNMVOC.keys():
+     print('ISO3 key missing from gnfrFrac: '+iso3)
+     continue
 
   for gnfrCode in 'A B C D E F J'.split():
 
@@ -329,16 +371,22 @@ header="""# VOC splits for %s sectors and EmChem19a
 # ----------------------------------------------------------------------------
 # Emissions from:   %s
 # NMVOC split from: %s
+# splitYear:        %d
 # script:           %s
 # ----------------------------------------------------------------------------
-# Maps TNO/CAMS 25-compounds (v01...) from CAMS-REG-v3_1_2 matrix to EmChem species
+# Maps TNO/CAMS 25-compounds (v01...) from %s matrix to EmChem species
 # Note - two changes to keep C5H8 and terpenes as BVOC only:
 #  moved trace amounts of apinene to 50%%  C2H4 and 50%% unreactive.
-#  moved trace amounts of isoprene to C2H4.""" % ( 'gnfr', emisfile, splitfile, codetxt.codetxt(__file__)  )
+#  moved trace amounts of isoprene to C2H4.""" % ( 'gnfr', emisfile, splitfile, splitYear, codetxt.codetxt(__file__), splitfile  )
+
 print('DBGWRIYE', header )
-x=we.write_emislist(gnfrFrac,emepUsed,header, label='gnfr')
+#MAY2023 x=we.write_emislist(gnfrFrac,emepPolls,header, label='gnfr')
+#JULY 2023 x=we.write_emislist(gnfrFrac,emepPolls,header, label='gnfrMay2023')
+
+x=we.write_emislist(gnfrFrac,emepPolls,header, elabel+'_gnfr')
+
 #print('DBGKLHERE ', sfmt(snapFrac['ARM'][10]))
-#y=we.write_emislist(snapFrac,emepUsed,label='snapX')
+#y=we.write_emislist(snapFrac,emepPolls,label='snapX')
 
 # SNAP
 

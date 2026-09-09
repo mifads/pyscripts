@@ -11,6 +11,9 @@ import numpy as np
 # 1) Country codes file: #EMEP   ISO3   ISO2  Name #1     ALB    AL    Albania
 
 emepcodes=collections.OrderedDict() # stores iso2, iso3 etc.
+iso3codes=collections.OrderedDict() # stores  info for iso3
+iso4codes=collections.OrderedDict() # stores  info for iso3
+iso2toIso4=collections.OrderedDict() # stores iso2, iso3 etc.
 iso2toIso3=collections.OrderedDict() # stores iso2, iso3 etc.
 iso2toNum=dict()   # converts e.g. 'AL' to 1, etc.
 emepcc2isos = dict()  # from '1' to 'ALB' or 'AL' or ..
@@ -19,189 +22,116 @@ emepcc2isos = dict()  # from '1' to 'ALB' or 'AL' or ..
 country_list="""##################################################
 # This file sets EMEP codes, Iso3 and Iso2 (except where the EMEP
 # model uses 3-letter Iso2 - e.g. ATL!)
-#EMEP   ISO3   ISO2  Name
-1     ALB    AL    Albania
-56    ARM    AM    Armenia
-2     AUT    AT    Austria
-69    AZE    AZ    Azerbaijan
-3     BEL    BE    Belgium
-4     BGR    BG    Bulgaria
-50    BIH    BA    Bosnia_and_Herzegovina
-39    BLR    BY    Belarus
-24    CHE    CH    Switzerland
-210   CHN    CN    China
-55    CYP    CY    Cyprus
-46    CZE    CZ    Czech_Republic
-60    DEU    DE    Germany
-6     DNK    DK    Denmark
-22    ESP    ES    Spain
-43    EST    EE    Estonia
-7     FIN    FI    Finland
-8     FRA    FR    France
-27    GBR    GB    United_Kingdom
-54    GEO    GE    Georgia
-11    GRC    GR    Greece
-49    HRV    HR    Croatia
-12    HUN    HU    Hungary
-14    IRL    IE    Ireland
-13    ISL    IS    Iceland
-15    ITA    IT    Italy
-53    KAZ    KZ    Kazakhstan
-45    LTU    LT    Lithuania
-16    LUX    LU    Luxembourg
-44    LVA    LV    Latvia
-41    MDA    MD    Moldova_Republic_of
-52    MKD    MK    Macedonia
-57    MLT    MT    Malta
-73    MNE    ME    Montenegro
-17    NLD    NL    Netherlands
-18    NOR    NO    Norway
-19    POL    PL    Poland
-20    PRT    PT    Portugal
-21    ROU    RO    Romania
-61    RUS    RU    Russian_Federation
-72    SRB    RS    Serbia
-47    SVK    SK    Slovakia
-48    SVN    SI    Slovenia
-23    SWE    SE    Sweden
-25    TUR    TR    Turkey
-40    UKR    UA    Ukraine
-30    BAS    BS    Baltic_Sea
-31    NOS    NS    North_Sea
-32    ATL    AO    Atlantic_Ocean
-33    MED    MS    Mediterranean_Sea
-34    BLS    BS    Black_Sea
-59    LI     LI    Lichtenstein
-63    NOA    NOA   NorthAfrica
-80    CAS    CAS   Caspian_Sea
-601   GRL    GRL   Greenland
-92    KZT    KZT   KazakhstanAll
-93    RUE    RUE   RussianFedereationAll
-94    UZB    UZT   Uzbekistan
-95    TKM    TMT   Turkmenistan
-96    AST    AST   AsiaAreasEmepDomain
-373   KOS    KOS   Kosovo
-237   EGY    EGYP  Egypt
-250   IRN    IRAN  Iran_(Islamic_Republic_of)
-214   ISR    ISRA  Israel
-251   SAU    SAAR  Saudi_Arabia
-110   IRQ    IRQ   Iraq
-111   JOR    JOR   Jordan
-112   KWT    KWT   Kuwait
-113   LBN    LBN   Lebanon
-114   LBY    LBY   Libya
-115   MAR    MAR   Morocco
-116   PSE    PSE   Palestine_State_of
-117   SYR    SYR   Syrian_Arab_Republic
-118   TUN    TUN   Tunisia 
-119   DZA    DZA   Algeria
-501   GRS    GRS   Greenland_Sea
-502   BAR    BAR   Barents_Sea
-503   NWS    NWS   Norwegian_Sea
-504   ENC    ENC   English_Channel
-505   IRC    IRC   Irish_Sea
-506   KAR    KAR   Kara_Sea 
-507   PSG    PSG   Persian_Gulf
-999   EUR    EUR   European_sum_used_in_scripts
+# GAINS (ISO4?) codes are prelim and incomplete
+#EMEP     ISO4     ISO3   ISO2  Name
+   1      ALBA     ALB      AL Albania                                 
+  56      ARME     ARM      AM Armenia                                 
+   2      AUST     AUT      AT Austria                                 
+  69      AZER     AZE      AZ Azerbaijan                              
+   3      BELG     BEL      BE Belgium                                 
+   4      BULG     BGR      BG Bulgaria                                
+  50      BOHE     BIH      BA Bosnia_and_Herzegovina                  
+  39      BELA     BLR      BY Belarus                                 
+  24      SWIT     CHE      CH Switzerland                             
+ 210      CHIN     CHN      CN China                                   
+  55      CYPR     CYP      CY Cyprus                                  
+  46      CZRE     CZE      CZ Czech_Republic                          
+  60      GERM     DEU      DE Germany                                 
+   6      DENM     DNK      DK Denmark                                 
+  22      SPAI     ESP      ES Spain                                   
+  43      ESTO     EST      EE Estonia                                 
+   7      FINL     FIN      FI Finland                                 
+   8      FRAN     FRA      FR France                                  
+  27      UNKI     GBR      GB United_Kingdom                          
+  54      GEOR     GEO      GE Georgia                                 
+  11      GREE     GRC      GR Greece                                  
+  49      CROA     HRV      HR Croatia                                 
+  12      HUNG     HUN      HU Hungary                                 
+  14      IREL     IRL      IE Ireland                                 
+  13      ICEL     ISL      IS Iceland                                 
+  15      ITAL     ITA      IT Italy                                   
+  53      KAZ      KAZ      KZ Kazakhstan                              
+  68      KYRG     KYR?     KG Kyrgyzstan                              
+  45      LITH     LTU      LT Lithuania                               
+  16      LUXE     LUX      LU Luxembourg                              
+  44      LATV     LVA      LV Latvia                                  
+  41      MOLD     MDA      MD Moldova_Republic_of                     
+  52      MACE     MKD      MK Macedonia                               
+  57      MALT     MLT      MT Malta                                   
+  73      MONT     MNE      ME Montenegro                              
+  17      NETH     NLD      NL Netherlands                             
+  18      NORW     NOR      NO Norway                                  
+  19      POLA     POL      PL Poland                                  
+  20      PORT     PRT      PT Portugal                                
+  21      ROMA     ROU      RO Romania                                 
+  61      RUSS     RUS      RU Russian_Federation                      
+ 385      RUSS     RUS      RUSS Russian_European_part                      
+  72      SERB     SRB      RS Serbia                                  
+  47      SKRE     SVK      SK Slovakia                                
+  48      SLOV     SVN      SI Slovenia                                
+  23      SWED     SWE      SE Sweden                                  
+  81      TAJI     TAJ?     TJ Tajikistan_in_the_extended_EMEP_domain
+  25      TURK     TUR      TR Turkey                                  
+  40      UKRA     UKR      UA Ukraine                                 
+  30      BALS     BAS      BS Baltic_Sea                              
+  31      NORS     NOS      NS North_Sea                               
+  32      ATLO     ATL      AO Atlantic_Ocean                          
+  33      MEDS     MED      MS Mediterranean_Sea                       
+  34      BLAS     BLS      BS Black_Sea                               
+  59       LI       LI      LI Lichtenstein                            
+  63      NOA      NOA     NOA NorthAfrica                             
+  80      CAS      CAS     CAS Caspian_Sea                             
+ 601      GRL      GRL     GRL Greenland                               
+  92      KAZA     KZT     KZT KazakhstanAll                           
+  93      RUE      RUE     RUE RussianFedereationAll                   
+  94      UZB      UZB     UZT Uzbekistan                              
+  95      TKM      TKM     TMT Turkmenistan                            
+  96      AST      AST     AST AsiaAreasEmepDomain                     
+ 373      KOSO     KOS     KOS Kosovo                                  
+ 237      EGY      EGY    EGYP Egypt                                   
+ 250      IRN      IRN    IRAN Iran_(Islamic_Republic_of)              
+ 214      ISR      ISR    ISRA Israel                                  
+ 251      SAU      SAU    SAAR Saudi_Arabia                            
+ 110      IRQ      IRQ     IRQ Iraq                                    
+ 111      JOR      JOR     JOR Jordan                                  
+ 112      KWT      KWT     KWT Kuwait                                  
+ 113      LBN      LBN     LBN Lebanon                                 
+ 114      LBY      LBY     LBY Libya                                   
+ 115      MAR      MAR     MAR Morocco                                 
+ 116      PSE      PSE     PSE Palestine_State_of                      
+ 117      SYR      SYR     SYR Syrian_Arab_Republic                    
+ 118      TUN      TUN     TUN Tunisia                                 
+ 119      DZA      DZA     DZA Algeria                                 
+ 501      GRS      GRS     GRS Greenland_Sea                           
+ 502      BAR      BAR     BAR Barents_Sea                             
+ 503      NWS      NWS     NWS Norwegian_Sea                           
+ 504      ENC      ENC     ENC English_Channel                         
+ 505      IRC      IRC     IRC Irish_Sea                               
+ 506      KAR      KAR     KAR Kara_Sea                                
+ 507      PSG      PSG     PSG Persian_Gulf                            
+ 999      EUR      EUR     EUR European_sum_used_in_scripts            
 """ #############################################################
 
-country_list_old="""##################################################
-# This file sets EMEP codes, Iso3 and Iso2 (except where the EMEP
-# model uses 3-letter Iso2 - e.g. ATL!)
-#EMEP   ISO3   ISO2  Name
-1     ALB    AL    Albania
-56    ARM    AM    Armenia
-2     AUT    AT    Austria
-69    AZE    AZ    Azerbaijan
-3     BEL    BE    Belgium
-4     BGR    BG    Bulgaria
-50    BIH    BA    Bosnia_and_Herzegovina
-39    BLR    BY    Belarus
-24    CHE    CH    Switzerland
-55    CYP    CY    Cyprus
-46    CZE    CZ    Czech_Republic
-60    DEU    DE    Germany
-6     DNK    DK    Denmark
-22    ESP    ES    Spain
-43    EST    EE    Estonia
-7     FIN    FI    Finland
-8     FRA    FR    France
-27    GBR    GB    United_Kingdom
-54    GEO    GE    Georgia
-11    GRC    GR    Greece
-49    HRV    HR    Croatia
-12    HUN    HU    Hungary
-14    IRL    IE    Ireland
-13    ISL    IS    Iceland
-15    ITA    IT    Italy
-53    KAZ    KZ    Kazakhstan
-68    KGZ    KG    Kyrgyzstan
-45    LTU    LT    Lithuania
-16    LUX    LU    Luxembourg
-44    LVA    LV    Latvia
-41    MDA    MD    Moldova_Republic_of
-52    MKD    MK    Macedonia
-57    MLT    MT    Malta
-17    NLD    NL    Netherlands
-18    NOR    NO    Norway
-19    POL    PL    Poland
-20    PRT    PT    Portugal
-21    ROU    RO    Romania
-61    RUS    RU    Russian_Federation
-47    SVK    SK    Slovakia
-48    SVN    SI    Slovenia
-23    SWE    SE    Sweden
-25    TUR    TR    Turkey
-40    UKR    UA    Ukraine
-51    YUG    CS    Serbia_and_Montenegro		
-30    BAS    BAS   Baltic_Sea
-31    NOS    NOS   North_Sea
-32    ATL    ATL   Atlantic_Ocean
-70    ATX    ATX   Rest_of_Atlantic_Ocean
-33    MED    MED   Mediterranean_Sea
-34    BLS    BLS   Black_Sea
-58    ASI    ASI   Rest_of_Asia
-350   INT    INTSHIPS    International_shipping
-501   GRS    GRS   Greenland_Sea
-502   BAR    BAR   Barents_Sea
-503   NWS    NWS   Norwegian_Sea
-504   ENC    ENC   English_Channel
-505   IRC    IRC   Irish_Sea
-506   KAR    KAR   Kara_Sea
-507   PSG    PSG   Persian_Gulf
-73    MNE   MNE  Montenegro
-80    CAS   CAS  Caspian_Sea_in_the_original_EMEP_domain
-237   EGY   EGY  Egypt
-214   ISR   ISRA  Israel
-250   IRN   IRN  Iran
-251   SAU   SAU  Saudi_Arabia
-373   KOS   KOS  Kosovo
-110   IRQ   IRQ  Iraq
-111   JOR   JOR  Jordan
-112   KWT   KWT  Kuwait
-113   LBN   LBN  Libanon
-114   LBY   LBY  Libya
-115   MAR   MAR  Morocco
-116   PSE   PSE  Palestine_State_of
-117   SYR   SYR  Syrian_Arab_Republic
-118   TUN   TUN  Tunisia
-119   DZA   DZA  Algeria
-601   GRL   GRL  Greenland
-""" #############################################################
-
-def get_emepcodes():
+def get_emepcodes(dbg=False,cctabOnly=True):
 
    for ncc, line in list(enumerate(country_list.splitlines())):
       if line == '': continue    # header
       if line.startswith('#'): continue    # header
-      cc, iso3, iso2, name = line.split()
-      emepcodes[iso3] = dict( cc = int(cc), iso2=iso2, iso3=iso3, name=name )
+      cc, iso4, iso3, iso2, name = line.split()
+      emepcodes[iso3] = dict( cc = int(cc), iso4=iso4, iso2=iso2, iso3=iso3, name=name )
+      iso3codes[iso3] = dict( cc = int(cc), iso4=iso4, iso2=iso2, iso3=iso3, name=name )
+      iso4codes[iso4] = dict( cc = int(cc), iso4=iso4, iso2=iso2, iso3=iso3, name=name )
 
       iso2toIso3[iso2] = iso3
+      iso2toIso4[iso2] = iso4
       iso2toNum[iso2]  = int(cc)
-      emepcc2isos[cc] = dict( iso2=iso2, iso3=iso3, name=name )
+      emepcc2isos[int(cc)] = dict( iso2=iso2, iso3=iso3, iso4=iso4, name=name )
+      if dbg: print('DBG: %3s %8s %8s %7s %-40s' % (cc, iso4, iso3, iso2, name ))
 #      tnonum[iso3] = ncc   # eg GBR -> 27
-   return emepcodes  # , iso2toIso3
+   if cctabOnly:
+     return emepcodes
+   else: # newer system
+     return emepcodes, iso3codes, iso4codes
 
 def getIso3(iso2):
     """ Uses dict from above to convert emep iso2 codes to iso3 for MACC """
@@ -213,11 +143,11 @@ def getIso2toNum(iso2):
 
 if __name__ == '__main__':
 
-    c=get_emepcodes()
+    c, iso3s =get_emepcodes(dbg=True)
     maxnum = 0
     for iso3 in c.keys():
        cnum = c[iso3]['cc']
        if cnum>maxnum: maxnum = cnum
-       print( iso3, cnum, maxnum)
+       print( iso3, iso3s, cnum, maxnum)
 #        print( land['cc'] )
         #print( land['cc'] )

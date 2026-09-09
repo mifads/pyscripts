@@ -6,7 +6,7 @@ import numpy as np
 import os
 import pandas as pd
 import sys
-from emxmisc.auto_dicts import Vividict  # Used since defautdict gave KeyError. 
+from emxmisc.auto_dicts import Vividict  # Used since defaultdict gave KeyError. 
 
 run='jun2022'
 tdir=os.environ['HOME'] + '/Work/D_Emis/CEDS/'
@@ -150,9 +150,10 @@ Sectors: 24 1A4c_Agriculture-forestry-fishing
 
 if __name__ == '__main__':
 
-   polls, emissecs, emis = get_ceds_emis([1980,1990],dbgPoll='NOx')  # 
-   print(emis.keys() )
    dbgcc='global'; dbgpoll ='NOx'
+   dbgcc='alb'; dbgpoll ='SO2'
+   polls, emissecs, emis = get_ceds_emis([1980,1990],dbgPoll=dbgpoll)
+   print(emis.keys() )
 
    for s in emissecs:
 

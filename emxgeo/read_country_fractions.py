@@ -1,9 +1,27 @@
 #!/usr/bin/env python3
-"""   float cell_area(lat, lon) ;
-            cell_area:units = "km^2" ;
-      byte CC_407(lat, lon) ;
-             CC_407:long_name = "Kattegat" ;
-             CC_407:area_km2 = 23659.4f ;
+"""
+Processes country data from emep_ll_gridfraction_{res}degCEIP_2018.nc
+  
+METHODS:
+ get_country_fractions: returns (ccodes_wanted=None,res='01',cfmapWanted=False,smallNorway=True,
+    excl_nums_from=400, txt='', dbg=False): # eg IE, BG
+
+    returns dict with:
+      lats, lons, dx, dy, cflon0, cflat0 - grid settings of grid used
+      cell_km2
+      codes_used # e.g. DK, MED,
+      sum_seas 
+      sum_land
+      [iso]['fractions']
+      [iso]['sum_area_km2']
+      if cfmapWanted:
+        ['cfmap'][j,i], e.g. "NL;NOS" or " ATL"
+
+ get_country_sums_or_masks(lons,lats,vals,ccodes=None,masksWanted=False,txt=''): # emep 01 landcover France
+
+   returns country sums for given grid and values
+   or masks
+
 """
 import numpy as np
 import os
@@ -11,16 +29,23 @@ import sys
 import xarray as xr
 import emxgeo.check_coord_deltas as ccd
 
+#hdir=os.environ['HOME']
 tdir='/lustre/storeB/users/davids'
 if not os.path.exists(tdir):
   tdir= tdir.replace('storeB','storeA')
+  datadir=f'{tdir}/Data_Geo/EMEP_files'
+  ecosdir=f'{tdir}/scripts_lc2emep_mapping' # for __main tests
 if 'ppi' not in  os.uname().nodename:
   tdir='/home/davids/Work/LANDUSE/'
+  datadir='/home/davids/Data'
+  ecosdir='/home/davids/Work/LANDUSE/LandInputs_2025' # for __main tests
 assert os.path.exists(tdir),'NO INPUT DIR:'+tdir
 
-idbg=391; jdbg=263   # DK in 01 gridfraction file
 idbg=341;jdbg=184    # France
 idbg= 478; jdbg= 59  # MED 
+idbg=391; jdbg=263   # DK in 01 gridfraction file
+idbg=259;jdbg=23  # Marocko
+idbg=400;jdbg=23  # Algeria
 #-----------------------------------------------------------------------------
 def get_country_fractions(ccodes_wanted=None,res='01',cfmapWanted=False,smallNorway=True,
     excl_nums_from=400, txt='', dbg=False): # eg IE, BG
@@ -33,7 +58,16 @@ def get_country_fractions(ccodes_wanted=None,res='01',cfmapWanted=False,smallNor
   seas = 'ATL BAS NOS MED BLS'.split()
 
   dtxt='get_coun_frac:' + txt
-  ifile= f'{tdir}/Data_Geo/EMEP_files/EMEP_CountryStuff/emep_ll_gridfraction_{res}degCEIP_2018.nc'
+  ifile= f'{datadir}/EMEP_CountryStuff/emep_ll_gridfraction_{res}degCEIP_2018.nc'
+  """  float cell_area(lat, lon) ;
+          cell_area:units = "km^2" ;
+       short CC_22(lat, lon) ;
+                CC_22:units = "%" ;
+                CC_22:long_name = "ES" ;
+       byte CC_407(lat, lon) ;
+             CC_407:long_name = "Kattegat" ;
+             CC_407:area_km2 = 23659.4f ;
+  """
   ds=xr.open_dataset(ifile)
   isea=402; jsea= 268 # 22% BAS
   dksea = ds['CC_30'].values
@@ -49,6 +83,8 @@ def get_country_fractions(ccodes_wanted=None,res='01',cfmapWanted=False,smallNor
   countries['dy'] = ccd.check_coord_deltas(ds.lat.values)
   countries['cflon0'] = cflons[0] - 0.5*countries['dx']
   countries['cflat0'] = cflats[0] - 0.5*countries['dy']
+  countries['cflon1'] = cflons[-1] + 0.5*countries['dx']
+  countries['cflat1'] = cflats[-1] + 0.5*countries['dy']
 
   countries['cell_km2']  = km2
 
@@ -106,8 +142,11 @@ def get_country_fractions(ccodes_wanted=None,res='01',cfmapWanted=False,smallNor
           for i, lon in enumerate(ds.lon.values):
             #if jdbg==j and idbg == i: print(dtxt+'DBGIJ', i,j, iso, c[j,i])
             if c[j,i]>1.0e-6:
-               countries['cfmap'][j,i] += f' {iso}'
-               #countries['cfmap'][j,i].append(iso)
+               #countries['cfmap'][j,i] += f' {iso}'
+               if countries['cfmap'][j,i] == '':
+                 countries['cfmap'][j,i] += iso
+               else:
+                 countries['cfmap'][j,i] += f';{iso}'
                if jdbg==j and idbg == i: print('DBGIJMAP', i,j, iso, countries['cfmap'][j,i], c[j,i], c[j,i] )
 
 
@@ -131,21 +170,20 @@ def get_country_fractions(ccodes_wanted=None,res='01',cfmapWanted=False,smallNor
   return countries
 
 #-----------------------------------------------------------------------------
-def get_country_sums(lons,lats,vals,ccodes=None,txt=''): # emep 01 landcover France
+def get_country_sums_or_masks(lons,lats,vals,ccodes=None,masksWanted=False,txt=''): # emep 01 landcover France
+  """ country sums or masks in the given lat/lon domain.
+      By default gets area of vals for countries in ccodes
+      if wanted, can return mask (frac) in coords of inputs
+  """
 
   dtxt= f'gcsums({txt}):'
 
-  #print('INTO ',dtxt, ccodes)
+  print('INTO ',dtxt, ccodes)
   cfdata=get_country_fractions(ccodes_wanted=ccodes,cfmapWanted=True)
-  ccodes = cfdata['codes_used']
+  cfcodes = cfdata['codes_used'] # usually addes seas
+  print('NOW: ',dtxt, cfcodes)
   cflons=cfdata['lons']
   cflats=cfdata['lats']
-  cfdx = cfdata['dx']      # 0.1
-  cfdy = cfdata['dy']
-  cflon0 = cflons[0]  - 0.5*cfdx
-  cflat0 = cflats[0]  - 0.5*cfdy
-  cflon1 = cflons[-1] + 0.5*cfdx
-  cflat1 = cflats[-1] + 0.5*cfdy
   km2    = cfdata['cell_km2']
   cfmap  = cfdata['cfmap']
 
@@ -154,9 +192,10 @@ def get_country_sums(lons,lats,vals,ccodes=None,txt=''): # emep 01 landcover Fra
   lon0 = lons[0] - 0.5*dx
   lat0 = lats[0] - 0.5*dx
 
-  # for box calulculation:
-  njj = int(0.001 + dy/cfdy)//2
-  nii = int(0.001 + dx/cfdx)//2
+  # for box calulculation - number of cells before and after mid e.g. with 0.5 deg array get 2,  :
+  njj = int(0.001 + dy/cfdata['dy'])//2
+  nii = int(0.001 + dx/cfdata['dx'] )//2
+  print('NII JJ', nii, njj, dx, dy, cfdata['dx'], cfdata['dy'])
 
   # coords of idbg,jdbg in local vals coords:
   jvv = int( 0.001+ ( cflats[jdbg] - lat0)/dy)
@@ -175,141 +214,180 @@ def get_country_sums(lons,lats,vals,ccodes=None,txt=''): # emep 01 landcover Fra
 
   cc_km2=dict()  # Area for each country
 
-  for cc in ccodes:
+  masks = dict()
+  ninmask = dict()
+  print('THEN: ',dtxt, ccodes)
+  #for cc in ccodes:
+  for cc in cfcodes:
     if cc.startswith('sum_'): continue
     cc_km2[cc] = cfdata[cc]['fractions'] * km2
 
-    #print('CCSUM', cc,  np.sum(cc_km2[cc])) # , cfdata[cc]['sum_area_km2'] ) # =same
+    print('CCSUM', cc,  np.sum(cc_km2[cc])) # , cfdata[cc]['sum_area_km2'] ) # =same
     sumcc[cc] = 0.0
-  #sys.exit()
 
+    if masksWanted:
+      masks[cc] = np.zeros([len(lats),len(lons)])
+      ninmask[cc] = np.zeros([len(lats),len(lons)])
+
+  # Loop over input array
   for j, lat in enumerate(lats):
-    if lat < cflat0: continue
-    if lat > cflat1: continue
-    jcc = int( 0.001+ ( lat - cflat0)/cfdy)
+    if lat < cfdata['cflat0']: continue
+    if lat > cfdata['cflat1']: continue
+    jcc = int( 0.001+ ( lat - cfdata['cflat0'])/cfdata['dy'])
 
     for i, lon in enumerate(lons):
       if vals[j,i] < 1.0e-6: continue
-      if lon < cflon0: continue
-      if lon > cflon1: continue
-      icc = int( 0.001+ ( lon - cflon0)/cfdx)
+      if lon < cfdata['cflon0']: continue
+      if lon > cfdata['cflon1']: continue
+      icc = int( 0.001+ ( lon - cfdata['cflon0'])/cfdata['dx'] )
 
-#        if cc=='DK':
-#            print('SPLDK', cc, vals.shape, cc_km2[cc].shape, i,j,icc,jcc, lons[i],lats[j],cflons[icc],cflats[jcc], vals[j,i], cc_km2[cc][jcc,icc])
       for jj in range(-njj,njj+1):
         jjj = jcc + jj
+        if jjj < 0 or jjj+1 > len(cflats): continue
+
         for ii in range(-nii,nii+1):
           iii = icc + ii
-          for cc in cfdata['cfmap'][jjj,iii].split():
-            if i==ivv and j==jvv:
-              print(f'BOX {cc} {lon} {lat}  {iii:4d} {jjj:4d}  CF:{cflons[iii]:.3f} {cflats[jjj]:.3f} {cfdata["cfmap"][jjj,iii]} cc_km2:{cc_km2[cc][jjj,iii]}') 
-            try:
-              area = vals[j,i] * cc_km2[cc][jjj,iii]
-            except:
-              print(f'BOX {cc} {lon} {lat}  {iii:4d} {jjj:4d}  CF:{cflons[iii]:.3f} {cflats[jjj]:.3f} {cfdata["cfmap"][jjj,iii]} cc_km2:{cc_km2[cc][jjj,iii]}') 
+          if iii < 0 or iii+1 > len(cflons): continue
+
+          if len( cfdata['cfmap'][jjj,iii] ) < 1: continue # avoids empty ''
+
+          for cc in cfdata['cfmap'][jjj,iii].split(';'):
+
+            if i==ivv and j==jvv: # dbg in local coords
+              print(f'BOX {cc} {lon} {lat}  {iii:4d} {jjj:4d}  CF:{cflons[iii]:.3f}'
+                   f' {cflats[jjj]:.3f} {cfdata["cfmap"][jjj,iii]} cc_km2:{cc_km2[cc][jjj,iii]}') 
+            #try:
+            #  area = vals[j,i] * cc_km2[cc][jjj,iii]
+            #except:
+            #  print(f'BOX {cc} {lon} {lat}  {iii:4d} {jjj:4d}  CF:{cflons[iii]:.3f}'
+            #        f' {cflats[jjj]:.3f} {cfdata["cfmap"][jjj,iii]} cc_km2:{cc_km2[cc][jjj,iii]}') 
+            area = vals[j,i] * cc_km2[cc][jjj,iii]
 
             sumcc[cc] += area
+            if masksWanted:
+               masks[cc][j,i] += cfdata[cc]['fractions'][jcc,icc]
+               ninmask[cc][j,i]   += 1
 
       #dbg = ( i==idbg and j==jdbg )
       #if dbg:
-      #print(f'DBGijll0  V: {lon} {lon0} iCF: {icc} {cflons[icc]:.2f}  {cfdx:.2f} {cfdata['cfmap'][jcc,icc]}')
-      #print(f'DBGijlon  V: {i} {lon} {dx} iCF: {icc} {cflons[icc]:.2f}  {cfdx:.2f} {cfdata['cfmap'][jcc,icc]}')
-      #print(f'DBGijlat  V: {j} {lat} {dy} jCF: {jcc} {cflats[jcc]:.2f}  {cfdy:.2f} {cfdata['cfmap'][jcc,icc]}')
-      #print(f'DBGij {lon} {lat} {cflons[icc]} {icc} {jcc} {cflats[jcc]} {cfdata['cfmap'][jcc,icc]}')
+      #print(f'DBGijlat  V: {j} {lat} {dy} jCF: {jcc} {cflats[jcc]:.2f}  {cfdata['dy']:.2f} {cfdata['cfmap'][jcc,icc]}')
 
-  # no easy way to sort dicts as dicts, except:
-  return { k:v for k, v in sorted(sumcc.items()) }
+  if masksWanted:
+    #for cc in masks.keys():
+    xmasks = dict() # will only include asked-for ccodes
+    for cc in ccodes:
+      print('MASKING ', cc, masks.keys() )
+      xmasks[cc] = np.where(ninmask[cc]>0,masks[cc]/ninmask[cc],0.0)
+    return xmasks
+  else: # no easy way to sort dicts as dicts, except:
+    return { k:v for k, v in sorted(sumcc.items()) }
   
+#-----------------------------------------------------------------------------
+#def get_country_mask(lons,lats,vals,ccodes=None,txt=''): # emep 01 landcover France
+#
+#  dx = ccd.check_coord_deltas(lons)
+#  dy = ccd.check_coord_deltas(lats)
+#  lon0 = lons[0] - 0.5*dx
+#  lat0 = lats[0] - 0.5*dx
 
 #-----------------------------------------------------------------------------
 if __name__ == '__main__':
 
-  testing='fracs'  # or fracs
+  import emxplots.plotmap as pmap
   testing='sums'  # or fracs
-  codes='DE NL DK NO SE FI RU'.split()
   codes='PT ES FR IT HR GR DE NL DK NO SE FI RU'.split()
+  codes='DE NL DK NO SE FI RU'.split()
+  codes='DK ES'.split()
   label='ifs'
   label='ecosg-emep'
+  testing='fracs'  # or fracs
 
-  if testing=='fracs':
-    cfdata=get_country_fractions(codes,cfmapWanted=True,dbg=True)
-    #cfdata=get_country_fractions(dbg=True)
-    print( cfdata.keys())
-    sys.exit()
+  cfdata=get_country_fractions(codes,cfmapWanted=True,dbg=True)
+  print( cfdata.keys())  # includes codes + sea areas + LL, dx, dy, cfdata['cflon0']
 
-  # testing application to landcover
+  lons=np.linspace(-20,40,121)  # 0.5 deg test grid
+  lats=np.linspace(30,65,71)
+  tstvals = np.ones([len(lats),len(lons)])
+  tst = get_country_sums_or_masks(lons,lats,tstvals,txt='tst',masksWanted=True,ccodes=codes) #,idbg=idbg,jdbg=jdbg)
+  for tstcc in tst.keys():
+    pmap.plotmap(tst[tstcc],tstcc)
 
-  if label=='ecosg-emep':
-    ifile= f'{tdir}/Data_Geo/EMEP_files/landcover_ecosg4emep_0p5_v1.nc'
-    matching = [ 'Tr', ]
-    shortstrs = {'DUMMY':'DUMMY'}
 
-  elif label=='ifs':
-    ifile= f'{tdir}/Data_IFS/scripts_IFS/IFS4emep_0p5.nc'
-    matching = 'trees forest'.split()
-    shortstrs = {'_Evergreen':'Ev','_Deciduous':'De' ,'_broadleaf':'Br',
-       '_needleleaf':'Ne' ,'_Mixed_forest':'Mixed' ,'_trees':'Tr' }
 
-  lcds=xr.open_dataset(ifile)
-  lons=lcds.lon.values
-  lats=lcds.lat.values
-  areas=dict()
 
-  vegs=[]
-  ccs = set()
 
-  for veg in lcds.keys():
-    found=True
-    for m in matching:
-     if m not in veg:
-       found=False
-     else:
-       found=True
-       break
-    if found: print('FOUND', veg, m)
-    else:
-      print('SKIP', veg)
-      continue
 
-    vegs.append(veg)
-    vals = lcds[veg].values
-    #--------------------------------------------
-    areas[veg] = get_country_sums(lons,lats,vals,txt=veg,ccodes=codes) #,idbg=idbg,jdbg=jdbg)
-    ifr=370;jfr=277
-    #print('VEGAREA ', veg, vals[jfr,ifr], areas[veg]['FR'])
-    #--------------------------------------------
-    ccs = ( ccs | areas[veg].keys() )
-
-  print('VEGES', vegs, vegs[0] )
-  vegcodes = vegs.copy()
-  #def shortenIFS(ifsveg):
-  #  return ifsveg[6:].replace('_Evergreen','Ev').replace('_Deciduous','De').replace('_broadleaf','Br').replace('_needleleaf','Ne').replace('_Mixed_forest','Mixed').replace('_trees','Tr')
-
-  def shorten(veg,pairs):
-    newveg = veg
-    for long, short in pairs.items():
-      newveg = newveg.replace(long,short)
-    return newveg
-
-  if label=='ifs':
-    vegrow = ''.join( [ f'{shorten(v[6:],shortstrs):9s}' for v in vegcodes ])
-  else:
-    vegrow = ''.join( [ f'{v:9s}' for v in vegcodes ])
-  #vegrow = ''.join( [ f'{shorten(v[6:],shortstrs):9s}' for v in vegcodes ])
-
-  with open(f'Table_{label}.txt','w') as tab:
-    #print(f'{'Land':<17s} {vegrow}     Sum')
-    tab.write(f'{'Land':<17s} {vegrow}     Sum\n')
-    for cc in sorted(ccs):
-      vegrow=''
-      for v in vegs:
-        if cc not in areas[v].keys():
-           areas[v][cc] = 0.0
-        vegrow += f'{0.001*areas[v][cc]:9.2f}'  # Now in 1000 km2
-      sumveg = 0.001 * np.sum ( [areas[v][cc] for v in vegs ])
-      #vegrow = ''.join( [ f'{areas[v][cc]:10.1f}' for v in vegs ])
-      #print(f'{cc:<15s} {vegrow}  {sumveg:12.2f}')
-      tab.write(f'{cc:<15s} {vegrow}  {sumveg:12.1f}\n')
-   
-   
-   
+#ABC  # testing application to landcover
+#ABC
+#ABC  if label=='ecosg-emep':
+#ABC    ifile= f'{ecosdir}/landcover_ecosg4emep_0p5_v1.nc'
+#ABC    matching = [ 'Tr', ]
+#ABC    shortstrs = {'DUMMY':'DUMMY'}
+#ABC
+#ABC  elif label=='ifs':
+#ABC    ifile= f'{tdir}/Data_IFS/scripts_IFS/IFS4emep_0p5.nc'
+#ABC    matching = 'trees forest'.split()
+#ABC    shortstrs = {'_Evergreen':'Ev','_Deciduous':'De' ,'_broadleaf':'Br',
+#ABC       '_needleleaf':'Ne' ,'_Mixed_forest':'Mixed' ,'_trees':'Tr' }
+#ABC
+#ABC  lcds=xr.open_dataset(ifile)
+#ABC  lons=lcds.lon.values
+#ABC  lats=lcds.lat.values
+#ABC  areas=dict()
+#ABC
+#ABC  vegs=[]
+#ABC  ccs = set()
+#ABC
+#ABC  for veg in lcds.keys():
+#ABC    found=True
+#ABC    for m in matching:
+#ABC     if m not in veg:
+#ABC       found=False
+#ABC     else:
+#ABC       found=True
+#ABC       break
+#ABC    if found: print('FOUND', veg, m)
+#ABC    else:
+#ABC      print('SKIP', veg)
+#ABC      continue
+#ABC
+#ABC    vegs.append(veg)
+#ABC    vals = lcds[veg].values
+#ABC    #--------------------------------------------
+#ABC    areas[veg] = get_country_sums(lons,lats,vals,txt=veg,ccodes=codes) #,idbg=idbg,jdbg=jdbg)
+#ABC    ifr=370;jfr=277
+#ABC    #print('VEGAREA ', veg, vals[jfr,ifr], areas[veg]['FR'])
+#ABC    #--------------------------------------------
+#ABC    ccs = ( ccs | areas[veg].keys() )
+#ABC
+#ABC  print('VEGES', vegs, vegs[0] )
+#ABC  vegcodes = vegs.copy()
+#ABC
+#ABC  def shorten(veg,pairs):
+#ABC    newveg = veg
+#ABC    for long, short in pairs.items():
+#ABC      newveg = newveg.replace(long,short)
+#ABC    return newveg
+#ABC
+#ABC  if label=='ifs':
+#ABC    vegrow = ''.join( [ f'{shorten(v[6:],shortstrs):9s}' for v in vegcodes ])
+#ABC  else:
+#ABC    vegrow = ''.join( [ f'{v.replace('LC:',''):9s}' for v in vegcodes ])
+#ABC  #vegrow = ''.join( [ f'{shorten(v[6:],shortstrs):9s}' for v in vegcodes ])
+#ABC
+#ABC  with open(f'Table_{label}.txt','w') as tab:
+#ABC    #print(f'{'Land':<17s} {vegrow}     Sum')
+#ABC    tab.write(f'{'Land':<17s} {vegrow}     Sum\n')
+#ABC    for cc in sorted(ccs):
+#ABC      vegrow=''
+#ABC      for v in vegs:
+#ABC        if cc not in areas[v].keys():
+#ABC           areas[v][cc] = 0.0
+#ABC        vegrow += f'{0.001*areas[v][cc]:9.2f}'  # Now in 1000 km2
+#ABC      sumveg = 0.001 * np.sum ( [areas[v][cc] for v in vegs ])
+#ABC      #vegrow = ''.join( [ f'{areas[v][cc]:10.1f}' for v in vegs ])
+#ABC      #print(f'{cc:<15s} {vegrow}  {sumveg:12.2f}')
+#ABC      tab.write(f'{cc:<15s} {vegrow}  {sumveg:12.1f}\n')
+#ABC   
+#ABC   
+#ABC   

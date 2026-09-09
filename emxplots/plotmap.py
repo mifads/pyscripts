@@ -10,9 +10,9 @@ import netCDF4
 import os
 import sys
 
-def plotmap(x,txt,plotfile=None):
-  """ simplest imshow map """
-  plt.imshow(x,origin='lower',cmap='jet_r') # jet_r to match Hudman
+def plotmap(x,txt,plotfile=None,cmap='jet'):
+  """ simplest imshow map. Use jet_r to match Hudman """
+  plt.imshow(x,origin='lower',cmap=cmap) 
   plt.colorbar()
   plt.title(txt)
   if plotfile is None:
