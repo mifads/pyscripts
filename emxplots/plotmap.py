@@ -10,9 +10,12 @@ import netCDF4
 import os
 import sys
 
-def plotmap(x,txt,plotfile=None,cmap='jet'):
+def plotmap(x,txt,plotfile=None,cmap='jet',vmin=None,vmax=None):
   """ simplest imshow map. Use jet_r to match Hudman """
-  plt.imshow(x,origin='lower',cmap=cmap) 
+  if vmax is None:
+    plt.imshow(x,origin='lower',cmap=cmap) 
+  else:
+    plt.imshow(x,origin='lower',cmap=cmap,vmin=vmin,vmax=vmax) 
   plt.colorbar()
   plt.title(txt)
   if plotfile is None:
@@ -97,7 +100,7 @@ if __name__ == '__main__':
   for i in range(360):
       x[:,i] = i
 
-  plotmap(x,'TestX')
+  plotmap(x,'TestX',vmin=0,vmax=600)
 
   x = np.linspace(-10,40,10)
   y = np.linspace(30,60,10)
