@@ -81,6 +81,24 @@ def xy2lonlat(x,y,pstere=50):
  else: sys.exit(f"{polar} projection not code")
 
 # ------------------------------------------------------------------------------
+def lambert93_to_wgs84(x1,y1):
+  # https://en.moonbooks.org/Articles/How-to-convert-Lambert-93-to-longitude-and-latitude-with-python-3/
+  """
+  EPSG:2154 : Lambert 93
+  EPSG:4326 : World Geodetic System (WGS 84)
+  """
+  #from pyproj import Transformer
+
+  # Create a transformer object between EPSG:2154 (Lambert 93) and EPSG:4326 (WGS 84)
+  transformer = pp.Transformer.from_crs("EPSG:2154", "EPSG:4326", always_xy=True)
+
+  # Convert to longitude and latitude
+  longitude, latitude = transformer.transform(x1, y1)
+  return longitude, latitude
+# ------------------------------------------------------------------------------
+
+
+# ------------------------------------------------------------------------------
 if __name__ == '__main__':
   lats = [-72.9, -71.9, -74.9, -74.3, -77.5, -77.4, -71.7, -65.9, -65.7,
           -66.6, -66.9, -69.8, -70.0, -71.0, -77.3, -77.9, -74.7]
@@ -122,6 +140,11 @@ if __name__ == '__main__':
     ii,jj = lonlat2xy(lon,lat,pstest)
     print(f"{i} {j} PS{pstest}km {lon2d[j-1,i-1]:.3f} {lat2d[j-1,i-1]:.3f} TOLL: {lon:.3f} {lat:.3f} FROM LL: {ii} {jj}" )
 
+    # Lambert 93 coordinates
+    x1, y1 = 967646, 6899227
+    longitude, latitude =  lambert93_to_wgs84(x1,y1)
+    # Display results
+    print("Lambert France to LL", longitude, latitude)
 
 
 
