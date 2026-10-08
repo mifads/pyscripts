@@ -46,6 +46,7 @@ parser.add_option( '-v' ,help="Variable name",dest='var')
 parser.add_option( '-b' ,'--borders',help="add country b, 'gray' is okayorders",dest='borders', 
                       default=False,action='store_true')
 parser.add_option( '--mercator', help="mercator proj", dest='mercator', default=False,action='store_true')
+#parser.add_option( '--proj', help="proj (mercator or xxx dest='proj', default='proj',dest='proj',action='store',nargs=1)
 parser.add_option( '--mesh', help="use pcolormesh", dest='mesh', default=True,action='store_true')
 parser.add_option( '--bullets' ,help="add bullets.Set z-value in 3rd column; if neg, transparent",nargs=1)
 parser.add_option( '--cmap' , help="cmap, eg --cmap hot,jet_r",
@@ -57,7 +58,6 @@ parser.add_option( '--scale' ,help="Scale factor",default=1.0)
 parser.add_option( '--skipcbar' ,help="No colourbar",dest='skipcbar')
 parser.add_option( '--unlog10' ,help="For log10 scales. Use 10**x in colorbar",dest='unlog10',action='store_true')
 parser.add_option( '--log10' ,help="For log10 scales.",dest='log10',action='store_true')
-#FAILED parser.add_option( '--mercator' ,help="mercator proj",dest='mercator')
 parser.add_option( '--extent', help="extent (LonL,LonR,LatS,LatN), eg --extent -15.0,40.0,35.0,65.0",
                       default="-15.0,40.0,35.0,65.0",
                       dest='extent', action='store',nargs=1)
