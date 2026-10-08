@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ 
   Reads JRC maps (in PS projection)
-  uses moving YxX average of the PS grid cells
+  uses moving MxN average of the PS grid cells
 
   Provides, eg
     treefracs['BDLF']['que']['robu'] as a fraction of que
@@ -114,6 +114,9 @@ def get_tree_fracs(ftypes= 'BDLF NDLF'.split(),
    # SPEC LOOP ---------------------------------------------------------------
    for spec in vegtab.keys():  # abi_alba, ...
    
+      if spec == 'lau_nobi': continue # empty file
+      if spec == "eri_mani": continue  # 1 cell and/or shrubs See Notes.Erica
+      if spec == "eri_scop": continue  # 1 cell and/or shrubs See Notes.Erica
       if 'EMEP' in spec:     continue   # skip Russia and Ukraine?
       if 'not_clas' in spec:     continue   # skip mixed forest TEST  ************* NOT CLASSIF
       if vegtab[spec]['NotJRC']: continue  # Not in JRC files
@@ -130,11 +133,12 @@ def get_tree_fracs(ftypes= 'BDLF NDLF'.split(),
       genus, sname = spec.split('_')  # abi, alba
       if pft == 'EBF' or pft == 'DBF': ftype = 'BDLF'
       if pft == 'ENF' or pft == 'MNF' or pft == 'DNF': ftype = 'NDLF'
+      print(dtxt+'GG', spec, genus, pft, ftype,  len(ds.ix) )
       assert pft not in ftypes,f"MISSING FTYPE {pft}, {ftype}, {ftypes}"
       if dbg: print(dtxt+'INP', spec, genus, sname, pft, ftype, len(ds))
-      if len(ds) < 3:
-         print(dtxt, 'TOO FEW', spec, len(ds) ) # lau, eri, ...
-         continue  # exludes lau, eri, 
+      #if len(ds) < 3:
+      #   print(dtxt, 'TOO FEW', spec, len(ds) ) # lau, eri, ...
+      #   continue  # exludes lau, eri, 
       if ftype not in ftypes: continue
 
       if dbgGenus is not None and genus != dbgGenus: continue
@@ -143,10 +147,12 @@ def get_tree_fracs(ftypes= 'BDLF NDLF'.split(),
 
         ix   = ds.ix[n] - 1
         iy   = ds.iy[n] - 1
-        if ix < 35:       continue #Some files had odd values at 33, 132
-        if iy < 10:       continue # odd values at 83, 2
+        if spec=="pin_cana": print('Cana', ix, iy) # =31, 132
+        #if ix < 35:       continue #Some files had odd values at 33, 132
+        #if iy < 10:       continue # odd values at 83, 2
    
         frac = 0.01 * ds.frac[n]  
+        #print('FF', spec, genus, genus in psdat[ftype].keys(), frac )
         if frac < SMALLFRAC: continue
 
         #grid_dat[ftype][iy,ix]  += frac
@@ -156,6 +162,7 @@ def get_tree_fracs(ftypes= 'BDLF NDLF'.split(),
    
         if genus not in psdat[ftype].keys():
           psdat[ftype][genus] = dict()
+          print(dtxt+'XFF add', spec, genus, genus in psdat[ftype].keys() )
           #psdat[ftype][genus]['Total'] = np.zeros([ny,nx])
    
         if sname not in psdat[ftype][genus].keys():
@@ -164,6 +171,7 @@ def get_tree_fracs(ftypes= 'BDLF NDLF'.split(),
         psdat[ftype][genus][sname][iy,ix]   += frac
    
       # ------------- smoothing  start
+      print(dtxt+'XX', spec, genus, genus in psdat[ftype].keys() )
       xveg = psdat[ftype][genus][sname].copy()
       psdat[ftype][genus][sname] = snd.generic_filter(psdat[ftype][genus][sname],
                                    np.nanmean, size=(sizey,sizex),mode='nearest')
@@ -286,7 +294,7 @@ def get_tree_fracs(ftypes= 'BDLF NDLF'.split(),
    
 if __name__ == '__main__':
 
-  #treefracs =  get_tree_fracs(ftypes=['NDLF'],dbgGenus='pic')
+  #Fails treefracs =  get_tree_fracs(ftypes=['NDLF'],dbgGenus='pic')
 
   treefracs =  get_tree_fracs()
   #pm.plotmap(treefracs['BDLF']['que']['robu'],'Qrob')
@@ -300,6 +308,7 @@ if __name__ == '__main__':
 
     if  treefracs[f]['Total'][jj,ii] < SMALLFRAC: continue
     print(f"FINTOTS: {f}: {treefracs[f]['Total'][jj,ii]:12.7f} max: {np.max(treefracs[f]['Total']):12.7f}")
+    sys.exit()
 
     print(f"FIN   ftyp gen   spec      fracGenus    fracSpec")
     for genus in treefracs[f].keys():
