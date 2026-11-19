@@ -5,6 +5,7 @@ import string
   stringClean - Function to get rid of funny chars in names, e.g Bratt's Lake
   blankRemove - obvious ...
   multiwrite  - combines elements from an array with given format string
+  endofpath   - grabs last n iterms from pathname
 """
 
 #---------------------------------------------------------------------------- 
@@ -26,6 +27,12 @@ def multiwrite(a,fmt,sep=''):
   return sep.join( f'{num:{fmt}}' for num in a )
 
 #---------------------------------------------------------------------------- 
+def endofpath(txt,n):
+  """ grabs last n terms from pathname, e.g. dd/ee.txt from endofpath('aa/bb/dd/ee.txt',2) """
+  from pathlib import Path
+  return str(Path(*Path(txt).parts[-n:]))
+
+#---------------------------------------------------------------------------- 
 if __name__ == '__main__':
   strings = ( "Bratt's Lake" , "LÃ¼ckendorf", "Ã„htÃ¤ri", "mace  head" )
   for s in strings:
@@ -35,4 +42,5 @@ if __name__ == '__main__':
   print( 'MultiWrite: ', multiwrite(a,'%7.2f') )
   print( 'MultiWrite: ', multiwrite(a[0:3],'%7.2f') )
   print( 'MultiWrite: ', multiwrite(a[0:3],'%7.2f',sep=',') )
+  print( 'endofpath: ', endofpath('aa/bb/dd/ee.txt',2) )
   #OLD print( 'MultiWrite: ', multiwrite(a,', %7.2f') )
