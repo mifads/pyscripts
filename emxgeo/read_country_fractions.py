@@ -46,6 +46,9 @@ idbg= 478; jdbg= 59  # MED
 idbg=391; jdbg=263   # DK in 01 gridfraction file
 idbg=259;jdbg=23  # Marocko
 idbg=400;jdbg=23  # Algeria
+
+seas = 'ATL BAS NOS MED BLS'.split()
+
 #-----------------------------------------------------------------------------
 def get_country_fractions(ccodes_wanted=None,res='01',cfmapWanted=False,smallNorway=True,
     excl_nums_from=400, txt='', dbg=False): # eg IE, BG
@@ -55,7 +58,6 @@ def get_country_fractions(ccodes_wanted=None,res='01',cfmapWanted=False,smallNor
    We also sum sea-areas:
    BAS=30,NOS=31,ATL=32,MED=33,BLS=34,NAT=35,
   """
-  seas = 'ATL BAS NOS MED BLS'.split()
 
   dtxt='get_coun_frac:' + txt
   ifile= f'{datadir}/EMEP_CountryStuff/emep_ll_gridfraction_{res}degCEIP_2018.nc'
@@ -114,9 +116,7 @@ def get_country_fractions(ccodes_wanted=None,res='01',cfmapWanted=False,smallNor
   else:
     ccodes_used = {k:ccodes[k] for k in sorted(ccodes_wanted)}
     ccodes_used = set(ccodes_wanted) | set(seas) # Ensure we have seas
-  #print('USED ', ccodes_used)
-
-
+  print(f'{dtxt} USED ', ccodes_used)
 
   for iso in ccodes_used: #  in ds.variables:   # eg CC_14 for IE
   
@@ -147,8 +147,7 @@ def get_country_fractions(ccodes_wanted=None,res='01',cfmapWanted=False,smallNor
                  countries['cfmap'][j,i] += iso
                else:
                  countries['cfmap'][j,i] += f';{iso}'
-               if jdbg==j and idbg == i: print('DBGIJMAP', i,j, iso, countries['cfmap'][j,i], c[j,i], c[j,i] )
-
+               if jdbg==j and idbg == i: print(f'{dtxt} DBGIJMAP', i,j, iso, countries['cfmap'][j,i], c[j,i], c[j,i] )
 
       #if iso=='MED':
       #    print('DEBUG', countries[iso]['sum_area_km2'] )
@@ -165,23 +164,27 @@ def get_country_fractions(ccodes_wanted=None,res='01',cfmapWanted=False,smallNor
   for sea in seas:
     countries['sum_seas'] +=  countries[sea]['fractions']
   countries['sum_land'] = 1 - countries['sum_seas']
-  #print( 'DKSEA', dksea[jsea,isea], countries['sum_seas'][jsea,isea], countries['sum_land'][jsea,isea])
-  print('DONE ',dtxt, countries.keys())
+  print(f'{dtxt } DKSEA', dksea[jsea,isea], countries['sum_seas'][jsea,isea], countries['sum_land'][jsea,isea])
+  print(f'{dtxt} DONE countries: ', countries.keys())
   return countries
 
 #-----------------------------------------------------------------------------
-def get_country_sums_or_masks(lons,lats,vals,ccodes=None,masksWanted=False,txt=''): # emep 01 landcover France
+def get_country_sums_or_masks(lons,lats,vals=None,ccodes=None,masksWanted=False,txt=''): # emep 01 landcover France
   """ country sums or masks in the given lat/lon domain.
       By default gets area of vals for countries in ccodes
       if wanted, can return mask (frac) in coords of inputs
   """
 
-  dtxt= f'gcsums({txt}):'
+  dtxt= f'get_coun_sums({txt}):'
+  if vals==None:
+    vals = np.ones([len(lats),len(lons)])  # Unit map
 
-  print('INTO ',dtxt, ccodes)
+  print(f'{dtxt} START ccodes: ', ccodes, np.max(vals))
   cfdata=get_country_fractions(ccodes_wanted=ccodes,cfmapWanted=True)
   cfcodes = cfdata['codes_used'] # usually addes seas
-  print('NOW: ',dtxt, cfcodes)
+  # Seas are tricky Should re-write.
+  print(f'{dtxt} cfcodes: ', cfcodes, cfdata.keys()) # codes has MED etc, cfdata has sum_seas
+
   cflons=cfdata['lons']
   cflats=cfdata['lats']
   km2    = cfdata['cell_km2']
@@ -211,18 +214,24 @@ def get_country_sums_or_masks(lons,lats,vals,ccodes=None,masksWanted=False,txt='
     ccodes = list(cfdata.keys())
     for i in 'lons lats cell_km2 cfmap'.split():
       ccodes.remove(i)
+  elif 'seas' in ccodes:
+    i = ccodes.index('seas')
+    print(f"{dtxt} adding seas: {ccodes} {i}")
+    ccodes[i:i+1] = seas
+    print(f"{dtxt} added seas: {ccodes}")
 
   cc_km2=dict()  # Area for each country
 
   masks = dict()
   ninmask = dict()
-  print('THEN: ',dtxt, ccodes)
+  print(f'{dtxt} THEN: ccodes= ', ccodes)
+  print(f'{dtxt} THEN: cfcodes= ', cfcodes)
   #for cc in ccodes:
   for cc in cfcodes:
     if cc.startswith('sum_'): continue
     cc_km2[cc] = cfdata[cc]['fractions'] * km2
 
-    print('CCSUM', cc,  np.sum(cc_km2[cc])) # , cfdata[cc]['sum_area_km2'] ) # =same
+    print(f'{dtxt} CCSUM', cc,  np.sum(cc_km2[cc])) # , cfdata[cc]['sum_area_km2'] ) # =same
     sumcc[cc] = 0.0
 
     if masksWanted:
@@ -275,9 +284,10 @@ def get_country_sums_or_masks(lons,lats,vals,ccodes=None,masksWanted=False,txt='
   if masksWanted:
     #for cc in masks.keys():
     xmasks = dict() # will only include asked-for ccodes
-    for cc in ccodes:
-      print('MASKING ', cc, masks.keys() )
+    print(f'{dtxt} MASKING ', cc, masks.keys() )
+    for cc in ccodes: #h here misses seas areas and sum_seas
       xmasks[cc] = np.where(ninmask[cc]>0,masks[cc]/ninmask[cc],0.0)
+      print(f"MASKING   {cc} {np.nanmean(xmasks[cc]):.4f} {np.nanmax(xmasks[cc]):.3f}" )
     return xmasks
   else: # no easy way to sort dicts as dicts, except:
     return { k:v for k, v in sorted(sumcc.items()) }
