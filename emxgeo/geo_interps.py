@@ -52,6 +52,24 @@ def scat_interp(x,y,z,xi,yi,mask=None,method='linear'):
   return z
 
 #-----------------------------------------------------------------------------
+def scat_Clough(x,y,z,xi,yi,fill_value=np.nan): # tol, maxiter, rescale
+  """
+  From https://www.tutorialspoint.com/scipy/scipy_interpolate_cloughtocher2dinterpolator_function.htm
+  x,y,z are point data
+  xi, yi are grid data coords, e.g. lons, lats
+  fill_value Value used to fill in for requested points outside of the convex hull of the input points. If not provided, then the default is nan.
+  tol Absolute/relative tolerance for gradient estimation.
+  maxiter int, Maximum number of iterations in gradient estimation.
+  rescale bool, Rescale points to unit cube before performing interpolation. This is useful if some of the input dimensions have incommensurable units and differ by many orders of magnitude.
+
+  See also: https://stackoverflow.com/questions/54432470/how-to-get-a-non-smoothing-2d-spline-interpolation-with-scipy
+  """
+  from scipy.interpolate import CloughTocher2DInterpolator
+  X, Y = np.meshgrid(xi,yi)
+  interp = CloughTocher2DInterpolator(list(zip(x, y)), z)
+  Z = interp(X, Y)
+  return Z
+#-----------------------------------------------------------------------------
 # https://stackoverflow.com/questions/5551286/filling-gaps-in-a-numpy-array/9262129#9262129
 def ndimage_fill(data, invalid=None):
   from scipy import ndimage as nd
@@ -291,7 +309,8 @@ if __name__ == '__main__':
    months=list(range(1,13))
 
    #for method in 'nninterp nninterpU box_fill box_fill2 box_fill3 astro_box_fill astro_box_fill2 astro_box_fill3'.split():
-   for method in 'scat_interp nninterp nninterpU box_fill2 astro_box_fill2'.split():
+   for method in 'scat_Clough scat_interp nninterp nninterpU box_fill2 astro_box_fill2'.split():
+   #for method in 'scat_Clough scat_interp'.split():
       znew = np.zeros([12,len(lats),len(lons)])
       for mm in range(12):
         vals=ds.Norm_C3_Crop.values[mm,:,:]
@@ -300,7 +319,7 @@ if __name__ == '__main__':
         vals = fill_arctics(lons,lats,vals)
         print('NVALS 22', vals[2,2], valsUnfilled[2,2] )
 
-        if method == 'scat_interp':
+        if method.startswith('scat_'): # _interp, _Clough
            x=[];y=[];z=[]
            for j,lat in enumerate(lats):
              for i,lon in enumerate(lons):
@@ -308,7 +327,10 @@ if __name__ == '__main__':
                  x.append(lon)
                  y.append(lat)
                  z.append(valsUnfilled[j,i])
-           znew[mm,:,:] = scat_interp(x,y,z,lons,lats,mask=None,method='linear')
+           if method == 'scat_interp':
+             znew[mm,:,:] = scat_interp(x,y,z,lons,lats,mask=None,method='linear')
+           else:
+             znew[mm,:,:] = scat_Clough(x,y,z,lons,lats)
         if method == 'box_fill':
           print(f'{method}FILL {lons.shape} {lats.shape} {vals.shape}') 
           znew[mm,:,:]  = box_fill(lons,lats,vals)
