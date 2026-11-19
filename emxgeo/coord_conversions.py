@@ -60,6 +60,7 @@ def plateCarree_tolonlat(x,y):
 from pyproj import Proj
 polar=dict()
 polar[50]=Proj( ellps='sphere', R=127.4, proj='stere', lat_0=90, lon_0=-32, lat_ts=60, x_0=8., y_0=110.)
+polar["50mod"]=Proj( ellps='sphere', R=127.4, proj='stere', lat_0=90, lon_0=-32, lat_ts=60, x_0=43., y_0=121.)
 polar[5]=Proj( ellps='sphere', R=127.4, proj='stere', lat_0=90, lon_0=-32, lat_ts=60, x_0=75.5, y_0=1095.5)
 
 #try2 used k=0.933013 instead of lat_0. This number comes from ncdump on test .nc file
@@ -75,7 +76,11 @@ def lonlat2xy(lon,lat,pstere=50):
 
 # ------------------------------------------------------------------------------
 def xy2lonlat(x,y,pstere=50):
- """ Convert EMEP 50km x, y (official) coords to lon, lat """
+ """ Convert EMEP 50km x, y (official or model) coords to lon, lat
+   note that calling with 50mod is the same as calling the official
+   pstere=50 with x-35, y-11
+ """
+ if  pstere=="50mod": return polar["50mod"](x,y,inverse=True)
  if  pstere==50: return polar[50](x,y,inverse=True)
  elif pstere==5: return polar[5](x,y,inverse=True)
  else: sys.exit(f"{polar} projection not code")
@@ -112,6 +117,12 @@ if __name__ == '__main__':
     print(f'P1:{n} {lon:.4f} {lat:.4f} {x1[n]:.4f} {y1[n]:.4f} {lon1[n]:.4f} {lat1[n]:.4f}')
     n += 1
 
+  # oct 2026 double check proj behaviour:
+  print(f"checkPS off     1,1 {xy2lonlat(1,1)}")
+  print(f"checkPS off -34,-10 {xy2lonlat(-34,-10)}")
+  print(f"checkPS mod     1,1 {xy2lonlat(1,1,pstere="50mod")}")
+  sys.exit()
+
   pstest = None
   pstest = 5
   if pstest:
@@ -144,6 +155,8 @@ if __name__ == '__main__':
     x1, y1 = 967646, 6899227
     longitude, latitude =  lambert93_to_wgs84(x1,y1)
     # Display results
+    print("Lambert France to LL", longitude, latitude)
+
     print("Lambert France to LL", longitude, latitude)
 
 
