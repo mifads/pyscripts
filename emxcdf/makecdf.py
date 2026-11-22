@@ -36,8 +36,12 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,stop_if_error=
       varname = a['varname']
       if dbg:
         print(dtxt+'XRARRAY='+varname)
+        print(dtxt+'TYPE(a)==', type(a))
         print(dtxt+'ATTR=', a['attrs'])
         print(dtxt+'KEYS=', a.keys())
+        print(dtxt+'LENCRD=', len(a['coords']))
+        print(dtxt+'LENDIM=', len(a['dims']))
+        print(dtxt+'SHAPE=', np.shape(a['data']))
       
       if '_FillValue' in a['attrs']:
           if dbg: print(dtxt+'FILL', varname)
@@ -92,6 +96,7 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,stop_if_error=
       if 'time' in var:
        #CF complaint: https://cfconventions.org/Data/cf-conventions/cf-conventions-1.11/cf-conventions.html#time-coordinate
         if dbg: print(dtxt+'TIMEOUT', var, outfile)
+        if dbg: print(dtxt+'TIMEOUT', var, outxr.coords['time'])
         #F25
         encoding[var] = {'_FillValue':None}
         #FAIL encoding[var] = {'dtype': 'f4','standard_name':'time', 'units':'days since 1900-1-1 0:0:0', 'decode_times':False, '_FillValue':None}
@@ -132,13 +137,21 @@ def create_xrcdf(xrarrays,globattrs,outfile,timeVar='',sigfigs=-1,stop_if_error=
       if dbg: print('OUTXR vars ', var, data_comp)
 
   if dbg: print('XRmake', outfile)
+  if dbg: print('ENC??', encoding)
   try:
     #outxr.to_netcdf(outfile, format='netCDF4',decode_times=False,encoding=encoding)
     outxr.to_netcdf(outfile, format='netCDF4',encoding=encoding)
   except:
-    print(dtxt+' OUTCDF FAILED', outfile)
-    print(dtxt+' OUTCDF FAIL ENC.', encoding)
-    print(dtxt+' OUTCDF FAIL ofile.', outfile)
+    try:
+      outxr.to_netcdf('xx'+outfile, format='netCDF4') # ,encoding=encoding)
+    except:
+      print(dtxt+' OUTCDF FAILED', outfile)
+      print(dtxt+' OUTCDF FAIL ENC.', encoding)
+      print(dtxt+' OUTCDF FAIL ofile.', outfile)
+      print(dtxt+' OUTCDF FAIL vars:', outxr.data_vars)
+      for v in outxr.data_vars:
+        print(dtxt+' OUTCDF FAIL var:', v, outxr[v].values.shape, )
+
     if stop_if_error: sys.exit('!!!! makecdf: OUTXR fail'+outfile)
     return outxr, encoding, os.path.basename(outfile)
   outxr.close()
