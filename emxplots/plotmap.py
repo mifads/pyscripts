@@ -33,6 +33,29 @@ def plotmap(x,txt,plotfile=None,cmap='jet',vmin=None,vmax=None):
   plt.clf()
 
 #============================================================================
+# colorblind friendly diverging
+def get_cbcmap():
+  """ see https://rgblind.com/colorblind-safe-colormap-generator """
+  from matplotlib.colors import LinearSegmentedColormap
+
+  cvd_safe = LinearSegmentedColormap.from_list(
+    "cvd_safe",
+    [
+        "#005078",
+        "#0070A5",
+        "#4D8FC2",
+        "#8AAED1",
+        "#BECFE1",
+        "#F1F1F1",
+        "#DFC9BB",
+        "#CAA389",
+        "#B37E58",
+        "#995A29",
+        "#7A3A00",
+    ],
+  )
+  return cvd_safe
+
 def plotlonlatmap(lons,lats,vals,levels,
         title=None,
         cmap='nmr', 
@@ -47,6 +70,8 @@ def plotlonlatmap(lons,lats,vals,levels,
  
   if cmap == 'nmr':
     cm = ListedColormap(nmrcolors)
+  elif cmap == 'cbdiv':
+    cm = get_cbcmap()
   else:
     cm = plt.colormaps[cmap]
   cm.set_under('0.75')
@@ -204,4 +229,9 @@ if __name__ == '__main__':
   y = np.linspace(30,60,10)
   z = np.linspace(0,100,10)
   plot_map_pts(x,y,z,'r')
+
+  z = np.random.rand(len(y),len(x)) - 0.5 # +ve/-ve
+  levs = [-0.7,-0.5,-0.3,-0.1,0.1,0.3,0.5,0.7]
+  plotlonlatmap(x,y,z,levels=levs,cmap="cbdiv") #'TestX',vmin=0,vmax=600)
+
 
